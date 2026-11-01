@@ -340,16 +340,27 @@ if nbis_spot:
     else:
         nbis["state"] = "觸發區上 %+.1f%%" % (100 * (nbis_spot / 163 - 1))
 
-# ---------- 9. 總判決 ----------
+# ---------- 9. 總判決（VIX[20,32] fail-closed 真倉條款：<20 全封） ----------
 verdict_level, verdict_txt = "封", ""
 if radar_level == "RED" or vix_band == ">32" or breadth_regime == "collapse":
     verdict_level, verdict_txt = "🔴 封刀", "雷達/廣度/VIX 至少一項封——今日唔開新倉，現有腿照 PT50/roll 規則行"
 elif vix_band == "<20":
-    verdict_level, verdict_txt = "🟡 XSP 封・單名照 screen", "VIX<20 fail-closed：指數腿唔開；單名跟 top-6 screen＋閘（radar YEL → δ 縮深）"
+    verdict_level, verdict_txt = "🟡 全封（等 VIX 回 20）", "VIX[20,32] fail-closed 真倉條款：XSP＋單名新倉一律唔開（開工須 VIX≥20 或行正式改閘 SOP）；現有腿照 PT50/roll"
 elif radar_level == "YEL":
     verdict_level, verdict_txt = "🟡 半開", "雷達 YEL：單名照做 δ 縮深 0.02；XSP 照 band 規則"
 else:
     verdict_level, verdict_txt = "🟢 開倉窗", "band＋雷達＋廣度全過——跟 top-6 screen 開 spr10"
+
+# 過閘漏斗（回答「候選係過咗幾多閘先出線」）
+funnel = dict(
+    pool=len(names),
+    mom_pos=len(screen),
+    top6=len(top6),
+    iv_ok=sum(1 for x in top6 if x["iv"] != "死亡區"),
+    earn_ok=sum(1 for x in top6 if x["earn"] == "ok"),
+    gap_ok=sum(1 for x in top6 if x["gap"] == "ok"),
+    final=len(candidates),
+    verdict=verdict_level)
 
 # 黃金窗
 gm = today.month
@@ -358,15 +369,37 @@ gold = dict(in_window=in_gold, window="11月–5月",
             note=("現正身處黃金窗——季節性最強 7 個月，照規則開倉唔猶豫" if in_gold
                   else "6–10 月非黃金窗——照閘行，唔追段"))
 
+# 開市偵測：bar 日期＝ET 今日 → 該「收市價」實為現價（開市中）＋ET 日曆說明（防 HKT/ET 誤會）
+WD_ZH = {0: "週一", 1: "週二", 2: "週三", 3: "週四", 4: "週五", 5: "週六", 6: "週日"}
+et_note, bar_wd = None, None
+try:
+    from zoneinfo import ZoneInfo
+    _et = datetime.datetime.now(ZoneInfo("America/New_York"))
+    intraday = bool(bar_date == str(_et.date()))
+    try:
+        bar_wd = WD_ZH[datetime.date.fromisoformat(bar_date).weekday()]
+    except Exception:
+        bar_wd = ""
+    if intraday:
+        et_note = "ET 而家 %s %s——開市中，下列價＝現價（延遲約 0–15 分）" % (str(_et.date()), WD_ZH[_et.weekday()])
+    else:
+        et_note = "ET 而家 %s %s（休市）——最新美股交易日係 %s（%s），HKT 而家 %s" % (
+            str(_et.date()), WD_ZH[_et.weekday()], bar_date, bar_wd,
+            datetime.datetime.now().strftime("%m-%d %H:%M"))
+except Exception:
+    intraday = None
+
 out = dict(
     as_of=datetime.datetime.now().strftime("%Y-%m-%d %H:%M HKT"),
-    bar_date=bar_date, data_fresh=yf_ok,
+    bar_date=bar_date, data_fresh=yf_ok, intraday=intraday,
     market=dict(spx=usd(spx), spx_chg=(None if not spx_prev or math.isnan(spx_prev) else round(100 * (spx / spx_prev - 1), 2)),
                 vix=round(vix, 2) if vix and not math.isnan(vix) else None,
                 vix_chg=(None if not vix_prev or math.isnan(vix_prev) else round(vix - vix_prev, 2)),
-                vix_band=vix_band, band_action=band_action, breadth=breadth, breadth_regime=breadth_regime),
+                vix_band=vix_band, band_action=band_action, breadth=breadth, breadth_regime=breadth_regime,
+                et_note=et_note, bar_wd=bar_wd if 'bar_wd' in dir() else None),
     radar=dict(level=radar_level, reasons=radar_reasons, note=radar_note),
     verdict=dict(level=verdict_level, txt=verdict_txt, delta_single=delta_today),
+    funnel=funnel,
     golden=gold,
     screen=top6, candidates=candidates,
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),

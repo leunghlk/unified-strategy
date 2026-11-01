@@ -117,8 +117,23 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <tbody id="tdScreen"><tr><td colspan="5">—</td></tr></tbody>
       </table></div>
       <div class="note" style="margin-top:6px">篩選方法：<b>pool117 全池</b>（ownable45＋fleet72，avoid23 唔入池）內計 <b>mom63</b>（過去 63 個交易日回報），&gt;0 先合格，排前 6；再逐隻過閘——IV 分位（&lt;25% 死亡區硬禁／25–50 半倉）、業績（前 21td 禁＋後 5td 冷靜）、裂口（chg1d&gt;8% 禁）、殺倉雷達 veto、廣度凍結梯、VIX band、按金閘。表內只顯示業績／裂口兩欄，其餘閘係簿級，封刀時全簿唔開。</div>
-      <div class="note">同「🌌 宇宙 117」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池快照</b>（10-30 規劃版，六隻全 ownable：MRVL 全池計只係 rank11）；呢邊係 <b>pool117 全池＋最新收市價</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；快照榜留做規劃參考。</div>
+      <div class="note">同「🌌 宇宙 117」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池快照</b>（10-30 規劃版，六隻全 ownable：MRVL 全池計只係 rank11）；呢邊係 <b>pool117 全池＋最新價（開市時＝現價）</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；快照榜留做規劃參考。</div>
       <div style="margin-top:10px" id="tdCandWrap"></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="card">
+      <h3>🌡️ VIX 對應策略表<span class="pill n" style="margin-left:6px" id="vixNow">—</span></h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>VIX 區間</th><th>XSP 指數腿（δ0.20 spr5）</th><th>單名 screen（spr10）</th><th>現有腿處理</th></tr></thead>
+        <tbody>
+          <tr id="vixRow_lt20"><td><b>&lt;20</b></td><td><span class="pill r">全封</span> fail-closed 真倉條款，等回帶</td><td><span class="pill r">唔開</span> 同條款全封；開工須 VIX≥20 或行改閘 SOP</td><td>照 PT50／roll，唔市價斬</td></tr>
+          <tr id="vixRow_2032"><td><b>20–32</b>（開倉窗）</td><td><span class="pill g">可開</span> v1c：VIX 回落准加碼（帽 15%）；spike 後 3–10td 部署窗</td><td><span class="pill g">照 screen</span> top-6 過閘開</td><td>照 PT50／roll</td></tr>
+          <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">全封＋撤</span> fail-closed</td><td><span class="pill r">全封</span>（雷達多數同時爆）</td><td>照 PT50／roll 紀律，掛 mid 等反彈</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">14–18 毒帶註：放寬 VIX floor 嘅提案已三度判死——paper 層先成立，真倉唔好掂（禁手清單）。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
     </div>
   </div>
 
@@ -453,10 +468,10 @@ function loadToday(){
 function renderToday(d){
   var v=d.verdict||{},m=d.market||{};
   var vcol=(v.level||'').indexOf('🔴')>=0?'r':((v.level||'').indexOf('🟡')>=0?'y':'g');
-  var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+' '+((v.level||'').replace('🔴','').replace('🟡','').replace('🟢',''))+'</span><span class="pill '+vcol+'">單名 δ'+(v.delta_single!=null?v.delta_single:'—')+'</span><span class="pill '+(d.data_fresh?'g':'y')+'">價至 '+d.bar_date+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
+  var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+' '+((v.level||'').replace('🔴','').replace('🟡','').replace('🟢',''))+'</span><span class="pill '+vcol+'">單名 δ'+(v.delta_single!=null?v.delta_single:'—')+'</span><span class="pill '+(d.data_fresh?(d.intraday?'b':'g'):'y')+'">'+(d.intraday?'現價（開市中）':'收市價 '+d.bar_date+(m.bar_wd?'（'+m.bar_wd+'）':''))+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
   h+='<div class="desc" style="margin-top:6px">'+(v.txt||'')+'</div>';
   document.getElementById('tdVerdict').innerHTML=h;
-  document.getElementById('tdMkt').innerHTML='SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b> · '+regimeTxt(m.breadth_regime);
+  document.getElementById('tdMkt').innerHTML=(m.et_note?'<div class="note" style="margin:0 0 6px">🗓️ '+m.et_note+'</div>':'')+'SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b> · '+regimeTxt(m.breadth_regime);
   var rr=d.radar||{};
   document.getElementById('tdRadar').innerHTML='殺倉雷達 <b>'+rr.level+'</b> '+rr.note+'<br>'+(rr.reasons||[]).map(function(x){return '· '+x;}).join('<br>')+'<br>廣度 regime：<b>'+regimeTxt(m.breadth_regime)+'</b>';
   var g=d.golden||{};
@@ -468,13 +483,22 @@ function renderToday(d){
   document.getElementById('tdScreen').innerHTML=scr.length?scr.map(function(x){
     return '<tr><td><b>'+x.sym+'</b> +'+x.mom63+'%</td><td class="num">'+(x.close!=null?x.close:'—')+'</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl+'%':'—')+'</td><td>'+(x.earn==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁（'+(x.earn_td!=null?x.earn_td+'td':'')+'）</span>')+'</td><td>'+(x.gap==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁')+'</td></tr>';
   }).join(''):'<tr><td colspan="5">無名過 mom63&gt;0</td></tr>';
+  var fu=d.funnel||{};
+  if(fu.pool){
+    document.getElementById('tdRouteTxt').innerHTML+=' <br><b>過閘漏斗</b>：池 '+fu.pool+' → mom63&gt;0 '+fu.mom_pos+' 隻 → top-6 → IV 過 '+fu.iv_ok+' → 業績過 '+fu.earn_ok+' → 裂口過 '+fu.gap_ok+' → <b>候選 '+fu.final+'</b>。per-name 五閘（動量/IV/業績/裂口/雷達）＋簿級三閘（廣度梯/義務 5%+12%/按金 65%）全過先落得單；'+(((v.level||'').indexOf('🔴')>=0)?'簿級現時紅——有候選都唔開。':'簿級狀態見頂部判決。');
+  }
+  var band=m.vix_band||'';
+  document.getElementById('vixNow').textContent='現時 VIX '+m.vix+' → '+(band==='20-32'?'開倉窗':(band==='<20'?'<20 全封':(band==='>32'?'>32 全封＋撤':band)));
+  ['lt20','2032','gt32'].forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background='';});
+  var curRow=document.getElementById('vixRow_'+(band==='<20'?'lt20':(band==='>32'?'gt32':'2032')));
+  if(curRow) curRow.style.background=(band==='20-32')?'#f0fdf4':'#fffbe6';
   var cands=d.candidates||[],cw=document.getElementById('tdCandWrap');
   if(!cands.length){cw.innerHTML='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
   else{
     var cu=d.cum||{};
     cw.innerHTML='<div class="table-scroll"><table><thead><tr><th>候選</th><th>現價</th><th>Spread</th><th>到期</th><th>Credit</th><th>張</th><th>Premium</th><th>按金</th><th>做完後現金*</th><th>來源</th></tr></thead><tbody>'+
     cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+'</td><td class="num">'+c.spot+'</td><td class="num">'+c.short_k+'/'+c.long_k+'</td><td>'+c.expiry+'<span class="pill n" style="margin-left:4px">'+c.dte_td+'td</span></td><td class="num">'+c.credit+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（延遲價）'?'<span class="pill g">鏈 mid</span>':'BS')+' IV'+c.iv_used+'%</td></tr>';}).join('')+
-    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。價為 yfinance 延遲報價，落單前用 Futu 實價覆核。</div>';
+    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。價為 yfinance（開市時＝現價，延遲約 0–15 分），落單前用 Futu 實價覆核。</div>';
   }
   var nb=d.nbis||{};
   document.getElementById('tdNbis').innerHTML='現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）· 技術燈 '+nb.light+'<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'));
