@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>統一策略台 · Unified Strategy Desk</title>
+<style>
+:root{--blue:#1a73e8;--blue2:#1557b0;--line:#e2e8f0;--ink:#0f172a;--mut:#64748b;--bg:#f5f7fb;--card:#ffffff;--green:#0f9d58;--red:#d93025;--amber:#e8a013;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);}
+/* ── suite header（定型格式，勿改）── */
+.lk-bar{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;padding:10px 20px;display:flex;align-items:center;gap:12px;}
+.lk-logo{width:38px;height:38px;background:#fff;color:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;font-family:"Brush Script MT",cursive;transform:rotate(-6deg);flex-shrink:0;}
+.lk-name{font-size:19px;font-weight:700;}
+.lk-sub{font-size:11px;opacity:.85;}
+.lk-prod{margin-left:auto;font-size:13px;background:rgba(255,255,255,.16);padding:5px 12px;border-radius:14px;}
+.appbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+.appbar-in{max-width:1180px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.appbar h1{font-size:21px;}
+.appbar .sub{font-size:12px;color:var(--mut);}
+.appbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.btn-primary{background:var(--blue);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;}
+.status-bar{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--amber);animation:pulse 1.6s infinite;}
+.live-dot.on{background:var(--green);} .live-dot.off{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* ── tabs ── */
+.tabs{position:sticky;top:53px;z-index:49;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap;}
+.tabs-in{max-width:1180px;margin:0 auto;padding:0 12px;}
+.tab{display:inline-block;padding:11px 14px;font-size:13.5px;color:var(--mut);cursor:pointer;border-bottom:2.5px solid transparent;font-weight:600;}
+.tab.act{color:var(--blue);border-color:var(--blue);}
+/* ── layout ── */
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 60px;}
+.grid{display:grid;gap:12px;}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));}
+.g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.card h3{font-size:14px;margin-bottom:10px;color:var(--ink);}
+.card .desc{font-size:12px;color:var(--mut);margin-top:8px;line-height:1.55;}
+.kpi .v{font-size:26px;font-weight:800;letter-spacing:-.5px;}
+.kpi .l{font-size:12px;color:var(--mut);margin-top:2px;}
+.kpi .a{font-size:11px;color:var(--mut);margin-top:4px;}
+.up{color:var(--green);} .dn{color:var(--red);} .warn{color:var(--amber);}
+.pill{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;}
+.pill.g{background:#e6f4ea;color:var(--green);} .pill.r{background:#fce8e6;color:var(--red);} .pill.y{background:#fef7e0;color:#b06000;} .pill.b{background:#e8f0fe;color:var(--blue);} .pill.n{background:#f1f5f9;color:var(--mut);}
+.hero{background:linear-gradient(135deg,#123c7a,#1a73e8);color:#fff;border:none;}
+.hero .v,.hero .l{color:#fff;} .hero .l{opacity:.85;} .hero .a{opacity:.7;}
+/* ── tables（mobile 必包 table-scroll）── */
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;min-width:560px;}
+thead th{background:#f8fafc;border-bottom:2px solid var(--line);padding:9px 10px;text-align:left;font-size:11.5px;color:var(--mut);white-space:nowrap;}
+tbody td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;}
+/* ── progress ── */
+.pbar{height:14px;background:#e8eef8;border-radius:8px;overflow:hidden;margin-top:8px;}
+.pbar>div{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:8px;width:0%;transition:width .6s;}
+/* ── misc ── */
+.gate{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:12.5px;line-height:1.5;}
+.gate:last-child{border-bottom:none;}
+.gate .no{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+.bad{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.7;}
+.note{font-size:11px;color:var(--mut);line-height:1.6;}
+.big-em{font-size:13.5px;line-height:1.8;}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.foot{background:#fff;border-top:1px solid var(--line);padding:14px;text-align:center;font-size:11px;color:#94a3b8;}
+input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-size:13px;}
+@media(max-width:640px){.lk-prod{display:none;}.appbar h1{font-size:18px;}.v{font-size:22px;}}
+</style>
+</head>
+<body>
+
+<div class="lk-bar">
+  <div class="lk-logo">k</div>
+  <div>
+    <div class="lk-name">leungkathy</div>
+    <div class="lk-sub">All-in-One Financial Dashboard Suite</div>
+  </div>
+  <div class="lk-prod">統一策略台 · Unified Strategy Desk</div>
+</div>
+<div class="appbar"><div class="appbar-in">
+  <div><h1>🎯 統一策略台</h1><div class="sub">回本計劃 · 四合一統一簿（h6040＋w320＋sp4＋composite）· OOS 七窗驗證</div></div>
+  <div class="appbar-right">
+    <button class="btn-primary" id="refreshBtn" onclick="manualRefresh()">🔄 刷新實時</button>
+    <div class="status-bar"><span class="live-dot" id="liveDot"></span><span id="liveBadge">連線中…</span></div>
+  </div>
+</div></div>
+
+<div class="tabs"><div class="tabs-in">
+  <span class="tab act" data-t="t1" onclick="setTab('t1',this)">📊 總覽</span>
+  <span class="tab" data-t="t2" onclick="setTab('t2',this)">🧬 統一簿規格</span>
+  <span class="tab" data-t="t3" onclick="setTab('t3',this)">🔬 OOS 七窗</span>
+  <span class="tab" data-t="t4" onclick="setTab('t4',this)">💰 回本路徑</span>
+  <span class="tab" data-t="t5" onclick="setTab('t5',this)">🌌 宇宙 117</span>
+  <span class="tab" data-t="t6" onclick="setTab('t6',this)">⚙️ Engine·TG·拍板</span>
+</div></div>
+
+<div class="wrap">
+
+<!-- ═══════════ T1 總覽 ═══════════ -->
+<div id="t1" class="tabc">
+  <div class="grid g3">
+    <div class="card kpi hero"><div class="l">帳戶淨值（Futu OpenD 口徑）</div><div class="v">HK$382,349</div><div class="a">＝現金 137,311＋證券 160,286＋在途 84,752<br>2026-10-31 bridge /real_funds 實測 · 拍板①②：跟 OpenD 口徑，在途確認返還</div></div>
+    <div class="card kpi"><div class="l">回本目標</div><div class="v">HK$700,000</div><div class="a">缺口 HK$317,651</div>
+      <div class="pbar"><div id="progFill"></div></div><div class="a" id="progTxt">進度 0%（輸入每月注資自動更新，本機紀錄）</div></div>
+    <div class="card kpi"><div class="l">主路徑（拍板③⑦）</div><div class="v up" style="font-size:21px">$40k/月＋12.42%</div><div class="a">median HAIR 12.42% → 約 8 個月<br>預計達標 <b style="color:var(--green)">2027-06</b></div></div>
+  </div>
+
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card">
+      <h3>實時時段（worker live）</h3>
+      <div id="mktBody" class="desc">載入中…</div>
+      <div class="chiprow" id="mktChips"></div>
+      <div class="note" style="margin-top:8px">⚠️ 真倉引擎條款：VIX[20,32] fail-closed——VIX&lt;20 全封。上週五收 VIX <b>19.42</b>＝現時真倉不開新倉；開工須 VIX≥20 或行正式改閘 SOP（改常數→probe→TG→紀錄），不准 force。</div>
+    </div>
+    <div class="card">
+      <h3>🧨 NBIS 拆彈倒數（最急）<span class="pill r" style="margin-left:6px">11-06 到期</span></h3>
+      <div class="desc">
+        持倉：200 股 @200 成本＋short 2×165C（11-06）。上週五收 <b>154.14</b>，165C bid 4.55（IV 110.8%）。<br>
+        OTM 6.6% ≈ 0.5σ（4 交易日）→ <b>P(被 call) ≈ 30%</b>。<br>
+        <b>建議（拍板⑤）：A 照企</b>——4 日剩餘時間值約 US$1,820，theta 全在我方；110% IV 下買回（B）最貴，roll 11-20（C）同樣要先買貴貨。<br>
+        <b>觸發線</b>：週四（11-05）收市前 NBIS 站上 <b>163–165</b> → 兩條路重判：①接受被 call @165（實現 −$7,000＝原定拆彈出口＋premium 淨收）②roll up 170 @11-20（110% IV 收多注 credit，恢復軌續跑）。
+      </div>
+      <div class="a" id="nbisCountdown" style="margin-top:8px;font-weight:700"></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="card">
+      <h3>本台誠實聲明（先讀）</h3>
+      <div class="big-em">
+        ① 規劃產能一律用 <b>HAIR 10–12.4% 帶</b>（七窗 median 12.42%／CAGR 7.62%）——2026 單窗 14.06% 不准單獨引用。<br>
+        ② 本簿目標是<b>風險調整回本</b>，不是每月贏 SPX：月勝 6/10 已證明結構不可達（翻盤要 149% NAV 槓桿）；本簿是「下跌月贏家」（dn-capture 0.05、Sharpe 約 2 倍、MDD 細 2.7 倍）。<br>
+        ③ 熊窗會輸 10–14%（2022 贏 SPX 6pp；2020 型閃崩輸不過）；熊窗深度回撤只能靠部署層防守（D1/D2/紅燈停手），參數修不到。<br>
+        ④ 再爆一次 −29.1%＝回本 62→98 個月——一次事故白做 5 年，紀律比速度重要。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ T2 統一簿規格 ═══════════ -->
+<div id="t2" class="tabc" style="display:none">
+  <div class="grid g2">
+    <div class="card">
+      <h3>🧬 統一簿 DNA（四模型合成，combo bit-exact）</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>元件</th><th>規格</th></tr></thead>
+        <tbody>
+          <tr><td>指數腿</td><td>XSP short put δ0.20、spread $5、5% NAV——<b>Stage 2 先上</b>（現階段單名腿為主）</td></tr>
+          <tr><td>單名腿</td><td>short put δ0.30（walk ±0.02）、spread $10、單名 ≤5% NAV</td></tr>
+          <tr><td>Long leg</td><td>strike = short ×0.90（或 −5%），限單名跌幅</td></tr>
+          <tr><td>年期</td><td><b>35/21 td</b>（開倉 35，21 轉倉）——長年期＝time value 損耗慢、γ 風險低、業績窗可跨</td></tr>
+          <tr><td>止賺</td><td>PT50（權利金收 50% 平倉）——45% 只贏 0.9pp＝單一日曆好彩</td></tr>
+          <tr><td>定價</td><td>IV＝RV21×1.10、$1.2/contract、零滑價（paper）；BS_R 0.043；CD 4.3%/365 為現金底倉</td></tr>
+          <tr><td>誠實鏡</td><td><b>HAIR85</b>＝credit×0.85 折讓——所有對外數字以此為準；MID（樂觀簿）只作對照</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>🚫 禁手清單（永不重開）</h3>
+      <div class="bad">
+        δ0.45 進取檔 · naked CSP（無 spread 裸賣）· w21 到期不轉倉 · 自動止蝕（永遠 alert-only）· 指數腿 VIX floor 重開庭 · 殺倉雷達半倉制 · pool141all（avoid tier 擠位＝負貢獻）· 結構止蝕（X2 判死）
+      </div>
+      <h3 style="margin-top:14px">🔒 VIX 條款</h3>
+      <div class="desc">真倉生產引擎 <b>VIX[20,32] fail-closed</b> 為唯一準則；任何 band 表（14–18 細租帶）只在 paper 層成立。改閘必須行正式 SOP：改常數→probe 重跑→TG 通告→紀錄。</div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card">
+      <h3>✅ 八閘 checklist（全部 OOS 實錘，12 閘反事實零修改）</h3>
+      <div class="gate"><div class="no">1</div><div><b>動量選股</b>：mom63 前 6 名才可入——放寬＝W2020 MDD −28%→−58.2%</div></div>
+      <div class="gate"><div class="no">2</div><div><b>廣度凍結梯</b>：廣度崩離分級順延入場（80→50/5 日是唯一捉到兩次殺戳窗的鐘）</div></div>
+      <div class="gate"><div class="no">3</div><div><b>IV 分位</b>：&lt;25% 死亡區硬禁（WDC 唯二死亡區 entry＝唯二爆的兩筆）；25–50 半倉；≥50 全倉</div></div>
+      <div class="gate"><div class="no">4</div><div><b>業績 21td 禁</b>：業績前 21 個交易日不開該名＋業縰後 5td 冷靜（拍板⑥）</div></div>
+      <div class="gate"><div class="no">5</div><div><b>殺倉雷達 veto</b>：β63&gt;2.5 ∨ vol63&gt;0.8 ∨ (close&lt;SMA50 ∧ mom63&lt;0)——爆前共通訊號</div></div>
+      <div class="gate"><div class="no">6</div><div><b>裂口閘</b>：chg1d&gt;8% 或 BE&gt;昨收 → 不開</div></div>
+      <div class="gate"><div class="no">7</div><div><b>義務閘（D2 🔴必入）</b>：單名義務 ≤5% NAV、累積 ≤12%、全簿 ≤100%；義務/現金 ≤1（10-08 實測峰值 2.99×）</div></div>
+      <div class="gate"><div class="no">8</div><div><b>按金閘</b>：usage &gt;65% 停開新倉；OOS 全窗 max 14.8%＝閘從未真正綁過</div></div>
+    </div>
+    <div class="card">
+      <h3>🛡️ 部署層 D1–D8（真 delta 所在）</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>#</th><th>條款</th></tr></thead>
+        <tbody>
+          <tr><td><b>D1</b></td><td>MARGIN_HARD_CAP 跟券商 USD 購買力重校（現 20,959＝power 26,303/1.255）</td></tr>
+          <tr><td><b>D2</b></td><td><b style="color:var(--red)">義務/現金 ≤1（必入）</b>——爆倉驗屍直指此閘缺失</td></tr>
+          <tr><td><b>D3</b></td><td>stale-bar 閘：last_et_session 對期，舊 K 線不寫 rec</td></tr>
+          <tr><td><b>D4</b></td><td>真倉/模擬分帳（●真倉／○模擬），daily 對帳</td></tr>
+          <tr><td><b>D5</b></td><td>真價閘：credit ≥85–90% 模型價才落單（110% IV 環境買市價＝送錢）</td></tr>
+          <tr><td><b>D6</b></td><td>雷達六腿：黃燈禁新倉（MDD −12.08%→−4.93%）；複合觸發必顯示哪條中</td></tr>
+          <tr><td><b>D7</b></td><td>mark ≥2× entry 監察（alert-only）＋執行窗：掛 mid 等反彈，不吃市價</td></tr>
+          <tr><td><b>D8</b></td><td>假期結算條款：US 假期 ET 閘門、tonight＝HKT 語義、假日到期提前處理</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ T3 OOS 七窗 ═══════════ -->
+<div id="t3" class="tabc" style="display:none">
+  <div class="grid g3">
+    <div class="card kpi"><div class="l">HAIR Sharpe median</div><div class="v">1.455</div><div class="a">六窗 OOS median 1.518 · 最差 −1.202</div></div>
+    <div class="card kpi"><div class="l">誠實規劃 rate</div><div class="v up">10–12.4%</div><div class="a">HAIR 帶 · 複合 CAGR 7.62%</div></div>
+    <div class="card kpi"><div class="l">371 筆交易</div><div class="v up">0 爆倉 0 違規</div><div class="a">max margin 14.8% NAV</div></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>🔬 七窗 OOS 成績表（HAIR85 口徑）</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>窗</th><th class="num">HAIR 回報</th><th class="num">HAIR Sharpe</th><th class="num">MDD</th><th class="num">同窗 SPX</th><th>結果</th></tr></thead>
+      <tbody>
+        <tr><td>W2020（COVID）</td><td class="num dn">−10.55%</td><td class="num">−0.660</td><td class="num">−28.0%</td><td class="num">+18.0%</td><td><span class="pill r">輸（唯一爆窗）</span></td></tr>
+        <tr><td>W2021</td><td class="num up">+16.27%</td><td class="num">1.580</td><td class="num">−5.6%</td><td class="num">—</td><td><span class="pill g">過</span></td></tr>
+        <tr><td>W2022（陰熊）</td><td class="num dn">−14.00%</td><td class="num">−1.202</td><td class="num">−19.2%</td><td class="num">−19.95%</td><td><span class="pill g">贏 SPX 6pp</span></td></tr>
+        <tr><td>W2023</td><td class="num up">+21.51%</td><td class="num">1.765</td><td class="num">−5.0%</td><td class="num">—</td><td><span class="pill g">過</span></td></tr>
+        <tr><td>W2024</td><td class="num up">+24.26%</td><td class="num">2.362</td><td class="num">−5.2%</td><td class="num">—</td><td><span class="pill g">過</span></td></tr>
+        <tr><td>W2025</td><td class="num up">+12.42%</td><td class="num">1.455</td><td class="num">−4.4%</td><td class="num">—</td><td><span class="pill g">過</span></td></tr>
+        <tr><td>W2026（本年錨）</td><td class="num up">+10.06%</td><td class="num">1.160</td><td class="num">−3.4%</td><td class="num">—</td><td><span class="pill b">in-sample 錨</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="desc">七窗複合：MID +165.92%（CAGR 15.00%）／HAIR +67.20%（CAGR 7.62%）。審計 PASS；數據 12 csv sha256 雙跑零差、基線 7/7 bit-exact。</div>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card">
+      <h3>⬆️ 唯一升級（paper 台自動跑，不佔時間）</h3>
+      <div class="big-em"><b>PT50→60＋δ0.30→0.28</b></div>
+      <div class="desc">最差窗 Sharpe −1.202→<b>−1.090</b>，同時 2026 錨 1.160→<b>1.310</b>——兩頭都好。拍板④：live 先上已驗證基座（PT50+δ0.30），此升級 config 在 paper 台自動驗證 4 週，跑贏才換——用戶零等待。</div>
+    </div>
+    <div class="card">
+      <h3>🧱 結構性判決</h3>
+      <div class="desc">· 熊窗 MDD −28%：77 個 grid run 無一檔可修——<b>部署層的事</b>（D1 硬閘／D2 義務閘／廣度紅燈停手），不是參數事。<br>
+      · 12 閘反事實（84 runs）：零 materiality 提案。反面證據：放寬動量篩選＝W2020 MDD −58.2%；剷同名單倉閘＝W2022 多蝕 $7,115。<br>
+      · DTE 30/42 提案＝regime 依賴，否決。</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ T4 回本路徑 ═══════════ -->
+<div id="t4" class="tabc" style="display:none">
+  <div class="card">
+    <h3>💰 700K 回本矩陣（本金 382,349；缺口 317,651）</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>每月注資</th><th class="num">median 12.42%</th><th class="num">最靚窗</th><th class="num">worst 窗（−14%）</th></tr></thead>
+      <tbody>
+        <tr style="background:#f0fdf4"><td><b>$40,000（拍板③）</b></td><td class="num"><b>8 個月 → 2027-06</b></td><td class="num">7 個月</td><td class="num">10–12 個月</td></tr>
+        <tr><td>$20,000</td><td class="num">14 個月</td><td class="num">11 個月</td><td class="num">16–19 個月</td></tr>
+        <tr><td>$10,000</td><td class="num">22 個月</td><td class="num">17 個月</td><td class="num">26–31 個月</td></tr>
+        <tr><td>$0</td><td class="num">62 個月（~5.2 年）</td><td class="num">44 個月</td><td class="num dn"><b>永不回本</b></td></tr>
+      </tbody>
+    </table></div>
+    <div class="desc">⚠️ 再爆一次 −29.1%：62→98 個月。誠實聲明：任何「缺口÷目標＝0 個月」係會計恒等式，不是策略產能。<b>主引擎是注資，不是加風險。</b></div>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card">
+      <h3>📅 季節性日曆（1990–2025）</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>窗</th><th class="num">平均</th><th class="num">勝率</th></tr></thead>
+        <tbody>
+          <tr style="background:#f0fdf4"><td><b>A 窗 Nov–Apr（現正進入）</b></td><td class="num">+6.77%</td><td class="num">78%</td></tr>
+          <tr><td>B 窗 Jun–Oct</td><td class="num">+2.99%</td><td class="num">72%</td></tr>
+          <tr style="background:#f0fdf4"><td><b>midterm 年 A 窗（2026 即是）</b></td><td class="num"><b>+11.11%</b></td><td class="num"><b>9/9 全正</b></td></tr>
+        </tbody>
+      </table></div>
+      <div class="desc">Nov 最肥：近 15 年 +3.11%/勝 87%。把握＝<b>程序前置</b>（入場排期避業績窗），不是加大 sizing。</div>
+    </div>
+    <div class="card">
+      <h3>🗓️ 行動曆</h3>
+      <div class="desc" style="line-height:2">
+        <b>11-02（一）</b>：DST flip，launchd 定時＋1h 檢查<br>
+        <b>11-05（四）</b>：NBIS 觸發線判決夜（163–165）<br>
+        <b>11-06（五）</b>：NBIS 165C 到期結算<br>
+        <b>11-13</b>：PPI——11-13 到期倉禁開<br>
+        <b>11-20</b>：roll 錨期<br>
+        <b>每月 1 日</b>：注資入帳＋本台進度更新<br>
+        <b>12 月中–1 月</b>：live 首倉最早窗（須 VIX≥20＋八閘全過）
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ T5 宇宙 117 ═══════════ -->
+<div id="t5" class="tabc" style="display:none">
+  <div class="card">
+    <h3>🌌 pool117＝ownable45＋fleet73（avoid tier 不入池）</h3>
+    <div class="desc">avoid tier（23 隻）全年 0 直接成交，但 rank 擠位會害人——已整池剔除。完整名單見 <b>universe/universe_117.md</b>（~/shortput_research/recovery_proposal_20261031/）。</div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>⭐ TOP6 動量榜（mom63）＋業績窗（11-02→12-02 共 33 隻）</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>#</th><th>名字</th><th class="num">mom63</th><th>業績窗 21td</th><th>可入性</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>MRVL</td><td class="num">+37.3%</td><td><span class="pill r">撞窗</span></td><td>業績後 5td 冷靜期過再議</td></tr>
+        <tr><td>2</td><td>DELL</td><td class="num">+22.2%</td><td><span class="pill r">撞窗</span></td><td>同上</td></tr>
+        <tr><td>3</td><td>AMD</td><td class="num">+19.2%</td><td><span class="pill r">撞窗</span></td><td>同上</td></tr>
+        <tr><td style="background:#f0fdf4"><b>4</b></td><td style="background:#f0fdf4"><b>MU</b></td><td class="num" style="background:#f0fdf4">+12.4%</td><td style="background:#f0fdf4"><span class="pill g">清窗</span></td><td style="background:#f0fdf4"><b>TOP6 唯一即時可入</b></td></tr>
+        <tr><td>5</td><td>NVDA</td><td class="num">+10.6%</td><td><span class="pill r">撞窗</span></td><td>業績後再議</td></tr>
+        <tr><td>6</td><td>ANET</td><td class="num">+9.2%</td><td><span class="pill r">撞窗</span></td><td>業績後再議</td></tr>
+      </tbody>
+    </table></div>
+    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥建議 5td，待最終確認）。</div>
+  </div>
+</div>
+
+<!-- ═══════════ T6 Engine·TG·拍板 ═══════════ -->
+<div id="t6" class="tabc" style="display:none">
+  <div class="card">
+    <h3>📋 拍板記錄（2026-11-02 全數落實）</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>#</th><th>議題</th><th>拍板</th></tr></thead>
+      <tbody>
+        <tr><td>①</td><td>400k vs 帳面 −317,651 口徑</td><td><span class="pill g">跟 Futu OpenD 口徑</span></td></tr>
+        <tr><td>②</td><td>在途 84,752</td><td><span class="pill g">確認返還（計入 382,349）</span></td></tr>
+        <tr><td>③</td><td>注資額</td><td><span class="pill g">$40,000/月</span></td></tr>
+        <tr><td>④</td><td>paper 台驗證期</td><td><span class="pill g">基座 config 直接上線；PT60+δ0.28 paper 自動跑（零等待）</span></td></tr>
+        <tr><td>⑤</td><td>NBIS 2×165C 11-06</td><td><span class="pill g">A 照企＋週四 163–165 觸發線</span></td></tr>
+        <tr><td>⑥</td><td>業績後冷靜期</td><td><span class="pill y">建議 5 交易日（自動跟業績日，免 set 日子）— 待一句確認</span></td></tr>
+        <tr><td>⑦</td><td>May-2027 死線</td><td><span class="pill g">順延；注資上門檻 → 2027-06</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card">
+      <h3>⚙️ Engine 清單（提案，等你過目先裝）</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Engine</th><th>做咩</th><th>頻率</th><th>狀態</th></tr></thead>
+        <tbody>
+          <tr><td><b>統一簿掃描</b></td><td>八閘全過篩選 → 當日候選（正選制：閘/wr/best-ay）</td><td>每交易日 ET 開市前＋開市後各 1 次</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td><b>NBIS 觸發線監察</b></td><td>NBIS 觸 163／165 兩檔 TG；11-06 到期日全天候</td><td>美股時段每 5 分鐘</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td><b>回本進度週報</b></td><td>NAV vs 目標、當月注資、累計 HAIR premium、月度里程碑</td><td>週日 20:00 HKT</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td><b>殺倉雷達 v2（現役）</b></td><td>六腿監察，黃燈禁新倉——沿用唔改</td><td>已運行</td><td><span class="pill g">現役</span></td></tr>
+          <tr><td><b>CSP 技術燈（現役）</b></td><td>綠黃紅止蝕紀律——沿用唔改</td><td>已運行</td><td><span class="pill g">現役</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3>📲 TG Alerts 清單（提案，等你過目先開）</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Alert</th><th>觸發</th><th>頻率上限</th><th>狀態</th></tr></thead>
+        <tbody>
+          <tr><td>開倉候選</td><td>八閘全過嘅正選（每日 pre-open 1 條）</td><td>1 條/日</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td>閘紅燈</td><td>八閘任何一閘由綠轉紅（複合觸發必列明邊條中）</td><td>即時，每閘每日 1 次</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td>按金警告</td><td>usage &gt;65%</td><td>即時</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td>NBIS 觸發線</td><td>163／165 兩檔＋到期日提醒</td><td>每檔 1 次</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td>業績窗週提醒</td><td>持倉/候選名進入 21td 窗</td><td>週一 1 次</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td>回本週報</td><td>進度＋注資＋HAIR 累計</td><td>週日 1 次</td><td><span class="pill y">待過目</span></td></tr>
+        </tbody>
+      </table></div>
+      <div class="note" style="margin-top:8px">TG 靜音三面規則（10-27 用戶令）全部沿用：洗倉雷達 DRY、金 sleeve 過濾、策略台決策不推 fired——新 alerts 不違反。</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h3>📁 交付物索引</h3>
+    <div class="note" style="line-height:1.9">
+      · 統一簿：~/shortput_research/unified_strategy_20261031/（UNIFIED_DNA.md · unified_backtest.xlsx 七 sheet）<br>
+      · 全案：~/shortput_research/recovery_proposal_20261031/（PROPOSAL_FULL.md 652 行 15 節）<br>
+      · OOS：~/shortput_research/oos_multiperiod_20261101/（OOS_ENHANCE_VERDICT.md · oos_compare.xlsx 六 sheet · 77 grid＋84 閘反事實）<br>
+      · 核數：~/shortput_research/unified_audit_20261031/（bit-exact PASS）
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="foot"><span style="color:#1a73e8;font-weight:700">leungkathy</span> · All-in-One Financial Dashboard Suite — 統一策略台（四合一統一簿 · OOS 七窗 · 回本 700K）· 數據截至 2026-10-30 收市，真倉決策以 Futu OpenD＋bridge 實時為準</div>
+
+<script>
+var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
+function setTab(id,el){document.querySelectorAll('.tabc').forEach(function(e){e.style.display='none';});document.getElementById(id).style.display='block';document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('act');});el.classList.add('act');}
+function manualRefresh(){loadMarket();}
+function loadMarket(){
+  var d=document.getElementById('liveDot'),b=document.getElementById('liveBadge');
+  fetch(WORKER+'?v='+Date.now()).then(function(r){return r.json();}).then(function(j){
+    d.className='live-dot on';b.textContent='已連線';
+    var now=j.now||{},tn=j.tonight||{};
+    document.getElementById('mktBody').innerHTML='ET '+now.et_date+' '+String(Math.floor((now.et_min||0)/60)).padStart(2,'0')+':'+String((now.et_min||0)%60).padStart(2,'0')+' · session: <b>'+(now.session||'?')+'</b>';
+    var chips='';
+    chips+='<span class="pill '+((now.is_open)?'g':'n')+'">美市 '+(now.is_open?'開市':'休市')+'</span>';
+    if(tn&&tn.hkt_date) chips+='<span class="pill b">今晚 '+(tn.is_trading!==undefined&&tn.is_trading!==null? (tn.is_trading?'有市':'休市') : (tn.et_date||''))+'</span>';
+    chips+='<span class="pill '+(19.42>=20?'g':'y')+'">VIX 19.42（10-30 收）'+(19.42>=20?'·可開':'·全封')+'</span>';
+    chips+='<span class="pill n">SPX 7580.07</span>';
+    document.getElementById('mktChips').innerHTML=chips;
+  }).catch(function(){
+    d.className='live-dot off';b.textContent='離線（顯示 10-30 收市數）';
+    document.getElementById('mktBody').textContent='worker 未連上——以下全部為 2026-10-30 收市數。';
+    document.getElementById('mktChips').innerHTML='<span class="pill y">VIX 19.42 · 全封中</span><span class="pill n">SPX 7580.07</span>';
+  });
+}
+function countdown(){
+  var exp=new Date('2026-11-06T16:00:00-05:00'),now=new Date();
+  var days=Math.ceil((exp-now)/86400000);
+  var el=document.getElementById('nbisCountdown');
+  if(now>exp){el.innerHTML='<span class="pill n">已到期</span>';return;}
+  el.innerHTML='<span class="pill r">剩 '+days+' 日（11-06 16:00 ET 到期）</span>';
+}
+var PROG_KEY='usd_prog_2026';
+function drawProg(){
+  var total=317651,done=0;
+  try{done=parseFloat(localStorage.getItem(PROG_KEY)||'0')||0;}catch(e){}
+  var pct=Math.min(100,Math.max(0,done/total*100));
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progTxt').innerHTML='累計注資 HK$'+done.toLocaleString()+'（'+pct.toFixed(1)+'%）· 缺口 HK$'+(total-done).toLocaleString();
+}
+function saveProg(v){try{localStorage.setItem(PROG_KEY,String(v||0));}catch(e){}drawProg();}
+loadMarket();countdown();drawProg();setInterval(loadMarket,120000);
+</script>
+</body>
+</html>
