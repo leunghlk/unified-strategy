@@ -116,6 +116,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <thead><tr><th>Screen top-6（mom63）</th><th>收市</th><th>IV 分位</th><th>業績閘</th><th>裂口閘</th></tr></thead>
         <tbody id="tdScreen"><tr><td colspan="5">—</td></tr></tbody>
       </table></div>
+      <div class="note" style="margin-top:6px">篩選方法：pool117（ownable45＋fleet72）內計 <b>mom63</b>（過去 63 個交易日回報），&gt;0 先合格，排前 6；再逐隻過閘——IV 分位（&lt;25% 死亡區硬禁／25–50 半倉）、業績（前 21td 禁＋後 5td 冷靜）、裂口（chg1d&gt;8% 禁）、殺倉雷達 veto、廣度凍結梯、VIX band、按金閘。表內只顯示業績／裂口兩欄，其餘閘係簿級，封刀時全簿唔開。</div>
+      <div class="note">同「🌌 宇宙 117」個 TOP6 動量榜嘅分別：嗰邊係 <b>10-30 靜態快照</b>（規劃用，數字唔郁）；呢邊係 gen_today.py 每次重跑用<b>最新收市價即場重計</b>（操作用）——同一條 mom63 公式、同一個池，一個係相一個係直播。業績窗逼近／IV 死亡區呢啲動態狀態只有呢邊有。</div>
       <div style="margin-top:10px" id="tdCandWrap"></div>
     </div>
   </div>
@@ -145,7 +147,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 </div>
 
 <!-- ═══════════ T1 總覽 ═══════════ -->
-<div id="t1" class="tabc">
+<div id="t1" class="tabc" style="display:none">
   <div class="grid g3">
     <div class="card kpi hero"><div class="l">帳戶淨值（Futu OpenD 口徑）</div><div class="v">HK$382,349</div><div class="a">＝現金 137,311＋證券 160,286＋在途 84,752<br>2026-10-31 bridge /real_funds 實測 · 拍板①②：跟 OpenD 口徑，在途確認返還</div></div>
     <div class="card kpi"><div class="l">回本目標</div><div class="v">HK$700,000</div><div class="a">缺口 HK$317,651</div>
@@ -344,8 +346,19 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <!-- ═══════════ T5 宇宙 117 ═══════════ -->
 <div id="t5" class="tabc" style="display:none">
   <div class="card">
-    <h3>🌌 pool117＝ownable45＋fleet73（avoid tier 不入池）</h3>
-    <div class="desc">avoid tier（23 隻）全年 0 直接成交，但 rank 擠位會害人——已整池剔除。完整名單見 <b>universe/universe_117.md</b>（~/shortput_research/recovery_proposal_20261031/）。</div>
+    <h3>🌌 pool117＝ownable45＋fleet72（avoid tier 不入池）</h3>
+    <div class="desc">avoid tier（23 隻）全年 0 直接成交，但 rank 擠位會害人——已整池剔除。ownable45＋fleet72＝117（fleet 表 73 行內的 ATKR 因 6.8 年歷史／f_score 4/9 數據不足剔除，唔入交易池）。<b>點下面展開睇全名單</b>；來源檔 universe/universe_117.md（recovery_proposal_20261031）。</div>
+    <details style="margin-top:8px">
+      <summary style="cursor:pointer;font-weight:700;color:#1a73e8">▾ 展開：pool117 全名單＋avoid23（click）</summary>
+      <div class="desc" style="margin-top:10px">
+        <b>A. ownable45（正選池，可落單）——45 隻</b><br>
+        <span style="line-height:2">APP TSM ADI ASML AVGO CCJ INTU LRCX MRVL STX ADBE AMD CDNS CSCO FFIV GFS GLW KLAC MU OKTA PLTR QLYS SNDK VICR WDAY AMAT AMZN APH ARM CRDO DELL DLR FTNT GEV GOOGL MSFT NVT QCOM RBLX STM TSEM TTD UBER WDC IRM</span><br><br>
+        <b>B. fleet72（衛星池）——72 隻（ATKR 已剔）</b><br>
+        <span style="line-height:2">CIEN D DUK ETN GEN NBIS CEG COHR CRM DDOG ETR EXC IBM INTC RPD SITM TENB U ABNB AEP ALAB APLD CHKP DASH ENTG EQIX HUBB LITE MBLY META MOD MPWR NEE NTGR POWL PWR SHOP SNOW TEL TER UMC VRT XEL AAOI AMBA ANET BBAI BE CORZ CRWD FN HPE LEU MELI NET NOW NVDA SO TEM TLN UCTT UI VST ZS CIFR DUOL IONQ ONTO PANW PONY S SOUN</span><br><br>
+        <b>C. avoid23（⚠️只做 diagnostic，唔入池唔交易）</b><br>
+        <span style="line-height:2;color:#94a3b8">ASX CRWV ORCL QBTS POET AUR HUT LTBR NNE OKLO ON RGTI SNPS UEC ACMR IREN QUBT SERV SMCI AI NVTS WULF SMR</span>
+      </div>
+    </details>
   </div>
   <div class="card" style="margin-top:12px">
     <h3>⭐ TOP6 動量榜（mom63）＋業績窗（11-02→12-02 共 33 隻）</h3>
@@ -360,7 +373,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <tr><td>6</td><td>ANET</td><td class="num">+9.2%</td><td><span class="pill r">撞窗</span></td><td>業績後再議</td></tr>
       </tbody>
     </table></div>
-    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。</div>
+    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。<b>呢個榜係 10-30 快照（規劃用）——每日 live screen 喺「🎯 今日台」。</b></div>
   </div>
 </div>
 
