@@ -126,14 +126,16 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
     <div class="card">
       <h3>🌡️ VIX 對應策略表<span class="pill n" style="margin-left:6px" id="vixNow">—</span></h3>
       <div class="table-scroll"><table>
-        <thead><tr><th>VIX 區間</th><th>XSP 指數腿（δ0.20 spr5）</th><th>單名 screen（spr10）</th><th>現有腿處理</th></tr></thead>
+        <thead><tr><th>VIX 區間</th><th>層級</th><th>研究實數</th><th>策略判決（XSP／單名／現有腿）</th></tr></thead>
         <tbody>
-          <tr id="vixRow_lt20"><td><b>&lt;20</b></td><td><span class="pill r">全封</span> fail-closed 真倉條款，等回帶</td><td><span class="pill r">唔開</span> 同條款全封；開工須 VIX≥20 或行改閘 SOP</td><td>照 PT50／roll，唔市價斬</td></tr>
-          <tr id="vixRow_2032"><td><b>20–32</b>（開倉窗）</td><td><span class="pill g">可開</span> v1c：VIX 回落准加碼（帽 15%）；spike 後 3–10td 部署窗</td><td><span class="pill g">照 screen</span> top-6 過閘開</td><td>照 PT50／roll</td></tr>
-          <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">全封＋撤</span> fail-closed</td><td><span class="pill r">全封</span>（雷達多數同時爆）</td><td>照 PT50／roll 紀律，掛 mid 等反彈</td></tr>
+          <tr id="vixRow_lt14"><td><b>&lt;14</b></td><td><span class="pill y">paper</span></td><td>指數細租 mean +147/筆；barbell 月入 +36% 但 DD 1.7×、單筆最傷 −48.6k（＝本 16.7%）＝已否決</td><td>細租可研究；<b>真倉唔准</b>（fail-closed 凌駕）</td></tr>
+          <tr id="vixRow_1418"><td><b>14–18</b></td><td><span class="pill y">paper</span></td><td>2026 combo 該帶 20 筆＝18 勝 2 負、sum +8,185；但拆開：14-16 mean <b>−147/筆（負）</b>、16-18 +147 但 tail −46k</td><td><b>細租＋單名為主，唔加注</b>；paper 台可做研究，真倉唔准——要做行改閘 SOP 過咗先得</td></tr>
+          <tr id="vixRow_1820"><td><b>18–20</b></td><td><span class="pill r">毒帶</span></td><td>mean <b>−456/筆</b>（負期望）</td><td>唔加注；真倉唔准</td></tr>
+          <tr id="vixRow_2032"><td><b>20–32</b></td><td><span class="pill g">真倉開倉窗</span></td><td>20-25 mean +1,587/筆（錢帶）</td><td>XSP δ0.20 spr5 可開（v1c：VIX 回落准加碼帽 15%；spike 後 3–10td 部署窗）；單名照 screen 過閘開；現有腿照 PT50／roll</td></tr>
+          <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；單名封（雷達多數同爆）；現有腿照 PT50／roll 紀律，掛 mid 等反彈唔市價斬</td></tr>
         </tbody>
       </table></div>
-      <div class="note">⚠️ <b>層級（hierarchy）：真倉引擎 VIX[20,32] fail-closed 凌駕任何 band 表</b>——<b>&lt;20 一律唔開</b>，要行正式改閘 SOP；「指數腿 VIX floor 重開庭」喺禁手清單。paper／研究層 ladder 做參考：&lt;14 細租 mean +147/筆（barbell 月入 +36% 但 DD 1.7×、單筆最傷 −48.6k＝已否決）；14-18 細租＋單名為主、唔加注——14-16 mean <b>−147/筆</b>、16-18 +147 但 tail −46k、2026 combo 該帶 20 筆 18 勝 2 負 +8,185＝<b>淨正唔等於安全（殺領袖期正正喺呢段平靜）</b>；18-20 毒帶 −456/筆 唔加注；20-25 +1,587/筆 錢帶。放寬測試：股票腿 floor 20→18/16/14/none 五項全劣化＝floor20 strict dominance（9-17 判決）。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
+      <div class="note">⚠️ <b>層級（hierarchy）：真倉引擎 VIX[20,32] fail-closed 凌駕任何 band 表——&lt;20 一律唔開</b>（&lt;14／14-18／18-20 三行係 paper／研究層）。放寬測試：股票腿 floor 20→18/16/14/none 五項全劣化＝floor20 strict dominance（9-17 判決）；「指數腿 VIX floor 重開庭」喺禁手清單。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
     </div>
   </div>
 
@@ -489,9 +491,10 @@ function renderToday(d){
   }
   var band=m.vix_band||'';
   document.getElementById('vixNow').textContent='現時 VIX '+m.vix+' → '+(band==='20-32'?'開倉窗':(band==='<20'?'<20 全封':(band==='>32'?'>32 全封＋撤':band)));
-  ['lt20','2032','gt32'].forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background='';});
-  var curRow=document.getElementById('vixRow_'+(band==='<20'?'lt20':(band==='>32'?'gt32':'2032')));
-  if(curRow) curRow.style.background=(band==='20-32')?'#f0fdf4':'#fffbe6';
+  ['lt14','1418','1820','2032','gt32'].forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background='';});
+  var curIds=band==='20-32'?['2032']:(band==='>32'?['gt32']:['lt14','1418','1820']);
+  var hl=(band==='20-32')?'#f0fdf4':'#fffbe6';
+  curIds.forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background=hl;});
   var cands=d.candidates||[],cw=document.getElementById('tdCandWrap');
   if(!cands.length){cw.innerHTML='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
   else{
