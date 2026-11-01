@@ -135,7 +135,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
           <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；單名封（雷達多數同爆）；現有腿照 PT50／roll 紀律，掛 mid 等反彈唔市價斬</td></tr>
         </tbody>
       </table></div>
-      <div class="note">⚠️ <b>層級（hierarchy）：真倉引擎 VIX[20,32] fail-closed 凌駕任何 band 表——&lt;20 一律唔開</b>（&lt;14／14-18／18-20 三行係 paper／研究層）。⭐<b>11-02 改閘 SOP 五步已行完（8 變體×7 窗 OOS，determinism 7/7）</b>：單名腿「VIX&lt;20 全封」淨破壞 −22.4k／7窗判死；指數腿 floor20 實錘係寶（meanΔSharpe +0.323）<b>唔准郁</b>；放寬窄規則＝<b>熊狀態門</b>（VIX&lt;20 且 SPX≤SMA200 先封，牛狀態放行）三判據全過——<span class="pill y">待拍板</span>未批前真倉照舊全封。舊「floor20 strict dominance／毒帶 −456」（9-17）只代表舊引擎舊宇宙口徑，唔准再引。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
+      <div class="note">⚠️ <b>層級（hierarchy）：真倉引擎 VIX[20,32] fail-closed 凌駕任何 band 表——&lt;20 一律唔開</b>（&lt;14／14-18／18-20 三行係 paper／研究層）。⭐<b>11-02 改閘 SOP 五步已行完（8 變體×7 窗 OOS，determinism 7/7）</b>：單名腿「VIX&lt;20 全封」淨破壞 −22.4k／7窗判死；指數腿 floor20 實錘係寶（meanΔSharpe +0.323）<b>唔准郁</b>；放寬窄規則＝<b>熊狀態門</b>（VIX&lt;20 且 SPX≤SMA200 先封，牛狀態放行）三判據全過——<span class="pill y">待拍板</span>未批前真倉照舊全封。<b>狀態定義（引擎 <code>spx_above_sma200</code> 口徑）：</b>牛狀態＝SPX 收市價 ≥ 200 日移動平均線；熊狀態＝SPX 收市價 &lt; SMA200，或 SMA200 攞唔到數（fail-closed 當熊）。每日以收市價計一次。截至 10-30 收市：SPX 7580.07 &gt; SMA200 7309.76（+3.7%）＝<b>牛狀態</b>（若判決落地今日可 screen）。舊「floor20 strict dominance／毒帶 −456」（9-17）只代表舊引擎舊宇宙口徑，唔准再引。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
     </div>
   </div>
 
@@ -414,7 +414,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <div class="grid g2" style="margin-top:12px">
     <div class="card">
       <h3>⚙️ Engine 清單（提案，等你過目先裝）</h3>
-      <div class="note" style="margin-bottom:8px">⭐<b>VIX floor 改閘判決（11-02 SOP 行完）待拍板三件</b>：①真倉單名腿「VIX&lt;20 全封」→ 熊狀態門（VIX&lt;20 且 SPX≤SMA200 先封）＋順手加單名 VIX&gt;32 閘（零 carry）②gen_today「VIX&lt;20 全封」verdict 改半開 ③VIX 表語義更新。判決：單名全封 −22.4k/7窗判死；指數腿 floor20 唔准郁。批咗先改真倉規則。</div>
+      <div class="note" style="margin-bottom:8px">⭐<b>VIX floor 改閘判決（11-02 SOP 行完）待拍板三件</b>：①真倉單名腿「VIX&lt;20 全封」→ <b>熊狀態門</b>（VIX&lt;20 且 SPX≤SMA200 先封；牛狀態＝SPX 收市價 ≥ 200 日平均線，熊狀態＝跌穿或攞唔到數當熊）＋順手加單名 VIX&gt;32 閘（零 carry）②gen_today「VIX&lt;20 全封」verdict 改半開 ③VIX 表語義更新。判決：單名全封 −22.4k/7窗判死；指數腿 floor20 唔准郁。現況 10-30 收市＝<b>牛狀態</b>（SPX 7580 &gt; SMA200 7310），批咗今日即可 screen。批咗先改真倉規則。</div>
       <div class="table-scroll"><table>
         <thead><tr><th>Engine</th><th>做咩</th><th>頻率</th><th>狀態</th></tr></thead>
         <tbody>
