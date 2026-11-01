@@ -87,7 +87,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 </div></div>
 
 <div class="tabs"><div class="tabs-in">
-  <span class="tab act" data-t="t1" onclick="setTab('t1',this)">📊 總覽</span>
+  <span class="tab act" data-t="t0" onclick="setTab('t0',this)">🎯 今日台</span>
+  <span class="tab" data-t="t1" onclick="setTab('t1',this)">📊 總覽</span>
   <span class="tab" data-t="t2" onclick="setTab('t2',this)">🧬 統一簿規格</span>
   <span class="tab" data-t="t3" onclick="setTab('t3',this)">🔬 OOS 七窗</span>
   <span class="tab" data-t="t4" onclick="setTab('t4',this)">💰 回本路徑</span>
@@ -96,6 +97,52 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 </div></div>
 
 <div class="wrap">
+
+<!-- ═══════════ T0 今日台 ═══════════ -->
+<div id="t0" class="tabc">
+  <div class="card" id="tdVerdict"><div class="desc">載入中……（今日台數據由本地引擎產生器寫入 today.json）</div></div>
+
+  <div class="grid g3" style="margin-top:12px">
+    <div class="card"><h3>即市</h3><div class="desc" id="tdMkt">—</div></div>
+    <div class="card"><h3>避雷・避殺倉</h3><div class="desc" id="tdRadar">—</div></div>
+    <div class="card"><h3>黃金窗</h3><div class="desc" id="tdGold">—</div></div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="card">
+      <h3>今日做咩<span class="pill b" style="margin-left:6px" id="tdRoute">—</span></h3>
+      <div class="note" id="tdRouteTxt" style="margin:4px 0 10px">—</div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Screen top-6（mom63）</th><th>收市</th><th>IV 分位</th><th>業績閘</th><th>裂口閘</th></tr></thead>
+        <tbody id="tdScreen"><tr><td colspan="5">—</td></tr></tbody>
+      </table></div>
+      <div style="margin-top:10px" id="tdCandWrap"></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:12px">
+    <div class="card">
+      <h3>🧨 NBIS 觸發線（11-06 到期）</h3>
+      <div class="desc" id="tdNbis">—</div>
+    </div>
+    <div class="card">
+      <h3>開倉試算（人手輸入，即場計）</h3>
+      <div class="desc" style="display:flex;gap:8px;flex-wrap:wrap">
+        <label>Short K <input id="cKs" type="number" step="0.5" style="width:76px"></label>
+        <label>Long K <input id="cKl" type="number" step="0.5" style="width:76px"></label>
+        <label>Credit <input id="cCr" type="number" step="0.05" style="width:70px"></label>
+        <label>張數 <input id="cN" type="number" step="1" style="width:56px"></label>
+      </div>
+      <div class="desc" id="cOut" style="margin-top:8px;font-weight:700">填入四格即計：premium／最大虧損＝按金／佔 NAV／做完後現金。</div>
+      <div class="note" style="margin-top:6px">試算口徑：put spread 按金＝最大虧損＝(Ks−Kl)×100×張數−premium；NAV 錨 US$49,145（HK$382,349÷7.78）；單名閘 5%＝US$2,457，簿計閘 12%＝US$5,897。</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:12px">
+    <h3>操作口徑與紀錄</h3>
+    <div class="note" id="tdMeta">—</div>
+  </div>
+</div>
 
 <!-- ═══════════ T1 總覽 ═══════════ -->
 <div id="t1" class="tabc">
@@ -172,7 +219,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <div class="gate"><div class="no">1</div><div><b>動量選股</b>：mom63 前 6 名才可入——放寬＝W2020 MDD −28%→−58.2%</div></div>
       <div class="gate"><div class="no">2</div><div><b>廣度凍結梯</b>：廣度崩離分級順延入場（80→50/5 日是唯一捉到兩次殺戳窗的鐘）</div></div>
       <div class="gate"><div class="no">3</div><div><b>IV 分位</b>：&lt;25% 死亡區硬禁（WDC 唯二死亡區 entry＝唯二爆的兩筆）；25–50 半倉；≥50 全倉</div></div>
-      <div class="gate"><div class="no">4</div><div><b>業績 21td 禁</b>：業績前 21 個交易日不開該名＋業縰後 5td 冷靜（拍板⑥）</div></div>
+      <div class="gate"><div class="no">4</div><div><b>業績 21td 禁</b>：業績前 21 個交易日不開該名＋業績後 5td 冷靜（拍板⑥）</div></div>
       <div class="gate"><div class="no">5</div><div><b>殺倉雷達 veto</b>：β63&gt;2.5 ∨ vol63&gt;0.8 ∨ (close&lt;SMA50 ∧ mom63&lt;0)——爆前共通訊號</div></div>
       <div class="gate"><div class="no">6</div><div><b>裂口閘</b>：chg1d&gt;8% 或 BE&gt;昨收 → 不開</div></div>
       <div class="gate"><div class="no">7</div><div><b>義務閘（D2 🔴必入）</b>：單名義務 ≤5% NAV、累積 ≤12%、全簿 ≤100%；義務/現金 ≤1（10-08 實測峰值 2.99×）</div></div>
@@ -297,7 +344,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <tr><td>6</td><td>ANET</td><td class="num">+9.2%</td><td><span class="pill r">撞窗</span></td><td>業績後再議</td></tr>
       </tbody>
     </table></div>
-    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥建議 5td，待最終確認）。</div>
+    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。</div>
   </div>
 </div>
 
@@ -313,7 +360,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <tr><td>③</td><td>注資額</td><td><span class="pill g">$40,000/月</span></td></tr>
         <tr><td>④</td><td>paper 台驗證期</td><td><span class="pill g">基座 config 直接上線；PT60+δ0.28 paper 自動跑（零等待）</span></td></tr>
         <tr><td>⑤</td><td>NBIS 2×165C 11-06</td><td><span class="pill g">A 照企＋週四 163–165 觸發線</span></td></tr>
-        <tr><td>⑥</td><td>業績後冷靜期</td><td><span class="pill y">建議 5 交易日（自動跟業績日，免 set 日子）— 待一句確認</span></td></tr>
+        <tr><td>⑥</td><td>業績後冷靜期</td><td><span class="pill g">5 交易日（已確認 11-02，自動跟業績日）</span></td></tr>
         <tr><td>⑦</td><td>May-2027 死線</td><td><span class="pill g">順延；注資上門檻 → 2027-06</span></td></tr>
       </tbody>
     </table></div>
@@ -366,7 +413,59 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <script>
 var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
 function setTab(id,el){document.querySelectorAll('.tabc').forEach(function(e){e.style.display='none';});document.getElementById(id).style.display='block';document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('act');});el.classList.add('act');}
-function manualRefresh(){loadMarket();}
+function manualRefresh(){loadMarket();loadToday();}
+/* ══════════ 今日台 ══════════ */
+var NAV_USD=49145;
+function loadToday(){
+  fetch('today.json?v='+Date.now()).then(function(r){return r.json();}).then(renderToday)
+  .catch(function(){document.getElementById('tdVerdict').innerHTML='<div class="desc">today.json 讀唔到——請跑 gen_today.py 或稍後再試。</div>';});
+}
+function renderToday(d){
+  var v=d.verdict||{},m=d.market||{};
+  var vcol=(v.level||'').indexOf('🔴')>=0?'r':((v.level||'').indexOf('🟡')>=0?'y':'g');
+  var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+' '+((v.level||'').replace('🔴','').replace('🟡','').replace('🟢',''))+'</span><span class="pill '+vcol+'">單名 δ'+(v.delta_single!=null?v.delta_single:'—')+'</span><span class="pill '+(d.data_fresh?'g':'y')+'">價至 '+d.bar_date+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
+  h+='<div class="desc" style="margin-top:6px">'+(v.txt||'')+'</div>';
+  document.getElementById('tdVerdict').innerHTML=h;
+  document.getElementById('tdMkt').innerHTML='SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b> · '+regimeTxt(m.breadth_regime);
+  var rr=d.radar||{};
+  document.getElementById('tdRadar').innerHTML='殺倉雷達 <b>'+rr.level+'</b> '+rr.note+'<br>'+(rr.reasons||[]).map(function(x){return '· '+x;}).join('<br>')+'<br>廣度 regime：<b>'+regimeTxt(m.breadth_regime)+'</b>';
+  var g=d.golden||{};
+  document.getElementById('tdGold').innerHTML='<span class="pill '+(g.in_window?'g':'n')+'">'+g.window+(g.in_window?' · 現正身處':' · 非黃金窗')+'</span><br><br>'+(g.note||'');
+  var cfg=d.config||{};
+  document.getElementById('tdRoute').textContent=cfg.live||'';
+  document.getElementById('tdRouteTxt').innerHTML='真倉跟<b>基座</b>（'+(cfg.live||'')+'）；winner '+((cfg.shadow||'').replace('winner ',''))+'。結構：<b>單名一律 10% put credit spread</b>（唔做 naked CSP）；XSP δ0.20 spr5 指數腿只喺 VIX 20–32 band 開（<b>'+m.vix_band+'</b> → '+(m.band_action||'')+'）；10-18 判決：雷達 YEL 唔停手、δ 縮深 0.02。';
+  var scr=d.screen||[];
+  document.getElementById('tdScreen').innerHTML=scr.length?scr.map(function(x){
+    return '<tr><td><b>'+x.sym+'</b> +'+x.mom63+'%</td><td class="num">'+(x.close!=null?x.close:'—')+'</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl+'%':'—')+'</td><td>'+(x.earn==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁（'+(x.earn_td!=null?x.earn_td+'td':'')+'）</span>')+'</td><td>'+(x.gap==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁')+'</td></tr>';
+  }).join(''):'<tr><td colspan="5">無名過 mom63&gt;0</td></tr>';
+  var cands=d.candidates||[],cw=document.getElementById('tdCandWrap');
+  if(!cands.length){cw.innerHTML='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
+  else{
+    var cu=d.cum||{};
+    cw.innerHTML='<div class="table-scroll"><table><thead><tr><th>候選</th><th>現價</th><th>Spread</th><th>到期</th><th>Credit</th><th>張</th><th>Premium</th><th>按金</th><th>做完後現金*</th><th>來源</th></tr></thead><tbody>'+
+    cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+'</td><td class="num">'+c.spot+'</td><td class="num">'+c.short_k+'/'+c.long_k+'</td><td>'+c.expiry+'<span class="pill n" style="margin-left:4px">'+c.dte_td+'td</span></td><td class="num">'+c.credit+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（延遲價）'?'<span class="pill g">鏈 mid</span>':'BS')+' IV'+c.iv_used+'%</td></tr>';}).join('')+
+    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。價為 yfinance 延遲報價，落單前用 Futu 實價覆核。</div>';
+  }
+  var nb=d.nbis||{};
+  document.getElementById('tdNbis').innerHTML='現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）· 技術燈 '+nb.light+'<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'));
+  document.getElementById('tdMeta').innerHTML='· 產生器：gen_today.py（本地）→ today.json；每 5 分鐘自動重讀，手動重跑即時更新。<br>· 真倉 screen 口徑：'+(cfg.live||'')+'；'+(cfg.shadow||'')+'。<br>· 落單程序：今日台候選 → 八閘逐條核（規格 tab）→ Futu 實價落 spread → 實價 POST 入 trade log → 三處驗證。<br>'+((d.notes||[]).map(function(x){return '· ⚠️ '+x;}).join('<br>')||'· 無異常紀錄。');
+  calc();
+}
+function regimeTxt(r){
+  if(r==='collapse')return '<span style="color:var(--red);font-weight:700">塌陷（&lt;50——紅鐘已響）</span>';
+  if(r==='warning')return '<span style="color:var(--red)">警戒（65–80）</span>';
+  if(r==='caution')return '<span style="color:#b45309">留意（50–65）</span>';
+  return '<span style="color:var(--green)">正常</span>';
+}
+function calc(){
+  var ks=parseFloat(document.getElementById('cKs').value),kl=parseFloat(document.getElementById('cKl').value),
+      cr=parseFloat(document.getElementById('cCr').value),n=parseInt(document.getElementById('cN').value||'0');
+  var o=document.getElementById('cOut');
+  if(!(ks>0&&kl>0&&ks>kl&&cr>0&&n>0)){o.textContent='填入四格即計：premium／最大虧損＝按金／佔 NAV／做完後現金。';return;}
+  var prem=cr*100*n,ml=(ks-kl)*100*n-prem,frac=ml/NAV_USD*100;
+  o.innerHTML='Premium 入帳 <b>$'+prem.toFixed(0)+'</b> · 按金（最大虧損）<b>$'+ml.toFixed(0)+'</b>（NAV '+frac.toFixed(1)+'%）'+(frac>5?' <span class="pill r">超單名 5% 閘</span>':' <span class="pill g">過 5% 閘</span>')+' · 做完後現金 <b>$'+(NAV_USD+prem).toFixed(0)+'</b>（按金鎖 $'+ml.toFixed(0)+'，可動用 $'+(NAV_USD+prem-ml).toFixed(0)+'）';
+}
+
 function loadMarket(){
   var d=document.getElementById('liveDot'),b=document.getElementById('liveBadge');
   fetch(WORKER+'?v='+Date.now()).then(function(r){return r.json();}).then(function(j){
@@ -401,7 +500,8 @@ function drawProg(){
   document.getElementById('progTxt').innerHTML='累計注資 HK$'+done.toLocaleString()+'（'+pct.toFixed(1)+'%）· 缺口 HK$'+(total-done).toLocaleString();
 }
 function saveProg(v){try{localStorage.setItem(PROG_KEY,String(v||0));}catch(e){}drawProg();}
-loadMarket();countdown();drawProg();setInterval(loadMarket,120000);
+['cKs','cKl','cCr','cN'].forEach(function(id){document.getElementById(id).addEventListener('input',calc);});
+loadMarket();loadToday();countdown();drawProg();setInterval(loadMarket,120000);setInterval(loadToday,300000);
 </script>
 </body>
 </html>
