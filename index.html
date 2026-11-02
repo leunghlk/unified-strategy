@@ -124,6 +124,13 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 
   <div class="grid" style="margin-top:12px">
     <div class="card">
+      <h3>📒 Paper 台（winner PT60＋δ0.28）<span class="pill b" style="margin-left:6px">背後自動跑 · 每日 ET 開市前</span></h3>
+      <div class="desc" id="tdPaper">讀取中…</div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="card">
       <h3>🌡️ VIX 對應策略表<span class="pill n" style="margin-left:6px" id="vixNow">—</span></h3>
       <div class="table-scroll"><table>
         <thead><tr><th>VIX 區間</th><th>層級</th><th>研究實數</th><th>策略判決（XSP／單名／現有腿）</th></tr></thead>
@@ -418,7 +425,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <div class="table-scroll"><table>
         <thead><tr><th>Engine</th><th>做咩</th><th>頻率</th><th>狀態</th></tr></thead>
         <tbody>
-          <tr><td><b>今日台數據產生器</b></td><td>gen_today.py → today.json（即市＋避雷＋screen＋候選倉全自動更新）；未裝前排程前要人手跑</td><td>每交易日 07:30＋21:35 HKT</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td><b>今日台數據產生器</b></td><td>gen_today.py → today.json（即市＋避雷＋screen＋候選倉＋paper 台全自動更新＋自動 push）</td><td>每交易日 07:30＋21:35 HKT</td><td><span class="pill g">已裝 launchd（11-02）</span></td></tr>
+          <tr><td><b>📒 Paper 台（winner）</b></td><td>paper_book.py：PT60+δ0.28 四週觀察簿（MTM＋PT60 平倉模擬＋自動 push，dashboard 顯示）</td><td>每交易日 21:40 HKT</td><td><span class="pill g">已裝 launchd（11-02）</span></td></tr>
           <tr><td><b>統一簿掃描</b></td><td>八閘全過篩選 → 當日候選（正選制：閘/wr/best-ay）</td><td>每交易日 ET 開市前＋開市後各 1 次</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td><b>NBIS 觸發線監察</b></td><td>NBIS 觸 163／165 兩檔 TG；11-06 到期日全天候</td><td>美股時段每 5 分鐘</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td><b>回本進度週報</b></td><td>NAV vs 目標、當月注資、累計 HAIR premium、月度里程碑</td><td>週日 20:00 HKT</td><td><span class="pill y">待過目</span></td></tr>
@@ -471,7 +479,7 @@ function loadToday(){
 function renderToday(d){
   var v=d.verdict||{},m=d.market||{};
   var vcol=(v.level||'').indexOf('🔴')>=0?'r':((v.level||'').indexOf('🟡')>=0?'y':'g');
-  var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+' '+((v.level||'').replace('🔴','').replace('🟡','').replace('🟢',''))+'</span><span class="pill '+vcol+'">單名 δ'+(v.delta_single!=null?v.delta_single:'—')+'</span><span class="pill '+(d.data_fresh?(d.intraday?'b':'g'):'y')+'">'+(d.intraday?'現價（開市中）':'收市價 '+d.bar_date+(m.bar_wd?'（'+m.bar_wd+'）':''))+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
+  var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+'</span><span class="pill '+vcol+'"'+(v.delta_note?' title="'+v.delta_note+'"':'')+'>單名 δ'+(v.delta_single!=null?v.delta_single:'—')+(v.delta_note?'（'+v.delta_note+'）':'')+'</span><span class="pill '+(d.data_fresh?(d.intraday?'b':'g'):'y')+'">'+(d.intraday?'現價（開市中）':'收市價 '+d.bar_date+(m.bar_wd?'（'+m.bar_wd+'）':''))+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
   h+='<div class="desc" style="margin-top:6px">'+(v.txt||'')+'</div>';
   document.getElementById('tdVerdict').innerHTML=h;
   document.getElementById('tdMkt').innerHTML=(m.et_note?'<div class="note" style="margin:0 0 6px">🗓️ '+m.et_note+'</div>':'')+'SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b> · '+regimeTxt(m.breadth_regime);
@@ -506,6 +514,14 @@ function renderToday(d){
   }
   var nb=d.nbis||{};
   document.getElementById('tdNbis').innerHTML='現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）· 技術燈 '+nb.light+'<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'));
+  fetch('paper_book.json?v='+Date.now()).then(function(r){return r.json();}).then(function(b){
+    var s=b.summary||{},op=(b.entries||[]).filter(function(e){return e.status==='open';}),cl=b.closed||[];
+    var bar='<div style="background:#e5e7eb;border-radius:4px;height:8px;margin:6px 0"><div style="background:#3b82f6;border-radius:4px;height:8px;width:'+Math.min(100,(s.week||0)/4*100)+'%"></div></div>';
+    var ot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th>倉</th><th>Spread</th><th>到期</th><th>Credit</th><th>張</th><th>Mark</th><th>浮動</th></tr></thead><tbody>'+
+      op.map(function(e){return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b></td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+e.contracts+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open paper 倉。</div>';
+    var ct=cl.length?'<div class="note">已平倉：'+cl.map(function(e){return e.sym+' '+(e.realized>=0?'+':'')+'$'+e.realized.toFixed(0)+'（'+e.exit_reason.split('（')[0]+'）';}).join('、')+'</div>':'';
+    document.getElementById('tdPaper').innerHTML='<div class="desc">觀察期 <b>'+b.started+' 起 · 第 '+s.week+'/4 週</b>'+bar+'realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · paper NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'＝'+(s.margin_used&&s.nav_paper?(100*s.margin_used/s.nav_paper).toFixed(1):'0')+'%）'+ct+ot+'<div class="note" style="margin-top:6px">口徑：跟 winner 引擎規則模擬（PT60 平倉、δ0.28、$1.2/張費、零滑價）；簿級 🔴 唔開新 paper 倉；每日 ET 開市前自動跑＋自動 push。4 週期滿（約 11-30）無甩嘢可升真倉。</div></div>';
+  }).catch(function(){document.getElementById('tdPaper').textContent='paper_book.json 讀唔到。';});
   document.getElementById('tdMeta').innerHTML='· 產生器：gen_today.py（本地）→ today.json；每 5 分鐘自動重讀，手動重跑即時更新。<br>· 真倉 screen 口徑：'+(cfg.live||'')+'；'+(cfg.shadow||'')+'。<br>· 落單程序：今日台候選 → 八閘逐條核（規格 tab）→ Futu 實價落 spread → 實價 POST 入 trade log → 三處驗證。<br>'+((d.notes||[]).map(function(x){return '· ⚠️ '+x;}).join('<br>')||'· 無異常紀錄。');
   calc();
 }

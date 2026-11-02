@@ -19,6 +19,7 @@ NAV_USD = CASH_HKD / FX_USDHKD
 SINGLE_CAP_FRAC = 0.05         # D1-D8：單名 5% NAV
 CUM_CAP_FRAC = 0.12            # 累計 12% NAV
 LIVE_DELTA = 0.30              # 基座（拍板④ 真倉口徑）
+PAPER_DELTA = 0.28             # 📒 Paper 台 winner 口徑（PT60+δ0.28，雷達唔縮深）
 WIDTH = 0.10                   # spr10
 TENOR_TD = 35                  # 35td（band 30-45）
 notes = []
@@ -189,13 +190,25 @@ if breadth is not None:
     elif breadth < 80:
         breadth_regime = "caution"
 
-# ---------- 4. VIX band 判決（live fail-closed 規則） ----------
+# ---------- 4. VIX band 判決（⭐11-02 拍板熊狀態門：VIX<20 牛狀態單名放行） ----------
+# 狀態定義＝引擎 spx_above_sma200 口徑：牛＝SPX 收市 ≥ SMA200；熊＝< SMA200 或攞唔到（fail-closed）。
+try:
+    _spx_ser = series("^GSPC").dropna()
+    spx_sma200 = float(_spx_ser.rolling(200).mean().iloc[-1]) if len(_spx_ser) >= 200 else float("nan")
+except Exception:
+    spx_sma200 = float("nan")
+if math.isnan(spx_sma200) or math.isnan(vix):
+    mkt_state = "nan"
+else:
+    mkt_state = "bull" if spx >= spx_sma200 else "bear"
 if math.isnan(vix):
     vix_band, band_action = "nan", "封（fail-closed）"
-elif vix < 20:
-    vix_band, band_action = "<20", "XSP 全封（等回帶）"
 elif vix > 32:
     vix_band, band_action = ">32", "全封＋撤（fail-closed）"
+elif vix < 20 and mkt_state == "bear":
+    vix_band, band_action = "<20", "熊狀態門封（SPX<SMA200）— XSP＋單名唔開"
+elif vix < 20:
+    vix_band, band_action = "<20", "牛狀態放行單名（SPX≥SMA200，⭐11-02 拍板）；XSP 照封"
 else:
     vix_band, band_action = "20-32", "XSP 開倉窗"
 
@@ -217,11 +230,14 @@ except Exception:
 # 單名 δ 調整（10-18 判決：CSP 唔停手＋δ縮深）
 delta_today = LIVE_DELTA
 radar_note = ""
+delta_note = "δ%.2f＝基座（雷達 %s 唔調整）" % (LIVE_DELTA, radar_level)
 if radar_level == "RED":
     radar_note = "🔴 RED——新倉暫停（殺倉雷達）"
+    delta_note = "δ%.2f＝基座；雷達 RED 新倉暫停" % LIVE_DELTA
 elif radar_level == "YEL":
     delta_today = round(LIVE_DELTA - 0.02, 2)
     radar_note = "🟡 YEL——單名照做，δ 縮深至 %.2f（10-18 判決）" % delta_today
+    delta_note = "δ%.2f＝基座 %.2f −0.02（雷達 YEL 縮深，唔係 winner）" % (delta_today, LIVE_DELTA)
 else:
     radar_note = "🟢 正常"
 
@@ -252,6 +268,7 @@ tradeable = [x for x in top6 if x["iv"] != "死亡區" and x["earn"] == "ok" and
 # ---------- 7. 候選倉：δ_today put spread spr10，tenor 30-45td（真鏈價優先，BS 兜底） ----------
 BS_R = 0.043
 candidates = []
+paper_candidates = []
 if yf_ok:
     try:
         exps = next_fridays(today, 10)
@@ -300,6 +317,36 @@ if yf_ok:
             max_loss_pc = (Ks - Kl) * 100 - credit * 100
             cap = NAV_USD * SINGLE_CAP_FRAC
             n_ct = max(int(cap // max_loss_pc), 1) if max_loss_pc > 0 else 1
+            # 📒 Paper 台（winner PT60+δ0.28）：同批數據/鏈價，δ 強制 0.28（雷達唔縮深）
+            Ks_p = S
+            for k in range(0, 240):
+                K = round(S * (1.0 - 0.005 * k), 0)
+                Ks_p = K
+                if -put_delta(S, K, T, BS_R, iv) <= PAPER_DELTA or K < S * 0.6:
+                    break
+            Kl_p = round(Ks_p * (1 - WIDTH), 0)
+            credit_p = bs_put(S, Ks_p, T, BS_R, iv) - bs_put(S, Kl_p, T, BS_R, iv)
+            src_p = "BS(RV21×1.10)"
+            try:
+                _oc = yf.Ticker(s).option_chain(exp_str)
+                _puts = _oc.puts
+                _rs = _puts.iloc[(_puts["strike"] - Ks_p).abs().argmin()]
+                _rl = _puts.iloc[(_puts["strike"] - Kl_p).abs().argmin()]
+                if float(_rs["bid"]) > 0 and float(_rs["ask"]) > 0 and float(_rl["ask"]) > 0:
+                    credit_p = (float(_rs["bid"]) + float(_rs["ask"])) / 2 - (float(_rl["bid"]) + float(_rl["ask"])) / 2
+                    Ks_p, Kl_p = float(_rs["strike"]), float(_rl["strike"])
+                    src_p = "鏈 mid（延遲價）"
+            except Exception:
+                pass
+            credit_p = max(credit_p, 0.01)
+            ml_p = (Ks_p - Kl_p) * 100 - credit_p * 100
+            n_p = max(int(cap // ml_p), 1) if ml_p > 0 else 1
+            paper_candidates.append(dict(
+                sym=s, spot=usd(S), short_k=Ks_p, long_k=Kl_p, expiry=exp_str,
+                dte_td=td_between(today, exp_d), credit=usd(credit_p),
+                contracts=int(n_p), premium_in=usd(credit_p * 100 * n_p),
+                margin=usd(ml_p * n_p), iv_used=round(iv * 100, 1), src=src_p,
+                delta=PAPER_DELTA, pt="PT60"))
             candidates.append(dict(
                 sym=s, spot=usd(S), short_k=Ks, long_k=Kl, expiry=exp_str,
                 dte_td=td_between(today, exp_d), credit=usd(credit), width_pct=10,
@@ -340,12 +387,14 @@ if nbis_spot:
     else:
         nbis["state"] = "觸發區上 %+.1f%%" % (100 * (nbis_spot / 163 - 1))
 
-# ---------- 9. 總判決（VIX[20,32] fail-closed 真倉條款：<20 全封） ----------
+# ---------- 9. 總判決（⭐11-02 拍板熊狀態門：VIX<20 牛狀態單名半開、熊狀態全封；XSP floor20 照舊） ----------
 verdict_level, verdict_txt = "封", ""
 if radar_level == "RED" or vix_band == ">32" or breadth_regime == "collapse":
     verdict_level, verdict_txt = "🔴 封刀", "雷達/廣度/VIX 至少一項封——今日唔開新倉，現有腿照 PT50/roll 規則行"
+elif vix_band == "<20" and mkt_state == "bull":
+    verdict_level, verdict_txt = "🟡 半開（熊狀態門放行）", "VIX %.1f <20 但牛狀態（SPX %.0f ≥ SMA200 %.0f）→ 單名照 screen 過閘開（⭐11-02 拍板，七窗 OOS 20bull 實錘）；XSP 照封（指數腿 floor20 唔郁）；現有腿照 PT50/roll" % (vix, spx, spx_sma200)
 elif vix_band == "<20":
-    verdict_level, verdict_txt = "🟡 全封（等 VIX 回 20）", "VIX[20,32] fail-closed 真倉條款：XSP＋單名新倉一律唔開（開工須 VIX≥20 或行正式改閘 SOP）；現有腿照 PT50/roll"
+    verdict_level, verdict_txt = "🟡 全封（熊狀態門）", "VIX %.1f <20 且熊狀態（SPX %.0f < SMA200 %.0f 或攞唔到）→ XSP＋單名新倉一律唔開（fail-closed）；現有腿照 PT50/roll" % (vix, spx, spx_sma200)
 elif radar_level == "YEL":
     verdict_level, verdict_txt = "🟡 半開", "雷達 YEL：單名照做 δ 縮深 0.02；XSP 照 band 規則"
 else:
@@ -396,12 +445,14 @@ out = dict(
                 vix=round(vix, 2) if vix and not math.isnan(vix) else None,
                 vix_chg=(None if not vix_prev or math.isnan(vix_prev) else round(vix - vix_prev, 2)),
                 vix_band=vix_band, band_action=band_action, breadth=breadth, breadth_regime=breadth_regime,
+                spx_sma200=round(spx_sma200, 2) if not math.isnan(spx_sma200) else None,
+                mkt_state=mkt_state,
                 et_note=et_note, bar_wd=bar_wd if 'bar_wd' in dir() else None),
     radar=dict(level=radar_level, reasons=radar_reasons, note=radar_note),
-    verdict=dict(level=verdict_level, txt=verdict_txt, delta_single=delta_today),
+    verdict=dict(level=verdict_level, txt=verdict_txt, delta_single=delta_today, delta_note=delta_note),
     funnel=funnel,
     golden=gold,
-    screen=top6, candidates=candidates,
+    screen=top6, candidates=candidates, paper_candidates=paper_candidates,
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),
              cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin)),
     nbis=nbis,
