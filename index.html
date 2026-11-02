@@ -129,13 +129,13 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <thead><tr><th>VIX 區間</th><th>層級</th><th>研究實數</th><th>策略判決（XSP／單名／現有腿）</th></tr></thead>
         <tbody>
           <tr id="vixRow_lt14"><td><b>&lt;14</b></td><td><span class="pill y">paper</span></td><td>指數細租 mean +147/筆；barbell 月入 +36% 但 DD 1.7×、單筆最傷 −48.6k（＝本 16.7%）＝已否決。⭐OOS 七窗口徑：n=64 <b>88% 勝 mean +177/筆</b>（低 VIX 年＝錢帶）</td><td>細租可研究；<b>真倉唔准</b>（fail-closed 凌駕）</td></tr>
-          <tr id="vixRow_1418"><td><b>14–18</b></td><td><span class="pill y">paper</span></td><td>舊口徑（2026 combo 20 筆）18 勝 2 負 sum +8,185 但 14-16 mean −147。⭐OOS 七窗口徑：14-16 n=73 <b>82% 勝 mean +119</b>；16-18 n=83 83% 勝 +15＝<b>毒帶標籤平反</b></td><td><b>細租＋單名為主，唔加注</b>；paper 台可做研究，真倉唔准——改閘 SOP 已行（11-02），放寬窄規則待拍板</td></tr>
-          <tr id="vixRow_1820"><td><b>18–20</b></td><td><span class="pill y">重審</span></td><td>舊口徑 −456/筆；⭐OOS 七窗口徑：n=48 <b>75% 勝 mean +30/筆</b>（唔係毒）——但熊窗（W2022）該帶 33% 勝 −1,121/筆，熊年照毒</td><td>真倉照封（VIX floor SOP 待拍板中）；唔加注</td></tr>
+          <tr id="vixRow_1418"><td><b>14–18</b></td><td><span class="pill y">paper</span></td><td>舊口徑（2026 combo 20 筆）18 勝 2 負 sum +8,185 但 14-16 mean −147。⭐OOS 七窗口徑：14-16 n=73 <b>82% 勝 mean +119</b>；16-18 n=83 83% 勝 +15＝<b>毒帶標籤平反</b></td><td><b>細租＋單名為主，唔加注</b>；⭐11-02 拍板：真倉單名 VIX&lt;20 牛狀態放行（熊狀態門）、熊狀態照封</td></tr>
+          <tr id="vixRow_1820"><td><b>18–20</b></td><td><span class="pill y">重審</span></td><td>舊口徑 −456/筆；⭐OOS 七窗口徑：n=48 <b>75% 勝 mean +30/筆</b>（唔係毒）——但熊窗（W2022）該帶 33% 勝 −1,121/筆，熊年照毒</td><td>⭐11-02 拍板：真倉單名牛狀態放行、熊狀態（SPX&lt;SMA200）封；唔加注</td></tr>
           <tr id="vixRow_2032"><td><b>20–32</b></td><td><span class="pill g">真倉開倉窗</span></td><td>20-25 mean +1,587/筆（錢帶）</td><td>XSP δ0.20 spr5 可開（v1c：VIX 回落准加碼帽 15%；spike 後 3–10td 部署窗）；單名照 screen 過閘開；現有腿照 PT50／roll</td></tr>
           <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；單名封（雷達多數同爆）；現有腿照 PT50／roll 紀律，掛 mid 等反彈唔市價斬</td></tr>
         </tbody>
       </table></div>
-      <div class="note">⚠️ <b>層級（hierarchy）：真倉引擎 VIX[20,32] fail-closed 凌駕任何 band 表——&lt;20 一律唔開</b>（&lt;14／14-18／18-20 三行係 paper／研究層）。⭐<b>11-02 改閘 SOP 五步已行完（8 變體×7 窗 OOS，determinism 7/7）</b>：單名腿「VIX&lt;20 全封」淨破壞 −22.4k／7窗判死；指數腿 floor20 實錘係寶（meanΔSharpe +0.323）<b>唔准郁</b>；放寬窄規則＝<b>熊狀態門</b>（VIX&lt;20 且 SPX≤SMA200 先封，牛狀態放行）三判據全過——<span class="pill y">待拍板</span>未批前真倉照舊全封。<b>狀態定義（引擎 <code>spx_above_sma200</code> 口徑）：</b>牛狀態＝SPX 收市價 ≥ 200 日移動平均線；熊狀態＝SPX 收市價 &lt; SMA200，或 SMA200 攞唔到數（fail-closed 當熊）。每日以收市價計一次。截至 10-30 收市：SPX 7580.07 &gt; SMA200 7309.76（+3.7%）＝<b>牛狀態</b>（若判決落地今日可 screen）。舊「floor20 strict dominance／毒帶 −456」（9-17）只代表舊引擎舊宇宙口徑，唔准再引。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
+      <div class="note">⚠️ <b>層級（hierarchy）：真倉引擎 VIX 閘凌駕任何 band 表。</b>⭐<b>11-02 改閘 SOP 五步行完＋拍板「ok，行」落地</b>（8 變體×7 窗 OOS，determinism 7/7）：單名腿「VIX&lt;20 全封」淨破壞 −22.4k／7窗判死 → <b>熊狀態門</b>：VIX&lt;20 且熊狀態（SPX&lt;SMA200 或攞唔到數）先封，牛狀態（SPX≥SMA200）放行單名；順手加單名 VIX&gt;32 閘（零 carry）。<b>指數腿 floor20 實錘係寶（meanΔSharpe +0.323）唔准郁——XSP 照封 VIX&lt;20</b>。<b>狀態定義（引擎 <code>spx_above_sma200</code> 口徑）：</b>牛狀態＝SPX 收市價 ≥ 200 日移動平均線；熊狀態＝SPX 收市價 &lt; SMA200，或 SMA200 攞唔到數（fail-closed 當熊）。每日以收市價計一次。截至 10-30 收市：SPX 7580.07 &gt; SMA200 7309.76（+3.7%）＝<b>牛狀態</b>（VIX 閘今日放行單名；廣度 25.6% 塌陷閘另計照封）。落地三面：真倉引擎 gate 1b＋attack_brief＋gen_today（11-02 同日改）。舊「floor20 strict dominance／毒帶 −456」（9-17）只代表舊引擎舊宇宙口徑，唔准再引。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
     </div>
   </div>
 
@@ -414,7 +414,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <div class="grid g2" style="margin-top:12px">
     <div class="card">
       <h3>⚙️ Engine 清單（提案，等你過目先裝）</h3>
-      <div class="note" style="margin-bottom:8px">⭐<b>VIX floor 改閘判決（11-02 SOP 行完）待拍板三件</b>：①真倉單名腿「VIX&lt;20 全封」→ <b>熊狀態門</b>（VIX&lt;20 且 SPX≤SMA200 先封；牛狀態＝SPX 收市價 ≥ 200 日平均線，熊狀態＝跌穿或攞唔到數當熊）＋順手加單名 VIX&gt;32 閘（零 carry）②gen_today「VIX&lt;20 全封」verdict 改半開 ③VIX 表語義更新。判決：單名全封 −22.4k/7窗判死；指數腿 floor20 唔准郁。現況 10-30 收市＝<b>牛狀態</b>（SPX 7580 &gt; SMA200 7310），批咗今日即可 screen。批咗先改真倉規則。</div>
+      <div class="note" style="margin-bottom:8px">✅<b>VIX floor 改閘判決（11-02 SOP 行完＋拍板「ok，行」）已落地三面</b>：①真倉引擎 gate 1b：單名腿「VIX&lt;20 全封」→ <b>熊狀態門</b>（VIX&lt;20 且 SPX≤SMA200 先封；牛狀態＝SPX 收市價 ≥ 200 日平均線，熊狀態＝跌穿或攞唔到數當熊）＋單名 VIX&gt;32 閘（零 carry）②gen_today verdict：<20 牛狀態＝「🟡半開（熊狀態門放行）」、熊狀態＝「🟡全封（熊狀態門）」③VIX 表語義更新。指數腿 floor20 唔准郁。實測：bridge helper SPX 7580.07/SMA200 7309.76＝牛狀態、double_off 牛狀態判 False ✓。下一次 options_income full_scan 自動生效。</div>
       <div class="table-scroll"><table>
         <thead><tr><th>Engine</th><th>做咩</th><th>頻率</th><th>狀態</th></tr></thead>
         <tbody>
@@ -490,8 +490,8 @@ function renderToday(d){
   if(fu.pool){
     document.getElementById('tdRouteTxt').innerHTML+=' <br><b>過閘漏斗</b>：池 '+fu.pool+' → mom63&gt;0 '+fu.mom_pos+' 隻 → top-6 → IV 過 '+fu.iv_ok+' → 業績過 '+fu.earn_ok+' → 裂口過 '+fu.gap_ok+' → <b>候選 '+fu.final+'</b>。per-name 五閘（動量/IV/業績/裂口/雷達）＋簿級三閘（廣度梯/義務 5%+12%/按金 65%）全過先落得單；'+(((v.level||'').indexOf('🔴')>=0)?'簿級現時紅——有候選都唔開。':'簿級狀態見頂部判決。');
   }
-  var band=m.vix_band||'';
-  document.getElementById('vixNow').textContent='現時 VIX '+m.vix+' → '+(band==='20-32'?'開倉窗':(band==='<20'?'<20 全封':(band==='>32'?'>32 全封＋撤':band)));
+  var band=m.vix_band||'',mst=m.mkt_state||'nan';
+  document.getElementById('vixNow').textContent='現時 VIX '+m.vix+'（'+(mst==='bull'?'牛 SPX≥SMA200':(mst==='bear'?'熊 SPX<SMA200':'狀態 n/a'))+'）→ '+(band==='20-32'?'開倉窗':(band==='<20'?(mst==='bull'?'<20 牛狀態：單名放行（熊狀態門）':(mst==='bear'?'<20 熊狀態：全封':'<20（狀態 n/a，fail-closed 封）')):(band==='>32'?'>32 全封＋撤':band)));
   ['lt14','1418','1820','2032','gt32'].forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background='';});
   var curIds=band==='20-32'?['2032']:(band==='>32'?['gt32']:['lt14','1418','1820']);
   var hl=(band==='20-32')?'#f0fdf4':'#fffbe6';
@@ -533,13 +533,13 @@ function loadMarket(){
     var chips='';
     chips+='<span class="pill '+((now.is_open)?'g':'n')+'">美市 '+(now.is_open?'開市':'休市')+'</span>';
     if(tn&&tn.hkt_date) chips+='<span class="pill b">今晚 '+(tn.is_trading!==undefined&&tn.is_trading!==null? (tn.is_trading?'有市':'休市') : (tn.et_date||''))+'</span>';
-    chips+='<span class="pill '+(19.42>=20?'g':'y')+'">VIX 19.42（10-30 收）'+(19.42>=20?'·可開':'·全封')+'</span>';
-    chips+='<span class="pill n">SPX 7580.07</span>';
+    chips+='<span class="pill y">VIX 19.42（10-30 收）·<20 牛狀態：單名放行（⭐11-02 拍板熊狀態門）</span>';
+    chips+='<span class="pill n">SPX 7580.07 &gt; SMA200 7309.76 · 牛狀態</span>';
     document.getElementById('mktChips').innerHTML=chips;
   }).catch(function(){
     d.className='live-dot off';b.textContent='離線（顯示 10-30 收市數）';
     document.getElementById('mktBody').textContent='worker 未連上——以下全部為 2026-10-30 收市數。';
-    document.getElementById('mktChips').innerHTML='<span class="pill y">VIX 19.42 · 全封中</span><span class="pill n">SPX 7580.07</span>';
+    document.getElementById('mktChips').innerHTML='<span class="pill y">VIX 19.42 · <20 牛狀態：單名放行（熊狀態門）</span><span class="pill n">SPX 7580.07 · 牛狀態</span>';
   });
 }
 function countdown(){
