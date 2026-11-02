@@ -37,7 +37,7 @@ def spot_of(sym):
 def weeks_in(started):
     try:
         d0 = date.fromisoformat(started)
-        return min(4, int((date.today() - d0).days / 7) + 1)
+        return min(2, int((date.today() - d0).days / 7) + 1)
     except Exception:
         return 0
 

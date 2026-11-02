@@ -458,7 +458,7 @@ out = dict(
     nbis=nbis,
     account=dict(cash_hkd=CASH_HKD, fx=FX_USDHKD, nav_usd=round(NAV_USD, 0),
                  single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0)),
-    config=dict(live="基座 δ0.30/PT50/spr10/35td（拍板④）", shadow="winner δ0.28/PT60 paper 影子 4 週"),
+    config=dict(live="基座 δ0.30/PT50/spr10/35td（拍板④）", shadow="winner δ0.28/PT60 paper 影子 2 週（11-17 無甩嘢切真倉）"),
     notes=notes,
 )
 json.dump(out, open(OUT_JSON, "w"), ensure_ascii=False, indent=1)
