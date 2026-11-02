@@ -128,14 +128,14 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <div class="table-scroll"><table>
         <thead><tr><th>VIX 區間</th><th>層級</th><th>研究實數</th><th>策略判決（XSP／單名／現有腿）</th></tr></thead>
         <tbody>
-          <tr id="vixRow_lt14"><td><b>&lt;14</b></td><td><span class="pill y">paper</span></td><td>指數細租 mean +147/筆；barbell 月入 +36% 但 DD 1.7×、單筆最傷 −48.6k（＝本 16.7%）＝已否決。⭐OOS 七窗口徑：n=64 <b>88% 勝 mean +177/筆</b>（低 VIX 年＝錢帶）</td><td>細租可研究；<b>真倉唔准</b>（fail-closed 凌駕）</td></tr>
-          <tr id="vixRow_1418"><td><b>14–18</b></td><td><span class="pill y">paper</span></td><td>舊口徑（2026 combo 20 筆）18 勝 2 負 sum +8,185 但 14-16 mean −147。⭐OOS 七窗口徑：14-16 n=73 <b>82% 勝 mean +119</b>；16-18 n=83 83% 勝 +15＝<b>毒帶標籤平反</b></td><td><b>細租＋單名為主，唔加注</b>；⭐11-02 拍板：真倉單名 VIX&lt;20 牛狀態放行（熊狀態門）、熊狀態照封</td></tr>
-          <tr id="vixRow_1820"><td><b>18–20</b></td><td><span class="pill y">重審</span></td><td>舊口徑 −456/筆；⭐OOS 七窗口徑：n=48 <b>75% 勝 mean +30/筆</b>（唔係毒）——但熊窗（W2022）該帶 33% 勝 −1,121/筆，熊年照毒</td><td>⭐11-02 拍板：真倉單名牛狀態放行、熊狀態（SPX&lt;SMA200）封；唔加注</td></tr>
-          <tr id="vixRow_2032"><td><b>20–32</b></td><td><span class="pill g">真倉開倉窗</span></td><td>20-25 mean +1,587/筆（錢帶）</td><td>XSP δ0.20 spr5 可開（v1c：VIX 回落准加碼帽 15%；spike 後 3–10td 部署窗）；單名照 screen 過閘開；現有腿照 PT50／roll</td></tr>
-          <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；單名封（雷達多數同爆）；現有腿照 PT50／roll 紀律，掛 mid 等反彈唔市價斬</td></tr>
+          <tr id="vixRow_lt14"><td><b>&lt;14</b></td><td><span class="pill y">paper</span></td><td>OOS 七窗：n=64，88% 勝，<b>+177/筆</b>（低 VIX 年＝錢帶）</td><td>細租可研究；真倉跟<b>熊狀態門</b></td></tr>
+          <tr id="vixRow_1418"><td><b>14–18</b></td><td><span class="pill y">paper</span></td><td>OOS 七窗：14-16 n=73，82% 勝，+119/筆；16-18 n=83，83% 勝，+15/筆</td><td>唔加注；真倉跟<b>熊狀態門</b></td></tr>
+          <tr id="vixRow_1820"><td><b>18–20</b></td><td><span class="pill y">重審</span></td><td>OOS 七窗：n=48，75% 勝，+30/筆；但熊年（W2022）33% 勝 −1,121/筆</td><td>唔加注；真倉跟<b>熊狀態門</b></td></tr>
+          <tr id="vixRow_2032"><td><b>20–32</b></td><td><span class="pill g">真倉開倉窗</span></td><td>OOS 七窗：n=153，85% 勝，<b>+91/筆</b>＝主力錢帶</td><td>XSP δ0.20 spr5 可開；單名照 screen 過閘開；現有腿照 PT50／roll</td></tr>
+          <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；現有腿照 PT50／roll，掛 mid 等反彈唔市價斬</td></tr>
         </tbody>
       </table></div>
-      <div class="note">⚠️ <b>層級（hierarchy）：真倉引擎 VIX 閘凌駕任何 band 表。</b>⭐<b>11-02 改閘 SOP 五步行完＋拍板「ok，行」落地</b>（8 變體×7 窗 OOS，determinism 7/7）：單名腿「VIX&lt;20 全封」淨破壞 −22.4k／7窗判死 → <b>熊狀態門</b>：VIX&lt;20 且熊狀態（SPX&lt;SMA200 或攞唔到數）先封，牛狀態（SPX≥SMA200）放行單名；順手加單名 VIX&gt;32 閘（零 carry）。<b>指數腿 floor20 實錘係寶（meanΔSharpe +0.323）唔准郁——XSP 照封 VIX&lt;20</b>。<b>狀態定義（引擎 <code>spx_above_sma200</code> 口徑）：</b>牛狀態＝SPX 收市價 ≥ 200 日移動平均線；熊狀態＝SPX 收市價 &lt; SMA200，或 SMA200 攞唔到數（fail-closed 當熊）。每日以收市價計一次。截至 10-30 收市：SPX 7580.07 &gt; SMA200 7309.76（+3.7%）＝<b>牛狀態</b>（VIX 閘今日放行單名；廣度 25.6% 塌陷閘另計照封）。落地三面：真倉引擎 gate 1b＋attack_brief＋gen_today（11-02 同日改）。舊「floor20 strict dominance／毒帶 −456」（9-17）只代表舊引擎舊宇宙口徑，唔准再引。spike 部署窗＝VIX spike 日後 3–10 個交易日。</div>
+      <div class="note">⚠️ <b>真倉 VIX 閘凌駕本表。</b>研究實數＝OOS 七窗口徑（pool117＋winner config，2020–2026）。⭐11-02 拍板熊狀態門（單名腿）：VIX&lt;20 且<b>熊狀態</b>（SPX 收市 &lt; 200 日平均線，或攞唔到數）先封；<b>牛狀態</b>（SPX ≥ SMA200）放行。每日收市計一次。XSP 指數腿照封 VIX&lt;20 唔郁（floor20 實錘係寶）。現況 10-30：SPX 7580 &gt; SMA200 7310＝牛狀態。spike 部署窗＝VIX spike 後 3–10td。</div>
     </div>
   </div>
 
