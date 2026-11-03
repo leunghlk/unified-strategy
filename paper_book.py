@@ -2,7 +2,7 @@
 # 📒 Paper Book engine（winner PT60+δ0.28 四週觀察台）— 11-02 用戶令「自己背後 run，在 dashboard 顯示」。
 # 每交易日 21:40 HKT launchd：
 #   1. 讀 today.json paper_candidates（gen_today 21:35 先產，δ0.28 鏈 mid）
-#   2. 簿級閘跟今日台 verdict：🔴（雷達 RED／廣度塌陷／VIX>32）唔開新 paper 倉（winner 引擎同款）
+#   2. 簿級閘跟今日台 verdict：🔴 照開但標 shadow（test-only，11-04 用戶追拍——保證 2 週期滿有執行面數據）；非 🔴 正式開
 #   3. open 倉每日 BS mark（IV 用 entry 時 iv_used）；PT60＝mark ≤ 40% entry credit 平倉；到期＝intrinsic
 #   4. 寫 paper_book.json → git commit+push（dashboard 讀）
 # 口徑：零滑價、$1.2/contract 費用（跟統一簿）、NAV 錨 US$49,145。
@@ -86,23 +86,22 @@ def main():
             book["closed"].append(e)
             acts.append("到期平 %s realized %+.0f" % (e["sym"], e["realized"]))
 
-    # 2) 新倉（verdict 唔係 🔴 先開；同 sym 冇 open）
-    if blocked:
-        acts.append("簿級 🔴——paper 台唔開新倉（跟 winner 引擎簿級閘）")
-    else:
-        opens = {e["sym"] for e in book["entries"] if e["status"] == "open"}
-        for c in (td.get("paper_candidates") or []):
-            if c["sym"] in opens:
-                continue
-            try:
-                iv = float(c.get("iv_used") or 35) / 100.0
-            except Exception:
-                iv = 0.35
-            book["entries"].append(dict(
-                date=today_iso, sym=c["sym"], spot=c["spot"], short_k=c["short_k"], long_k=c["long_k"],
-                expiry=c["expiry"], credit=float(c["credit"]), contracts=int(c["contracts"]),
-                margin=float(c["margin"]), iv=iv, status="open", config="winner PT60+δ0.28"))
-            acts.append("開 paper 倉 %s %s/%s credit %s×%d張" % (c["sym"], c["short_k"], c["long_k"], c["credit"], c["contracts"]))
+    # 2) 新倉（shadow 模式：簿級 🔴 照開標 test-only；同 sym 冇 open）
+    opens = {e["sym"] for e in book["entries"] if e["status"] == "open"}
+    for c in (td.get("paper_candidates") or []):
+        if c["sym"] in opens:
+            continue
+        try:
+            iv = float(c.get("iv_used") or 35) / 100.0
+        except Exception:
+            iv = 0.35
+        sh = bool(blocked)
+        book["entries"].append(dict(
+            date=today_iso, sym=c["sym"], spot=c["spot"], short_k=c["short_k"], long_k=c["long_k"],
+            expiry=c["expiry"], credit=float(c["credit"]), contracts=int(c["contracts"]),
+            margin=float(c["margin"]), iv=iv, status="open", shadow=sh, config="winner PT60+δ0.28"))
+        acts.append(("shadow 開倉（簿級 🔴 test-only）" if sh else "開 paper 倉") +
+                    " %s %s/%s credit %s×%d張" % (c["sym"], c["short_k"], c["long_k"], c["credit"], c["contracts"]))
 
     # 3) 匯總
     opens = [e for e in book["entries"] if e["status"] == "open"]
@@ -113,6 +112,7 @@ def main():
                            open_n=len(opens), realized=round(realized, 2),
                            unrealized=round(unreal, 2), total=round(realized + unreal, 2),
                            nav_paper=round(NAV_USD + realized + unreal, 2),
+                           shadow_n=len([e for e in opens if e.get("shadow")]),
                            margin_used=round(sum(e["margin"] for e in opens), 2))
     book["log"] = (book.get("log") or [])[-30:] + [dict(date=today_iso, acts=acts)]
 
