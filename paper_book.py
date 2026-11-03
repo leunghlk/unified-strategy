@@ -122,6 +122,13 @@ def main():
           (today_iso, book["summary"]["week"], len(opens), realized, unreal))
     for a in acts:
         print(" · " + a)
+    # 4) TG 通知（11-04 用戶批：paper 台交易即報）
+    if acts:
+        try:
+            from tg_engine import tg
+            tg("📒 Paper 台 %s\n· %s" % (today_iso, "\n· ".join(acts)))
+        except Exception as ex:
+            print("tg skip: %s" % ex.__class__.__name__)
     # 4) push（dashboard 讀）
     try:
         subprocess.run(["git", "add", "paper_book.json"], cwd=DIR, check=False)
