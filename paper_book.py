@@ -1,11 +1,16 @@
 #!/usr/bin/python3
 # 📒 Paper Book engine（winner PT60+δ0.28 四週觀察台）— 11-02 用戶令「自己背後 run，在 dashboard 顯示」。
-# 每交易日 21:40 HKT launchd：
+# 兩個模式（launchd）：
+#   full（每交易日 21:40 HKT）：
 #   1. 讀 today.json paper_candidates（gen_today 21:35 先產，δ0.28 鏈 mid）
 #   2. 簿級閘跟今日台 verdict：🔴 照開但標 shadow（test-only，11-04 用戶追拍——保證 2 週期滿有執行面數據）；非 🔴 正式開
-#   3. open 倉每日 BS mark（IV 用 entry 時 iv_used）；PT60＝mark ≤ 40% entry credit 平倉；到期＝intrinsic
+#   3. open 倉 BS mark（IV 用 entry 時 iv_used）；PT60＝mark ≤ 40% entry credit 平倉；到期＝intrinsic
 #   4. 寫 paper_book.json → git commit+push（dashboard 讀）
+#   mark（ET 開市時段每 5 分鐘，11-04 用戶問 real-time P&L 後加）：
+#   - 純 MTM＋PT60/到期判定，唔開新倉；有意義狀態（marks/P&L/倉數）冇變就唔寫唔 push
+#   - .pb_lock 防同 21:40 全跑相撞
 # 口徑：零滑價、$1.2/contract 費用（跟統一簿）、NAV 錨 US$49,145。
+# 「浮動」＝未實現 P&L＝(credit−mark)×100×張數−來回費（即以 mid 平倉袋到幾多）。
 import json, math, os, subprocess, sys
 from datetime import date, datetime
 
@@ -42,10 +47,41 @@ def weeks_in(started):
         return 0
 
 
-def main():
+def et_session():
+    # ET 開市時段 guard（mark 模式 5 分鐘輪詢用）
+    try:
+        from zoneinfo import ZoneInfo
+        et = datetime.now(ZoneInfo("America/New_York"))
+    except Exception:
+        return False
+    if et.weekday() >= 5:
+        return False
+    t = et.hour + et.minute / 60.0
+    return 9.5 <= t <= 16.05
+
+
+def main(mode="full"):
+    if mode == "mark" and not et_session():
+        return 0
+    lock = os.path.join(DIR, ".pb_lock")
+    try:
+        os.mkdir(lock)
+    except Exception:
+        return 0  # 上一輪未跑完（21:40 全跑撞 5 分鐘 mark）——讓路
+    try:
+        return _run(mode)
+    finally:
+        try:
+            os.rmdir(lock)
+        except Exception:
+            pass
+
+
+def _run(mode):
     book = dict(started=START, entries=[], closed=[], log=[])
     if os.path.exists(BOOK):
         book = json.load(open(BOOK))
+    old_fp = book.get("fp")
     td = json.load(open(TODAY))
     today_iso = date.today().isoformat()
     v_level = (td.get("verdict") or {}).get("level", "")
@@ -87,21 +123,23 @@ def main():
             acts.append("到期平 %s realized %+.0f" % (e["sym"], e["realized"]))
 
     # 2) 新倉（shadow 模式：簿級 🔴 照開標 test-only；同 sym 冇 open）
+    #    mark 模式（ET 開市 5 分鐘輪詢）只 MTM＋平倉判定，唔開新倉
     opens = {e["sym"] for e in book["entries"] if e["status"] == "open"}
-    for c in (td.get("paper_candidates") or []):
-        if c["sym"] in opens:
-            continue
-        try:
-            iv = float(c.get("iv_used") or 35) / 100.0
-        except Exception:
-            iv = 0.35
-        sh = bool(blocked)
-        book["entries"].append(dict(
-            date=today_iso, sym=c["sym"], spot=c["spot"], short_k=c["short_k"], long_k=c["long_k"],
-            expiry=c["expiry"], credit=float(c["credit"]), contracts=int(c["contracts"]),
-            margin=float(c["margin"]), iv=iv, status="open", shadow=sh, config="winner PT60+δ0.28"))
-        acts.append(("shadow 開倉（簿級 🔴 test-only）" if sh else "開 paper 倉") +
-                    " %s %s/%s credit %s×%d張" % (c["sym"], c["short_k"], c["long_k"], c["credit"], c["contracts"]))
+    if mode == "full":
+        for c in (td.get("paper_candidates") or []):
+            if c["sym"] in opens:
+                continue
+            try:
+                iv = float(c.get("iv_used") or 35) / 100.0
+            except Exception:
+                iv = 0.35
+            sh = bool(blocked)
+            book["entries"].append(dict(
+                date=today_iso, sym=c["sym"], spot=c["spot"], short_k=c["short_k"], long_k=c["long_k"],
+                expiry=c["expiry"], credit=float(c["credit"]), contracts=int(c["contracts"]),
+                margin=float(c["margin"]), iv=iv, status="open", shadow=sh, config="winner PT60+δ0.28"))
+            acts.append(("shadow 開倉（簿級 🔴 test-only）" if sh else "開 paper 倉") +
+                        " %s %s/%s credit %s×%d張" % (c["sym"], c["short_k"], c["long_k"], c["credit"], c["contracts"]))
 
     # 3) 匯總
     opens = [e for e in book["entries"] if e["status"] == "open"]
@@ -114,7 +152,15 @@ def main():
                            nav_paper=round(NAV_USD + realized + unreal, 2),
                            shadow_n=len([e for e in opens if e.get("shadow")]),
                            margin_used=round(sum(e["margin"] for e in opens), 2))
-    book["log"] = (book.get("log") or [])[-30:] + [dict(date=today_iso, acts=acts)]
+    # mark 模式：有意義狀態冇變（marks/P&L/倉數）就唔寫唔 push（防 288 commit/日）
+    fp = json.dumps([round(e.get("mark", -1), 3) for e in book["entries"]] +
+                    [round(unreal, 2), round(realized, 2), len(opens), len(book["closed"])], sort_keys=True)
+    if mode == "mark" and fp == old_fp and not acts:
+        print("mark no-change")
+        return 0
+    book["fp"] = fp
+    if acts or mode == "full":
+        book["log"] = (book.get("log") or [])[-30:] + [dict(date=today_iso, acts=acts)]
 
     with open(BOOK, "w") as f:
         json.dump(book, f, indent=1, ensure_ascii=False)
@@ -142,4 +188,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else "full"))
