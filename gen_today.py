@@ -424,13 +424,19 @@ et_note, bar_wd = None, None
 try:
     from zoneinfo import ZoneInfo
     _et = datetime.datetime.now(ZoneInfo("America/New_York"))
-    intraday = bool(bar_date == str(_et.date()))
+    _in_session = datetime.time(9, 30) <= _et.time() <= datetime.time(16, 0)
+    intraday = bool(bar_date == str(_et.date()) and _in_session)
     try:
         bar_wd = WD_ZH[datetime.date.fromisoformat(bar_date).weekday()]
     except Exception:
         bar_wd = ""
     if intraday:
         et_note = "ET 而家 %s %s——開市中，下列價＝現價（延遲約 0–15 分）" % (str(_et.date()), WD_ZH[_et.weekday()])
+    elif bar_date == str(_et.date()):
+        # ET 16:00 已收市（盤後）——bar 係今日收市價，唔可以話「現價」
+        et_note = "ET 而家 %s %s（已收市，16:00 ET）——下列＝今日（%s %s）收市價；HKT 而家 %s" % (
+            str(_et.date()), WD_ZH[_et.weekday()], bar_date, bar_wd,
+            datetime.datetime.now().strftime("%m-%d %H:%M"))
     else:
         et_note = "ET 而家 %s %s（休市）——最新美股交易日係 %s（%s），HKT 而家 %s" % (
             str(_et.date()), WD_ZH[_et.weekday()], bar_date, bar_wd,
