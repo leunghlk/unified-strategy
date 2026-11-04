@@ -12,7 +12,7 @@
 # 口徑：零滑價、$1.2/contract 費用（跟統一簿）、NAV 錨 US$49,145。
 # 「浮動」＝未實現 P&L＝(credit−mark)×100×張數−來回費（即以 mid 平倉袋到幾多）。
 import json, math, os, subprocess, sys
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 BOOK = os.path.join(DIR, "paper_book.json")
@@ -21,6 +21,16 @@ PT_FOLD = 0.40          # PT60：premium 收 60% → 剩 40% 平倉
 FEE_PER_CT = 1.2        # 來回費用/張（統一簿口徑）
 NAV_USD = 49145.0
 START = "2026-11-03"    # 觀察期第一個交易日（11-02 為 setup 日）
+
+
+def td_between(d0, d1):
+    # 跟 gen_today 同款（星期一至五數，唔計假期）——MTM T 口徑必須同開倉定價一致
+    d, n = d0, 0
+    while d < d1:
+        d += timedelta(days=1)
+        if d.weekday() < 5:
+            n += 1
+    return n
 
 
 def bs_put(S, K, T, r, sigma):
@@ -99,7 +109,7 @@ def _run(mode):
         try:
             d0 = date.fromisoformat(e["date"])
             de = date.fromisoformat(e["expiry"])
-            t_left = max((de - date.today()).days / 252.0, 1 / 252.0)
+            t_left = max(td_between(date.today(), de), 1) / 252.0
             iv = e.get("iv", 0.35)
             mark = bs_put(S, e["short_k"], t_left, 0.043, iv) - bs_put(S, e["long_k"], t_left, 0.043, iv)
             mark = max(mark, max(e["short_k"] - S - (e["short_k"] - e["long_k"]), 0.0))
