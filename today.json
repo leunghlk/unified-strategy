@@ -1,42 +1,43 @@
 {
- "as_of": "2026-11-04 21:35 HKT",
+ "as_of": "2026-11-04 23:00 HKT",
  "bar_date": "2026-11-04",
  "data_fresh": true,
- "intraday": false,
+ "intraday": true,
  "market": {
-  "spx": 7568.92,
-  "spx_chg": 0.36,
-  "vix": 18.48,
-  "vix_chg": -2.35,
+  "spx": 7694.84,
+  "spx_chg": 1.66,
+  "vix": 17.2,
+  "vix_chg": -3.63,
   "vix_band": "<20",
   "band_action": "牛狀態放行單名（SPX≥SMA200，⭐11-02 拍板）；XSP 照封",
-  "breadth": 25.6,
+  "breadth": 29.1,
   "breadth_regime": "collapse",
-  "spx_sma200": 7315.89,
+  "spx_sma200": 7320.38,
   "mkt_state": "bull",
-  "et_note": "ET 而家 2026-11-04 週三（已收市，16:00 ET）——下列＝今日（2026-11-04 週三）收市價；HKT 而家 11-04 21:35",
+  "et_note": "ET 而家 2026-11-04 週三——開市中，下列價＝現價（延遲約 0–15 分）",
   "bar_wd": "週三"
  },
  "radar": {
-  "level": "YEL",
+  "level": "RED",
   "reasons": [
-   "HY OAS 3.43（5日 +0.13）"
+   "HY OAS 3.40（5日 +0.22）",
+   "POW/QQQ ratio 0.611 破20d低（👑主trigger）"
   ],
-  "note": "🟡 YEL——單名照做，δ 縮深至 0.28（10-18 判決）"
+  "note": "🔴 RED——新倉暫停（殺倉雷達）"
  },
  "verdict": {
   "level": "🔴 封刀",
   "txt": "雷達/廣度/VIX 至少一項封——今日唔開新倉，現有腿照 PT50/roll 規則行",
-  "delta_single": 0.28,
-  "delta_note": "δ0.28＝基座 0.30 −0.02（雷達 YEL 縮深，唔係 winner）"
+  "delta_single": 0.3,
+  "delta_note": "δ0.30＝基座；雷達 RED 新倉暫停"
  },
  "funnel": {
   "pool": 117,
-  "mom_pos": 31,
+  "mom_pos": 32,
   "top6": 6,
-  "iv_ok": 5,
+  "iv_ok": 4,
   "earn_ok": 1,
-  "gap_ok": 6,
+  "gap_ok": 5,
   "final": 1,
   "verdict": "🔴 封刀"
  },
@@ -48,67 +49,67 @@
  "screen": [
   {
    "sym": "TEM",
-   "mom63": 66.6,
-   "close": 77.8,
+   "mom63": 66.8,
+   "close": 76.95,
    "rv21_pctl": 87.0,
    "earn_td": 1,
-   "chg1d": -0.87,
+   "chg1d": -1.09,
+   "iv": "全",
+   "earn": "禁",
+   "gap": "ok"
+  },
+  {
+   "sym": "RPD",
+   "mom63": 50.0,
+   "close": 15.57,
+   "rv21_pctl": 63.0,
+   "earn_td": 8,
+   "chg1d": 4.92,
    "iv": "全",
    "earn": "禁",
    "gap": "ok"
   },
   {
    "sym": "ZS",
-   "mom63": 39.2,
-   "close": 225.09,
+   "mom63": 38.3,
+   "close": 224.91,
    "rv21_pctl": 48.0,
    "earn_td": 24,
-   "chg1d": 0.58,
+   "chg1d": -0.08,
    "iv": "半",
    "earn": "ok",
    "gap": "ok"
   },
   {
-   "sym": "RPD",
-   "mom63": 36.6,
-   "close": 14.84,
-   "rv21_pctl": 63.0,
-   "earn_td": 8,
-   "chg1d": -0.1,
-   "iv": "全",
+   "sym": "DUOL",
+   "mom63": 35.1,
+   "close": 165.63,
+   "rv21_pctl": 4.0,
+   "earn_td": 5,
+   "chg1d": 29.4,
+   "iv": "死亡區",
+   "earn": "禁",
+   "gap": "禁"
+  },
+  {
+   "sym": "RBLX",
+   "mom63": 32.8,
+   "close": 47.85,
+   "rv21_pctl": 13.0,
+   "earn_td": 1,
+   "chg1d": 5.28,
+   "iv": "死亡區",
    "earn": "禁",
    "gap": "ok"
   },
   {
    "sym": "TENB",
-   "mom63": 30.6,
-   "close": 47.03,
+   "mom63": 32.4,
+   "close": 47.88,
    "rv21_pctl": 53.0,
    "earn_td": 0,
-   "chg1d": -0.89,
+   "chg1d": 1.81,
    "iv": "全",
-   "earn": "禁",
-   "gap": "ok"
-  },
-  {
-   "sym": "OKTA",
-   "mom63": 29.0,
-   "close": 189.68,
-   "rv21_pctl": 69.0,
-   "earn_td": 19,
-   "chg1d": 2.6,
-   "iv": "全",
-   "earn": "禁",
-   "gap": "ok"
-  },
-  {
-   "sym": "RBLX",
-   "mom63": 25.6,
-   "close": 45.45,
-   "rv21_pctl": 13.0,
-   "earn_td": 1,
-   "chg1d": 5.99,
-   "iv": "死亡區",
    "earn": "禁",
    "gap": "ok"
   }
@@ -116,21 +117,21 @@
  "candidates": [
   {
    "sym": "ZS",
-   "spot": 225.09,
-   "short_k": 203.0,
-   "long_k": 183.0,
+   "spot": 224.91,
+   "short_k": 210.0,
+   "long_k": 185.0,
    "expiry": "2026-12-18",
    "dte_td": 32,
-   "credit": 5.43,
+   "credit": 9.33,
    "width_pct": 10,
    "contracts": 1,
-   "max_loss": 1457.4,
-   "premium_in": 542.6,
-   "margin": 1457.4,
-   "cash_after": 49687.71,
+   "max_loss": 1567.5,
+   "premium_in": 932.5,
+   "margin": 1567.5,
+   "cash_after": 50077.62,
    "iv_used": 62.2,
-   "src": "BS(RV21×1.10)",
-   "delta": 0.28,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
    "rv21_pctl": 48.0,
    "earn_td": 24
   }
@@ -138,29 +139,29 @@
  "paper_candidates": [
   {
    "sym": "ZS",
-   "spot": 225.09,
-   "short_k": 203.0,
-   "long_k": 183.0,
+   "spot": 224.91,
+   "short_k": 200.0,
+   "long_k": 180.0,
    "expiry": "2026-12-18",
    "dte_td": 32,
-   "credit": 5.43,
+   "credit": 6.2,
    "contracts": 1,
-   "premium_in": 542.6,
-   "margin": 1457.4,
+   "premium_in": 620.0,
+   "margin": 1380.0,
    "iv_used": 62.2,
-   "src": "BS(RV21×1.10)",
+   "src": "鏈 mid（延遲價）",
    "delta": 0.28,
    "pt": "PT60"
   }
  ],
  "cum": {
-  "margin": 1457.4,
-  "frac": 3.0,
+  "margin": 1567.5,
+  "frac": 3.2,
   "cap_pct": 12.0,
-  "cash_after": 47687.72
+  "cash_after": 47577.62
  },
  "nbis": {
-  "spot": 151.64,
+  "spot": 147.17,
   "strike": 165,
   "expiry": "2026-11-06",
   "trigger": "163–165（週四 11-05）",
