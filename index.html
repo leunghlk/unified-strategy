@@ -142,7 +142,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
           <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；現有腿照 PT50／roll，掛 mid 等反彈唔市價斬</td></tr>
         </tbody>
       </table></div>
-      <div class="note">⚠️ <b>真倉 VIX 閘凌駕本表。</b>研究實數＝OOS 七窗口徑（pool117＋winner config，2020–2026）。⭐11-02 拍板熊狀態門（單名腿）：VIX&lt;20 且<b>熊狀態</b>（SPX 收市 &lt; 200 日平均線，或攞唔到數）先封；<b>牛狀態</b>（SPX ≥ SMA200）放行。每日收市計一次。XSP 指數腿照封 VIX&lt;20 唔郁（floor20 實錘係寶）。現況 10-30：SPX 7580 &gt; SMA200 7310＝牛狀態。spike 部署窗＝VIX spike 後 3–10td。</div>
+      <div class="note">⚠️ <b>真倉 VIX 閘凌駕本表。</b>研究實數＝OOS 七窗口徑（pool117＋winner config，2020–2026）。⭐11-02 拍板熊狀態門（單名腿）：VIX&lt;20 且<b>熊狀態</b>（SPX 收市 &lt; 200 日平均線，或攞唔到數）先封；<b>牛狀態</b>（SPX ≥ SMA200）放行。每日收市計一次。XSP 指數腿照封 VIX&lt;20 唔郁（floor20 實錘係寶）。<span id="oosMktNow">現況 10-30：SPX 7580 &gt; SMA200 7310＝牛狀態</span>。spike 部署窗＝VIX spike 後 3–10td。</div>
     </div>
   </div>
 
@@ -184,7 +184,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <h3>實時時段（worker live）</h3>
       <div id="mktBody" class="desc">載入中…</div>
       <div class="chiprow" id="mktChips"></div>
-      <div class="note" style="margin-top:8px">⚠️ 真倉引擎條款：VIX[20,32] fail-closed——VIX&lt;20 全封。上週五收 VIX <b>19.42</b>＝現時真倉不開新倉；開工須 VIX≥20 或行正式改閘 SOP（改常數→probe→TG→紀錄），不准 force。</div>
+      <div class="chiprow" id="ovLiveChips" style="margin-top:6px"><span class="pill y">VIX/SPX 待 today.json 載入…</span></div>
+      <div class="note" style="margin-top:8px" id="liveClause">⚠️ 真倉引擎條款：VIX[20,32] fail-closed——載入中…（數據源 today.json，隨 5 分鐘重讀更新）</div>
     </div>
     <div class="card">
       <h3>🧨 NBIS 拆彈倒數（最急）<span class="pill r" style="margin-left:6px">11-06 到期</span></h3>
@@ -464,7 +465,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 
 </div><!-- /wrap -->
 
-<div class="foot"><span style="color:#1a73e8;font-weight:700">leungkathy</span> · All-in-One Financial Dashboard Suite — 統一策略台（四合一統一簿 · OOS 七窗 · 回本 700K）· 數據截至 2026-10-30 收市，真倉決策以 Futu OpenD＋bridge 實時為準</div>
+<div class="foot"><span style="color:#1a73e8;font-weight:700">leungkathy</span> · All-in-One Financial Dashboard Suite — 統一策略台（四合一統一簿 · OOS 七窗 · 回本 700K）· 數據截至 <span id="footBarDate">2026-10-30</span> 收市，真倉決策以 Futu OpenD＋bridge 實時為準</div>
 
 <script>
 var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
@@ -478,6 +479,7 @@ function loadToday(){
 }
 function renderToday(d){
   var v=d.verdict||{},m=d.market||{};
+  window.__today=d;updateOverviewLive();
   var vcol=(v.level||'').indexOf('🔴')>=0?'r':((v.level||'').indexOf('🟡')>=0?'y':'g');
   var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+'</span><span class="pill '+vcol+'"'+(v.delta_note?' title="'+v.delta_note+'"':'')+'>單名 δ'+(v.delta_single!=null?v.delta_single:'—')+(v.delta_note?'（'+v.delta_note+'）':'')+'</span><span class="pill '+(d.data_fresh?(d.intraday?'b':'g'):'y')+'">'+(d.intraday?'現價（開市中）':'收市價 '+d.bar_date+(m.bar_wd?'（'+m.bar_wd+'）':''))+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
   h+='<div class="desc" style="margin-top:6px">'+(v.txt||'')+'</div>';
@@ -540,6 +542,37 @@ function calc(){
   o.innerHTML='Premium 入帳 <b>$'+prem.toFixed(0)+'</b> · 按金（最大虧損）<b>$'+ml.toFixed(0)+'</b>（NAV '+frac.toFixed(1)+'%）'+(frac>5?' <span class="pill r">超單名 5% 閘</span>':' <span class="pill g">過 5% 閘</span>')+' · 做完後現金 <b>$'+(NAV_USD+prem).toFixed(0)+'</b>（按金鎖 $'+ml.toFixed(0)+'，可動用 $'+(NAV_USD+prem-ml).toFixed(0)+'）';
 }
 
+/* VIX 閘動態文案（⭐11-02 拍板熊狀態門版；11-04 掃走 10-30 hardcode，一律由 today.json 餵） */
+function bandActionTxt(m){
+  var band=m.vix_band||'',mst=m.mkt_state||'nan';
+  if(band==='20-32') return 'XSP 開倉窗';
+  if(band==='<20') return mst==='bull'?'<20 牛狀態：單名🟡半開（11-02 拍板熊狀態門）、XSP 照封':(mst==='bear'?'<20 熊狀態：全封':'<20（狀態 n/a，fail-closed 封）');
+  if(band==='>32') return '>32 全封＋撤';
+  return band||'?';
+}
+function updateOverviewLive(){
+  var d=window.__today,vc=document.getElementById('ovLiveChips');
+  if(!d){ if(vc) vc.innerHTML='<span class="pill y">VIX/SPX 待 today.json 載入…</span>'; return; }
+  var m=d.market||{},bd=d.bar_date||'',v=m.vix,bull=m.mkt_state==='bull';
+  var vcol=(m.vix_band==='20-32')?'b':((m.vix_band==='>32')?'r':'y');
+  var sc=document.getElementById('liveClause'),clause;
+  if(v==null){
+    if(vc) vc.innerHTML='<span class="pill r">VIX 數據唔到——真倉 VIX 閘 fail-closed，唔好開新倉</span>';
+    if(sc) sc.innerHTML='⚠️ 真倉引擎條款：VIX[20,32] fail-closed——攞唔到 VIX 數＝fail-closed 全封，唔好開新倉。';
+  } else {
+    if(vc) vc.innerHTML='<span class="pill '+vcol+'">VIX '+v+'（'+bd+' 收）·'+bandActionTxt(m)+'</span>'
+      +'<span class="pill '+(bull?'n':'r')+'">SPX '+(m.spx!=null?m.spx.toLocaleString():'—')+' '+(bull?'≥':'&lt;')+' SMA200 '+(m.spx_sma200!=null?m.spx_sma200.toLocaleString():'—')+' · '+(bull?'牛':'熊')+'狀態</span>';
+    if(m.vix_band==='20-32') clause='⚠️ 真倉引擎條款：VIX[20,32] fail-closed（<20 及 >32 都封）。'+bd+' 收 VIX <b>'+v+'</b> ∈[20,32]＝指數腿（XSP）開倉窗放行；單名跟今日台當日判決。';
+    else if(v<20&&bull) clause='⚠️ 真倉引擎條款：VIX[20,32] fail-closed——'+bd+' 收 VIX <b>'+v+'</b>&lt;20：XSP 指數腿照封（floor20 係寶）；單名按 ⭐11-02 拍板熊狀態門＝牛狀態🟡半開放行，照今日台判決行。';
+    else if(v<20) clause='⚠️ 真倉引擎條款：VIX[20,32] fail-closed——'+bd+' 收 VIX <b>'+v+'</b>&lt;20＋熊狀態/狀態唔到＝真倉全封唔開新倉；開工須 VIX≥20 或行正式改閘 SOP（改常數→probe→TG→紀錄），不准 force。';
+    else clause='⚠️ VIX <b>'+v+'</b>&gt;32＝全封＋撤，fail-closed。';
+    if(sc) sc.innerHTML=clause;
+  }
+  var om=document.getElementById('oosMktNow');
+  if(om&&m.spx!=null&&m.spx_sma200!=null) om.innerHTML='現況 '+bd+'：SPX '+m.spx.toLocaleString()+' '+(bull?'≥':'&lt;')+' SMA200 '+m.spx_sma200+'＝'+(bull?'牛狀態':'熊狀態');
+  var fb=document.getElementById('footBarDate');
+  if(fb&&bd) fb.textContent=bd.slice(5).replace('-','-');
+}
 function loadMarket(){
   var d=document.getElementById('liveDot'),b=document.getElementById('liveBadge');
   fetch(WORKER+'?v='+Date.now()).then(function(r){return r.json();}).then(function(j){
@@ -549,13 +582,12 @@ function loadMarket(){
     var chips='';
     chips+='<span class="pill '+((now.is_open)?'g':'n')+'">美市 '+(now.is_open?'開市':'休市')+'</span>';
     if(tn&&tn.hkt_date) chips+='<span class="pill b">今晚 '+(tn.is_trading!==undefined&&tn.is_trading!==null? (tn.is_trading?'有市':'休市') : (tn.et_date||''))+'</span>';
-    chips+='<span class="pill y">VIX 19.42（10-30 收）·<20 牛狀態：單名放行（⭐11-02 拍板熊狀態門）</span>';
-    chips+='<span class="pill n">SPX 7580.07 &gt; SMA200 7309.76 · 牛狀態</span>';
     document.getElementById('mktChips').innerHTML=chips;
+    updateOverviewLive();
   }).catch(function(){
-    d.className='live-dot off';b.textContent='離線（顯示 10-30 收市數）';
-    document.getElementById('mktBody').textContent='worker 未連上——以下全部為 2026-10-30 收市數。';
-    document.getElementById('mktChips').innerHTML='<span class="pill y">VIX 19.42 · <20 牛狀態：單名放行（熊狀態門）</span><span class="pill n">SPX 7580.07 · 牛狀態</span>';
+    d.className='live-dot off';b.textContent='離線';
+    document.getElementById('mktBody').textContent='worker 未連上——時鐘/session 停用；VIX/SPX 判決以下方 today.json 收市數為準。';
+    updateOverviewLive();
   });
 }
 function countdown(){
