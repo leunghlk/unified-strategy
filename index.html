@@ -138,7 +138,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
           <tr id="vixRow_lt14"><td><b>&lt;14</b></td><td><span class="pill y">paper</span></td><td>OOS 七窗：n=64，88% 勝，<b>+177/筆</b>（低 VIX 年＝錢帶）</td><td>細租可研究；真倉跟<b>熊狀態門</b></td></tr>
           <tr id="vixRow_1418"><td><b>14–18</b></td><td><span class="pill y">paper</span></td><td>OOS 七窗：14-16 n=73，82% 勝，+119/筆；16-18 n=83，83% 勝，+15/筆</td><td>唔加注；真倉跟<b>熊狀態門</b></td></tr>
           <tr id="vixRow_1820"><td><b>18–20</b></td><td><span class="pill y">重審</span></td><td>OOS 七窗：n=48，75% 勝，+30/筆；但熊年（W2022）33% 勝 −1,121/筆</td><td>唔加注；真倉跟<b>熊狀態門</b></td></tr>
-          <tr id="vixRow_2032"><td><b>20–32</b></td><td><span class="pill g">真倉開倉窗</span></td><td>OOS 七窗：n=153，85% 勝，<b>+91/筆</b>＝主力錢帶</td><td>XSP δ0.20 spr5 可開；單名照 screen 過閘開；現有腿照 PT50／roll</td></tr>
+          <tr id="vixRow_2032"><td><b>20–32</b></td><td><span class="pill g">真倉開倉窗</span></td><td>OOS 七窗：n=153，85% 勝，<b>+91/筆</b>＝主力錢帶</td><td>XSP（迷你標普指數期權）δ0.20、闊度5% 可開；單名照 screen 過閘開；現有腿照 PT50／roll</td></tr>
           <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；現有腿照 PT50／roll，掛 mid 等反彈唔市價斬</td></tr>
         </tbody>
       </table></div>
@@ -532,7 +532,7 @@ function renderToday(d){
   document.getElementById('tdGold').innerHTML='<span class="pill '+(g.in_window?'g':'n')+'">'+g.window+(g.in_window?' · 現正身處':' · 非黃金窗')+'</span><br><br>'+(g.note||'');
   var cfg=d.config||{};
   document.getElementById('tdRoute').textContent=cfg.live||'';
-  document.getElementById('tdRouteTxt').innerHTML='真倉跟<b>基座</b>（'+(cfg.live||'')+'）；winner '+((cfg.shadow||'').replace('winner ',''))+'。結構：<b>單名一律 10% put credit spread</b>（唔做 naked CSP）；XSP δ0.20 spr5 指數腿只喺 VIX 20–32 band 開（<b>'+m.vix_band+'</b> → '+(m.band_action||'')+'）；10-18 判決：雷達 YEL 唔停手、δ 縮深 0.02。';
+  document.getElementById('tdRouteTxt').innerHTML='真倉跟<b>基座</b>（'+(cfg.live||'')+'）；winner '+((cfg.shadow||'').replace('winner ',''))+'。結構：<b>單名一律 10% put credit spread</b>（唔做 naked CSP）；XSP（迷你標普指數期權）δ0.20、闊度5% 嘅指數腿只喺 VIX 20–32 區間開（<b>'+m.vix_band+'</b> → '+(m.band_action||'')+'）；10-18 判決：雷達 YEL 唔停手、δ 縮深 0.02。';
   var scr=d.screen||[];
   document.getElementById('tdScreen').innerHTML=scr.length?scr.map(function(x){
     return '<tr><td><b>'+x.sym+'</b> +'+x.mom63+'%</td><td class="num">'+(x.close!=null?x.close:'—')+'</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl+'%':'—')+'</td><td>'+(x.earn==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁（'+(x.earn_td!=null?x.earn_td+'td':'')+'）</span>')+'</td><td>'+(x.gap==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁</span>')+'</td></tr>';
