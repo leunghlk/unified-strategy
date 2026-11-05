@@ -468,6 +468,24 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
 function setTab(id,el){document.querySelectorAll('.tabc').forEach(function(e){e.style.display='none';});document.getElementById(id).style.display='block';document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('act');});el.classList.add('act');}
 function expZh(e){try{var dt=new Date(e+'T00:00:00');return (dt.getMonth()+1)+'月'+dt.getDate()+'日（週'+'日一二三四五六'[dt.getDay()]+'）';}catch(err){return '';}}
+/* ⭐ 11-06 用戶令：每個候選 spread 出情景推演——breakeven／咩情況贏贏幾多／咩情況輸輸幾多 */
+function scenCards(cands){
+  return cands.map(function(c){
+    var w=c.short_k-c.long_k, cr=Number(c.credit)||0, n=c.contracts||1, sp=Number(c.spot)||0;
+    var be=c.short_k-cr;
+    var fmt=function(v){return (Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:2});};
+    var mw=Number(c.premium_in)||cr*100*n;
+    var ml=Number(c.margin)||((w-cr)*100*n);
+    var bePct=sp?Math.abs((be/sp-1)*100).toFixed(1):null;
+    var half=(Math.round(cr*50)/100).toFixed(2);
+    return '<div class="table-scroll" style="margin-top:10px"><table><thead><tr><th colspan="3">📊 '+c.sym+' 賣'+c.short_k+'P／買'+c.long_k+'P 情景推演（'+n+'張 · '+expZh(c.expiry)+'到期 · 現價 '+c.spot+'）</th></tr></thead><tbody>'+
+    '<tr><td>到期日 '+c.sym+' 收市 <b>≥ $'+c.short_k+'</b>（企穩喺賣出價之上）</td><td>🟢 <b>贏</b></td><td class="num">兩腿作廢，袋齊 credit <b>+$'+fmt(mw)+'</b>（呢個係上限）</td></tr>'+
+    '<tr><td>收市 $'+be.toFixed(2)+' 至 $'+c.short_k+'（輕微跌穿賣出價）</td><td>🟢 贏</td><td class="num">+$0 至 +$'+fmt(mw)+' 之間（低過平衡點幾多就扣幾多）</td></tr>'+
+    '<tr><td>收市 $'+c.long_k+' 至 $'+be.toFixed(2)+'（跌穿平衡點）</td><td>🔴 <b>輸</b></td><td class="num">'+c.sym+' 收市每低 $1，多輸 $'+(100*n)+'</td></tr>'+
+    '<tr><td>收市 <b>≤ $'+c.long_k+'</b>（跌穿保險腿）</td><td>🔴 輸</td><td class="num">輸齊 <b>−$'+fmt(ml)+'</b>（<b>封頂</b>——有 '+c.long_k+'P 保險，唔會蝕超過呢個數）</td></tr>'+
+    '</tbody></table></div><div class="note">📈 <b>盈虧平衡點 $'+be.toFixed(2)+'</b>'+(bePct?'（'+c.sym+' 要由現價跌 '+bePct+'% 先開始輸）':'')+'；最大回報 +$'+fmt(mw)+'／最大虧損 −$'+fmt(ml)+'（回報風險比 '+(ml?(mw/ml).toFixed(2):'—')+'）。⏰ <b>到期前唔使對賭到底</b>：credit 跌剩約 $'+half+'（一半）就照 PT50 提前平倉鎖定利潤——張單嘅規則係賺中段，唔係賺尾水。</div>';
+  }).join('');
+}
 function manualRefresh(){
   loadMarket();
   /* ⭐ 11-06 fresh-first：🔄 先打 bridge /today_fresh（單飛 gen＋直接回新 json，跳過 Pages CDN 延遲）；
@@ -567,7 +585,9 @@ function renderToday(d){
     '③ Short leg（<b>賣出</b>）＝板面「賣」嗰個 strike；Long leg（<b>買入</b>）＝「買」嗰個；數量＝板面「張數」<br>'+
     '④ <b>限價</b>：掛板面 Credit mid 同「掛價低至」之間（例 mid $6.00／低至 $5.35 → 掛 $5.4–6.0 試）；<b>唔好用市價單</b>——盤口闊嘅日子市價單即刻食走你成個 spread 差價<br>'+
     '⑤ 確認頁核三個數：收 credit ≈板面 Premium÷張數÷100、最大虧損 ≈板面按金、盈虧平衡點 ＝ 賣出 strike − credit<br>'+
-    '⑥ 成交後管理照規則：<b>credit 跌剩三成（PT50/60）就走</b>；到期日 V 收市低過賣出 strike 先會被接貨</div>';
+    '⑥ 成交後管理照規則：<b>credit 跌剩三成（PT50/60）就走</b>；到期日股價收市低過賣出 strike 先會被接貨</div>'+
+    '<div style="margin-top:12px"><b>📊 情景推演——每個候選開倉後會點</b> <span class="pill n">盈虧平衡／贏幾多／輸幾多，照板面自己的數計</span></div>'+
+    scenCards(cands);
   }
   var c96s=d.c96_screen||[];
   if(c96s.length){
