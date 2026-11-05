@@ -51,7 +51,19 @@ def spot_of(sym):
     return float(h["Close"].iloc[-1]) if len(h) else None
 
 
-BRIDGE_SECRET = os.environ.get("FUTU_BRIDGE_SECRET", "qtbridge-K7s2-wolf-9mX4")
+# ⭐secret 唔准入公開 repo（11-05 分類器攔截實錄）——env FUTU_BRIDGE_SECRET 或 ~/.futu_bridge_secret（600）
+def _bridge_secret():
+    _s = os.environ.get("FUTU_BRIDGE_SECRET")
+    if _s:
+        return _s
+    try:
+        with open(os.path.expanduser("~/.futu_bridge_secret")) as _f:
+            return _f.read().strip()
+    except Exception:
+        return ""
+
+
+BRIDGE_SECRET = _bridge_secret()
 
 
 def chain_mid(sym, expiry, ks, kl):

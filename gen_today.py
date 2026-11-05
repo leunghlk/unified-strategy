@@ -57,32 +57,57 @@ def put_delta(S, K, T, r, iv):
 
 
 # ---------- ⭐ 11-05 三層定價：bridge（Futu OpenD 真鏈）→ yf 鏈 mid → BS 兜底 ----------
-BRIDGE_SECRET = os.environ.get("FUTU_BRIDGE_SECRET", "qtbridge-K7s2-wolf-9mX4")
+# ⭐secret 唔准入公開 repo（11-05 分類器攔截實錄）——env FUTU_BRIDGE_SECRET 或 ~/.futu_bridge_secret（600）
+def _bridge_secret():
+    _s = os.environ.get("FUTU_BRIDGE_SECRET")
+    if _s:
+        return _s
+    try:
+        with open(os.path.expanduser("~/.futu_bridge_secret")) as _f:
+            return _f.read().strip()
+    except Exception:
+        return ""
+
+
+BRIDGE_SECRET = _bridge_secret()
+
+
+_BRIDGE_FAIL_NOTED = [False]
 
 
 def bridge_chain(s, exp_str):
     """Futu OpenD 真實 bid/ask（127.0.0.1 bridge，本地 only——公開 repo 頁面唔會見 secret）。
     bridge /options/chain 必須帶 &expiry=——OpenD full-chain 有 row cap 會截走遠月
-    （11-05 實錘：TMO 全鏈只返 786 rows 截到 12-04，12-18 月選完全唔見）。"""
+    （11-05 實錘：TMO 全鏈只返 786 rows 截到 12-04，12-18 月選完全唔見）。
+    ⭐bridge wedge（OpenD stall，11-05 21:35 實錄）時唔好靜默跌層——note 一次俾 dashboard 見到。"""
     try:
         import urllib.request as _ur
         _u = ("http://127.0.0.1:8765/options/chain?code=US.%s&expiry=%s&secret=%s"
               % (s, exp_str, BRIDGE_SECRET))
         _d = json.loads(_ur.urlopen(_u, timeout=25).read().decode("utf-8", "replace"))
         if not _d.get("ok"):
+            if not _BRIDGE_FAIL_NOTED[0]:
+                _BRIDGE_FAIL_NOTED[0] = True
+                note("bridge 鏈價 ok=False（%s）——候選定價跌落 yf 鏈 mid/BS 層" % str(_d.get("error"))[:60])
             return None
         for _e in _d.get("expiries") or []:
             if _e.get("expiry") != exp_str:
                 continue
+            # ⭐11-05: 0/0 stub 行唔算有價（開市初頭 OpenD snapshot 全表 0/0 實錄 22:30 HKT）
             _rows = sorted((_r for _r in (_e.get("rows") or [])
                             if str(_r.get("type", "")).upper() == "PUT"
                             and _r.get("strike") is not None
-                            and _r.get("bid") is not None and _r.get("ask") is not None),
+                            and ((_r.get("bid") or 0) > 0 or (_r.get("ask") or 0) > 0)),
                            key=lambda r: -r["strike"])
             if _rows:
                 return {"spot": _d.get("spot"), "puts": _rows}
-    except Exception:
-        pass
+            if not _BRIDGE_FAIL_NOTED[0]:
+                _BRIDGE_FAIL_NOTED[0] = True
+                note("bridge 真鏈無 live 報價（0/0 stub，開市初頭/OpenD 未 ready）——候選定價跌落 yf 鏈 mid/BS 層")
+    except Exception as _ex:
+        if not _BRIDGE_FAIL_NOTED[0]:
+            _BRIDGE_FAIL_NOTED[0] = True
+            note("bridge 鏈價攞唔到（%s）——候選定價跌落 yf 鏈 mid/BS 層" % _ex.__class__.__name__)
     return None
 
 
