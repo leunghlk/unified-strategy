@@ -275,6 +275,22 @@ elif radar_level == "YEL":
 else:
     radar_note = "🟢 正常"
 
+# credit break-glass（⭐11-05 拍板 (b)：雷達豁免 C96 腿嘅保險——真信用事件三條件齊先封 C96：
+# OAS≥3.20 ＋ 5日+15bp ＋ RSP 跌穿 SMA50。得 OAS 擴而 RSP 企穩＝AI 發債體推動，唔封防守池）
+credit_glass = False
+try:
+    _hist = json.load(open("/Users/leungkathy/quant-dashboard/kill_radar_history.json")).get("rows", [])
+    if _hist:
+        _r0 = _hist[-1]
+        _oas, _d5 = _r0.get("oas"), _r0.get("oas_d5")
+        credit_glass = bool(_oas is not None and _oas >= 3.20
+                            and _d5 is not None and _d5 >= 0.15
+                            and rsp_above is False)
+        if credit_glass:
+            note("credit break-glass 觸發（OAS %.2f／5日%+.0fbp＋RSP 跌穿 SMA50）——C96 腿照封（11-05 拍板）" % (_oas, _d5 * 100))
+except Exception:
+    pass
+
 # ---------- 6. 今日 screen：mom63 top-6＋閘 ----------
 today = datetime.date.today()
 screen = []
@@ -459,7 +475,11 @@ if yf_ok and c96_top:
             pass
 
 c96_candidates = []
-if breadth_regime == "partial_kill" and yf_ok and c96_top:
+if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
+    # ⭐11-05 拍板 (b)：雷達 RED 豁免 C96 腿——唔停手但 δ 縮深 0.02（底 0.25），跟 10-18 判決同款
+    delta_c96 = round(max(delta_today - 0.02, 0.25), 2) if radar_level == "RED" else delta_today
+    if radar_level == "RED":
+        note("雷達 RED 但 C96 腿豁免封（11-05 拍板 b）——C96 候選 δ 縮深至 %.2f" % delta_c96)
     c96_ok = [x for x in c96_top if x["iv"] != "死亡區" and x["gap"] == "ok" and x["earn"] != "禁"]
     try:
         _exps = next_fridays(today, 10)
@@ -487,7 +507,7 @@ if breadth_regime == "partial_kill" and yf_ok and c96_top:
             for k in range(0, 240):
                 K = round(S * (1.0 - 0.005 * k), 0)
                 Ks = K
-                if -put_delta(S, K, _T, BS_R, iv) <= delta_today or K < S * 0.6:
+                if -put_delta(S, K, _T, BS_R, iv) <= delta_c96 or K < S * 0.6:
                     break
             Kl = round(Ks * (1 - WIDTH), 0)
             credit = bs_put(S, Ks, _T, BS_R, iv) - bs_put(S, Kl, _T, BS_R, iv)
@@ -510,7 +530,7 @@ if breadth_regime == "partial_kill" and yf_ok and c96_top:
                 dte_td=td_between(today, _exp_d), credit=usd(credit), width_pct=10,
                 contracts=int(n_ct), max_loss=usd(ml * n_ct), premium_in=usd(credit * 100 * n_ct),
                 margin=usd(ml * n_ct), cash_after=usd(CASH_HKD / FX_USDHKD + credit * 100 * n_ct),
-                iv_used=round(iv * 100, 1), src=src, delta=delta_today,
+                iv_used=round(iv * 100, 1), src=src, delta=delta_c96,
                 rv21_pctl=x["rv21_pctl"], earn_td=x.get("earn_td"), pool="C96"))
     except Exception as ex:
         note("C96 候選定價失敗：%s %s" % (ex.__class__.__name__, ex))
@@ -549,14 +569,13 @@ if nbis_spot:
     else:
         nbis["state"] = "觸發區上 %+.1f%%" % (100 * (nbis_spot / 163 - 1))
 
-# ---------- 9. 總判決（⭐11-02 熊狀態門＋⭐11-05 廣度雙閘：局部殺戮分腿——AI 封、C96/指數腿照閘行） ----------
+# ---------- 9. 總判決（⭐11-02 熊狀態門＋⭐11-05 雙閘＋⭐11-05 拍板(b)：雷達 RED 豁免 C96 腿） ----------
+# 分腿制：雷達只封 AI 池＋指數腿；C96 腿閘＝RSP 全市閘＋VIX band＋credit break-glass，雷達 RED 淨縮 δ0.02。
 verdict_level, verdict_txt = "封", ""
 ai_sealed = False          # AI 池新倉封咗未（局部殺戮／熊狀態門）——paper 台照開但強制 shadow
-if radar_level == "RED" or vix_band == ">32" or breadth_regime == "collapse":
+if vix_band == ">32" or breadth_regime == "collapse":
     ai_sealed = True
     _why = []
-    if radar_level == "RED":
-        _why.append("雷達 RED")
     if vix_band == ">32":
         _why.append("VIX>32")
     if breadth_regime == "collapse" and mkt_gate_bad:
@@ -566,12 +585,18 @@ if radar_level == "RED" or vix_band == ">32" or breadth_regime == "collapse":
     verdict_level, verdict_txt = "🔴 封刀", "／".join(_why) + "——今日唔開新倉，現有腿照 PT50/roll 規則行"
 elif breadth_regime == "partial_kill":
     ai_sealed = True
-    if vix_band == "20-32":
+    if credit_glass:
+        verdict_level, verdict_txt = "🔴 封刀（局部殺戮＋credit break-glass）", "OAS/信用三條件齊（真信用事件保險，⭐11-05 拍板）→ C96 腿照封；現有腿照 PT50/roll"
+    elif vix_band == "20-32":
         verdict_level, verdict_txt = "🟡 半開（局部殺戮）", "AI 池廣度 %.1f<50（5日前 %.1f）但全市閘企穩（RSP ≥ SMA50）→ AI 單名封（10月段結構）；真倉建議面轉板塊頭部 C96（%d 隻過閘）照 δ%.2f spr10；指數腿照 VIX floor 開；現有腿照 PT50/roll" % (breadth, breadth_5d if breadth_5d is not None else breadth, len(c96_candidates), delta_today)
     elif vix_band == "<20" and mkt_state == "bull":
-        verdict_level, verdict_txt = "🟡 半開（局部殺戮，熊狀態門放行）", "AI 池廣度 %.1f<50 → AI 單名封；但 VIX %.1f<20＋牛狀態（SPX %.0f≥SMA200 %.0f，11-02 拍板 20bull 實錘）→ 板塊頭部 C96（%d 隻過閘）照 δ%.2f spr10 可開；指數腿照封（floor20 唔郁）；現有腿照 PT50/roll" % (breadth, vix, spx, spx_sma200, len(c96_candidates), delta_today)
+        _red_note = "；雷達 RED 唔封 C96 腿（⭐11-05 拍板 b，實證 RED 日 C96 f10 +1.13%% 對 QQQ −0.96%% 方向相反）——C96 δ 縮深 0.02 至 %.2f（底 0.25）" % max(delta_today - 0.02, 0.25) if radar_level == "RED" else ""
+        verdict_level, verdict_txt = "🟡 半開（局部殺戮，熊狀態門放行）", "AI 池廣度 %.1f<50 → AI 單名封；但 VIX %.1f<20＋牛狀態（SPX %.0f≥SMA200 %.0f，11-02 拍板 20bull 實錘）→ 板塊頭部 C96（%d 隻過閘）照 δ spr10 可開%s；指數腿照封（floor20 唔郁）；現有腿照 PT50/roll" % (breadth, vix, spx, spx_sma200, len(c96_candidates), _red_note)
     else:
         verdict_level, verdict_txt = "🔴 封刀（局部殺戮）", "AI 池廣度 %.1f<50 且 VIX band（%s）唔放行單名／指數腿 → 全封；現有腿照 PT50/roll" % (breadth, vix_band)
+elif radar_level == "RED":
+    ai_sealed = True
+    verdict_level, verdict_txt = "🔴 封刀", "雷達 RED——AI 池＋指數腿唔開新倉（C96 腿只喺局部殺戮 regime 存在，唔受影響）；現有腿照 PT50/roll 規則行"
 elif vix_band == "<20" and mkt_state == "bull":
     verdict_level, verdict_txt = "🟡 半開（熊狀態門放行）", "VIX %.1f <20 但牛狀態（SPX %.0f ≥ SMA200 %.0f）→ 單名照 screen 過閘開（⭐11-02 拍板，七窗 OOS 20bull 實錘）；XSP 照封（指數腿 floor20 唔郁）；現有腿照 PT50/roll" % (vix, spx, spx_sma200)
 elif vix_band == "<20":
@@ -640,7 +665,7 @@ out = dict(
                 et_note=et_note, bar_wd=bar_wd if 'bar_wd' in dir() else None),
     radar=dict(level=radar_level, reasons=radar_reasons, note=radar_note),
     verdict=dict(level=verdict_level, txt=verdict_txt, delta_single=delta_today, delta_note=delta_note,
-                 ai_sealed=ai_sealed),
+                 ai_sealed=ai_sealed, credit_glass=credit_glass),
     funnel=funnel,
     golden=gold,
     screen=top6, candidates=candidates, paper_candidates=paper_candidates,

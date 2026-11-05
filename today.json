@@ -1,13 +1,13 @@
 {
- "as_of": "2026-11-05 19:22 HKT",
+ "as_of": "2026-11-05 20:11 HKT",
  "bar_date": "2026-11-05",
  "data_fresh": true,
  "intraday": false,
  "market": {
   "spx": 7688.62,
   "spx_chg": 1.58,
-  "vix": 16.83,
-  "vix_chg": 0.22,
+  "vix": 16.76,
+  "vix_chg": 0.15,
   "vix_band": "<20",
   "band_action": "牛狀態放行單名（SPX≥SMA200，⭐11-02 拍板）；XSP 照封",
   "breadth": 30.8,
@@ -19,7 +19,7 @@
   "mkt_gate_bad": false,
   "spx_sma200": 7320.35,
   "mkt_state": "bull",
-  "et_note": "ET 而家 2026-11-05 週四（已收市，16:00 ET）——下列＝今日（2026-11-05 週四）收市價；HKT 而家 11-05 19:22",
+  "et_note": "ET 而家 2026-11-05 週四（已收市，16:00 ET）——下列＝今日（2026-11-05 週四）收市價；HKT 而家 11-05 20:11",
   "bar_wd": "週四"
  },
  "radar": {
@@ -31,11 +31,12 @@
   "note": "🔴 RED——新倉暫停（殺倉雷達）"
  },
  "verdict": {
-  "level": "🔴 封刀",
-  "txt": "雷達 RED——今日唔開新倉，現有腿照 PT50/roll 規則行",
+  "level": "🟡 半開（局部殺戮，熊狀態門放行）",
+  "txt": "AI 池廣度 30.8<50 → AI 單名封；但 VIX 16.8<20＋牛狀態（SPX 7689≥SMA200 7320，11-02 拍板 20bull 實錘）→ 板塊頭部 C96（1 隻過閘）照 δ spr10 可開；雷達 RED 唔封 C96 腿（⭐11-05 拍板 b，實證 RED 日 C96 f10 +1.13% 對 QQQ −0.96% 方向相反）——C96 δ 縮深 0.02 至 0.28（底 0.25）；指數腿照封（floor20 唔郁）；現有腿照 PT50/roll",
   "delta_single": 0.3,
   "delta_note": "δ0.30＝基座；雷達 RED 新倉暫停",
-  "ai_sealed": true
+  "ai_sealed": true,
+  "credit_glass": false
  },
  "funnel": {
   "pool": 117,
@@ -45,7 +46,7 @@
   "earn_ok": 1,
   "gap_ok": 4,
   "final": 1,
-  "verdict": "🔴 封刀"
+  "verdict": "🟡 半開（局部殺戮，熊狀態門放行）"
  },
  "golden": {
   "in_window": true,
@@ -124,20 +125,20 @@
   {
    "sym": "TMO",
    "spot": 706.16,
-   "short_k": 678.0,
-   "long_k": 610.0,
+   "short_k": 674.0,
+   "long_k": 607.0,
    "expiry": "2026-12-18",
    "dte_td": 31,
-   "credit": 11.94,
+   "credit": 10.83,
    "width_pct": 10,
    "contracts": 1,
-   "max_loss": 5606.47,
-   "premium_in": 1193.53,
-   "margin": 5606.47,
-   "cash_after": 50338.64,
+   "max_loss": 5616.75,
+   "premium_in": 1083.25,
+   "margin": 5616.75,
+   "cash_after": 50228.37,
    "iv_used": 27.3,
    "src": "BS(RV21×1.10)",
-   "delta": 0.3,
+   "delta": 0.28,
    "rv21_pctl": 35.0,
    "earn_td": 60,
    "pool": "C96"
@@ -295,20 +296,20 @@
   {
    "sym": "TMO",
    "spot": 706.16,
-   "short_k": 678.0,
-   "long_k": 610.0,
+   "short_k": 674.0,
+   "long_k": 607.0,
    "expiry": "2026-12-18",
    "dte_td": 31,
-   "credit": 11.94,
+   "credit": 10.83,
    "width_pct": 10,
    "contracts": 1,
-   "max_loss": 5606.47,
-   "premium_in": 1193.53,
-   "margin": 5606.47,
-   "cash_after": 50338.64,
+   "max_loss": 5616.75,
+   "premium_in": 1083.25,
+   "margin": 5616.75,
+   "cash_after": 50228.37,
    "iv_used": 27.3,
    "src": "BS(RV21×1.10)",
-   "delta": 0.3,
+   "delta": 0.28,
    "rv21_pctl": 35.0,
    "earn_td": 60,
    "pool": "C96"
@@ -359,10 +360,10 @@
   }
  ],
  "cum": {
-  "margin": 5606.47,
+  "margin": 5616.75,
   "frac": 11.4,
   "cap_pct": 12.0,
-  "cash_after": 43538.65
+  "cash_after": 43528.37
  },
  "nbis": {
   "spot": 141.52,
@@ -387,6 +388,7 @@
   "shadow": "winner δ0.28/PT60 paper 影子 2 週（11-17 無甩嘢切真倉）"
  },
  "notes": [
+  "雷達 RED 但 C96 腿豁免封（11-05 拍板 b）——C96 候選 δ 縮深至 0.28",
   "局部殺戮——真倉候選由 AI 池（1 隻）轉板塊頭部 C96（1 隻）；paper 台照 AI 池 shadow 唔混池"
  ]
 }
