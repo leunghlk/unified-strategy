@@ -602,15 +602,20 @@ elif breadth_regime == "partial_kill":
 
 cum_margin = sum(c["margin"] for c in candidates)
 cum_frac = cum_margin / NAV_USD if NAV_USD else None
+cum_dropped = []
 if cum_frac and cum_frac > CUM_CAP_FRAC and candidates:
     keep, tot = [], 0.0
     for c in candidates:
         if tot + c["margin"] <= NAV_USD * CUM_CAP_FRAC:
             keep.append(c)
             tot += c["margin"]
+    cum_dropped = [c["sym"] for c in candidates if c not in keep]
     dropped = len(candidates) - len(keep)
     candidates = keep
-    note("累計 12%% NAV 閘裁走 %d 個候選（12%% 上限=%.0f 美元）" % (dropped, NAV_USD * CUM_CAP_FRAC))
+    note("累計 12%% NAV 閘裁走 %d 個候選（%s；12%% 上限=%.0f 美元）" % (dropped, "、".join(cum_dropped), NAV_USD * CUM_CAP_FRAC))
+# ⭐11-06 修蟲：裁閘後重計——之前顯示嘅係裁前舊數（15400/31.3%）誤導用戶以為爆閘
+cum_margin = sum(c["margin"] for c in candidates)
+cum_frac = cum_margin / NAV_USD if NAV_USD else None
 
 # ---------- 8. NBIS 倒數 ----------
 nbis_spot = px.get("NBIS")
@@ -729,7 +734,8 @@ out = dict(
     c96_screen=c96_screen[:12], c96_candidates=c96_candidates,
     ownable6=ownable6,
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),
-             cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin)),
+             cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin),
+             dropped=cum_dropped),
     nbis=nbis,
     account=dict(cash_hkd=CASH_HKD, fx=FX_USDHKD, nav_usd=round(NAV_USD, 0),
                  single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0)),

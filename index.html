@@ -468,24 +468,161 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
 function setTab(id,el){document.querySelectorAll('.tabc').forEach(function(e){e.style.display='none';});document.getElementById(id).style.display='block';document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('act');});el.classList.add('act');}
 function expZh(e){try{var dt=new Date(e+'T00:00:00');return (dt.getMonth()+1)+'月'+dt.getDate()+'日（週'+'日一二三四五六'[dt.getDay()]+'）';}catch(err){return '';}}
-/* ⭐ 11-06 用戶令：每個候選 spread 出情景推演——breakeven／咩情況贏贏幾多／咩情況輸輸幾多 */
-function scenCards(cands){
-  return cands.map(function(c){
-    var w=c.short_k-c.long_k, cr=Number(c.credit)||0, n=c.contracts||1, sp=Number(c.spot)||0;
-    var be=c.short_k-cr;
-    var fmt=function(v){return (Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:2});};
-    var mw=Number(c.premium_in)||cr*100*n;
-    var ml=Number(c.margin)||((w-cr)*100*n);
-    var bePct=sp?Math.abs((be/sp-1)*100).toFixed(1):null;
-    var half=(Math.round(cr*50)/100).toFixed(2);
-    return '<div class="table-scroll" style="margin-top:10px"><table><thead><tr><th colspan="3">📊 '+c.sym+' 賣'+c.short_k+'P／買'+c.long_k+'P 情景推演（'+n+'張 · '+expZh(c.expiry)+'到期 · 現價 '+c.spot+'）</th></tr></thead><tbody>'+
-    '<tr><td>到期日 '+c.sym+' 收市 <b>≥ $'+c.short_k+'</b>（企穩喺賣出價之上）</td><td>🟢 <b>贏</b></td><td class="num">兩腿作廢，袋齊 credit <b>+$'+fmt(mw)+'</b>（呢個係上限）</td></tr>'+
-    '<tr><td>收市 $'+be.toFixed(2)+' 至 $'+c.short_k+'（輕微跌穿賣出價）</td><td>🟢 贏</td><td class="num">+$0 至 +$'+fmt(mw)+' 之間（低過平衡點幾多就扣幾多）</td></tr>'+
-    '<tr><td>收市 $'+c.long_k+' 至 $'+be.toFixed(2)+'（跌穿平衡點）</td><td>🔴 <b>輸</b></td><td class="num">'+c.sym+' 收市每低 $1，多輸 $'+(100*n)+'</td></tr>'+
-    '<tr><td>收市 <b>≤ $'+c.long_k+'</b>（跌穿保險腿）</td><td>🔴 輸</td><td class="num">輸齊 <b>−$'+fmt(ml)+'</b>（<b>封頂</b>——有 '+c.long_k+'P 保險，唔會蝕超過呢個數）</td></tr>'+
-    '</tbody></table></div><div class="note">📈 <b>盈虧平衡點 $'+be.toFixed(2)+'</b>'+(bePct?'（'+c.sym+' 要由現價跌 '+bePct+'% 先開始輸）':'')+'；最大回報 +$'+fmt(mw)+'／最大虧損 −$'+fmt(ml)+'（回報風險比 '+(ml?(mw/ml).toFixed(2):'—')+'）。⏰ <b>到期前唔使對賭到底</b>：credit 跌剩約 $'+half+'（一半）就照 PT50 提前平倉鎖定利潤——張單嘅規則係賺中段，唔係賺尾水。</div>';
-  }).join('');
+/* ⭐ 11-06 用戶令：每個候選 spread 出情景推演；11-06(晚) 用戶令：表格難睇 → 改到期盈虧圖（綠=贏紅=輸＋hover 任何價位賺蝕） */
+var FMT2=function(v){return (Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:2});};
+function payoffChart(c){
+  var w=c.short_k-c.long_k, cr=Number(c.credit)||0, n=c.contracts||1, sp=Number(c.spot)||0;
+  var be=c.short_k-cr;
+  var mw=Number(c.premium_in)||cr*100*n||1;
+  var ml=Number(c.margin)||((w-cr)*100*n)||1;
+  var bePct=sp?Math.abs((be/sp-1)*100).toFixed(1):null;
+  var half=(Math.round(cr*50)/100).toFixed(2);
+  var W=560,H=212,L=16,R=544,T=30,B=168;
+  var x0=c.long_k-w*0.55;
+  var x1=Math.max(sp,c.short_k)+w*0.5;
+  if(x1<=c.short_k)x1=c.short_k+w*0.5;
+  function X(p){return L+(p-x0)/(x1-x0)*(R-L);}
+  var vmin=-ml*1.15,vmax=mw*1.6;
+  function Y(v){return B-(v-vmin)/(vmax-vmin)*(B-T);}
+  function P(v){return Math.round(v*100)/100;}
+  var Y0=Y(0),xl=X(c.long_k),xs=X(c.short_k),xb=X(be),xp=sp?X(sp):null;
+  var yw=Y(mw),yl=Y(-ml);
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="'+c.sym+' 到期盈虧圖">';
+  s+='<polygon points="'+P(xb)+','+P(Y0)+' '+P(xs)+','+P(yw)+' '+P(X(x1))+','+P(yw)+' '+P(X(x1))+','+P(Y0)+'" fill="#16a34a" fill-opacity="0.12"/>';
+  s+='<polygon points="'+P(X(x0))+','+P(yl)+' '+P(xl)+','+P(yl)+' '+P(xb)+','+P(Y0)+' '+P(X(x0))+','+P(Y0)+'" fill="#dc2626" fill-opacity="0.10"/>';
+  s+='<line x1="'+P(X(x0))+'" y1="'+P(Y0)+'" x2="'+P(X(x1))+'" y2="'+P(Y0)+'" stroke="#cbd5e1" stroke-width="1"/>';
+  s+='<polyline points="'+P(X(x0))+','+P(yl)+' '+P(xl)+','+P(yl)+' '+P(xs)+','+P(yw)+' '+P(X(x1))+','+P(yw)+'" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round"/>';
+  if(sp){s+='<line x1="'+P(xp)+'" y1="'+T+'" x2="'+P(xp)+'" y2="'+B+'" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="4 3"/>';
+    var anch=xp>R-80?'end':(xp<L+80?'start':'middle');
+    var tx=anch==='end'?xp-4:(anch==='start'?xp+4:xp);
+    s+='<text x="'+P(tx)+'" y="'+(T-6)+'" text-anchor="'+anch+'" font-size="11.5" font-weight="600" fill="#334155">現價 $'+FMT2(sp)+'</text>';}
+  s+='<line x1="'+P(xl)+'" y1="'+B+'" x2="'+P(xl)+'" y2="'+(B+4)+'" stroke="#94a3b8"/><text x="'+P(xl)+'" y="'+(B+15)+'" text-anchor="middle" font-size="10.5" fill="#64748b">$'+c.long_k+'（保險腿）</text>';
+  s+='<line x1="'+P(xs)+'" y1="'+B+'" x2="'+P(xs)+'" y2="'+(B+4)+'" stroke="#94a3b8"/><text x="'+P(xs)+'" y="'+(B+15)+'" text-anchor="middle" font-size="10.5" fill="#64748b">$'+c.short_k+'（賣出腿）</text>';
+  s+='<circle cx="'+P(xb)+'" cy="'+P(Y0)+'" r="3.5" fill="#0f172a"/>';
+  s+='<text x="'+P(xb-6)+'" y="'+P(Y0+18)+'" text-anchor="end" font-size="11" font-weight="600" fill="#0f172a">平衡 $'+be.toFixed(2)+(bePct?'（現價跌 '+bePct+'% 先輸）':'')+'</text>';
+  var wlx=Math.min(R-6,xp?xp-8:R-6);
+  s+='<text x="'+P(wlx)+'" y="'+P(yw-6)+'" text-anchor="end" font-size="12" font-weight="700" fill="#15803d">贏齊 +$'+FMT2(mw)+'</text>';
+  s+='<text x="'+(L+4)+'" y="'+P(yl-8)+'" text-anchor="start" font-size="12" font-weight="700" fill="#b91c1c">輸齊 −$'+FMT2(ml)+'（封頂）</text>';
+  s+='<text x="'+R+'" y="'+(B+29)+'" text-anchor="end" font-size="10" fill="#94a3b8">到期日收市價 →</text>';
+  s+='<text x="'+L+'" y="'+(T-10)+'" text-anchor="start" font-size="10" fill="#94a3b8">賺蝕（美元）</text>';
+  s+='<text x="'+L+'" y="'+(T+12)+'" text-anchor="start" font-size="10" fill="#94a3b8">滑鼠移去圖上：睇任何收市價嘅賺蝕</text>';
+  s+='<line class="payoff-ch" x1="0" y1="'+T+'" x2="0" y2="'+B+'" stroke="#64748b" stroke-width="1" stroke-dasharray="3 3" visibility="hidden"/>';
+  s+='<circle class="payoff-dot" cx="0" cy="0" r="4" fill="#2563eb" stroke="#fff" stroke-width="1.5" visibility="hidden"/>';
+  s+='<rect class="payoff-hit" data-x0="'+x0+'" data-x1="'+x1+'" data-longk="'+c.long_k+'" data-shortk="'+c.short_k+'" data-credit="'+cr+'" data-n="'+n+'" data-mw="'+mw+'" data-ml="'+ml+'" x="'+L+'" y="'+T+'" width="'+(R-L)+'" height="'+(B-T)+'" fill="transparent" style="cursor:crosshair"/>';
+  s+='</svg>';
+  return '<div class="scen-wrap" style="position:relative;margin-top:12px;padding:10px 12px 6px;border:1px solid #e2e8f0;border-radius:8px;background:#fff">'+
+    '<div style="font-size:12.5px;margin-bottom:4px"><b>📊 '+c.sym+' 賣'+c.short_k+'P／買'+c.long_k+'P</b> · '+n+'張 · '+expZh(c.expiry)+'到期'+(sp?' · 現價 $'+FMT2(sp):'')+'——到期日收市價落喺邊，就贏／輸幾多：</div>'+s+
+    '<div class="note" style="margin-top:6px">盈虧平衡 <b>$'+be.toFixed(2)+'</b>'+(bePct?'（'+c.sym+' 現價跌 '+bePct+'% 先開始輸）':'')+' ｜ 贏最多 <b>+$'+FMT2(mw)+'</b> ｜ 頂蝕 <b>−$'+FMT2(ml)+'</b>（封頂，唔會蝕超過） ｜ credit 跌剩約 $'+half+' 照 PT50 提前平倉</div>'+
+    '<div class="payoff-tip" style="display:none;position:absolute;z-index:5;pointer-events:none;background:#0f172a;color:#fff;font-size:11.5px;padding:5px 8px;border-radius:6px;white-space:nowrap"></div></div>';
 }
+function scenCards(cands){return cands.map(payoffChart).join('');}
+/* ⭐ 11-06 用戶令：揀倉試算——勾候選＋調張數 → 即計共收 premium／按金夠唔夠／有冇破閘（單名5%、累計12%、現金） */
+var _sel={},_selLastN={};
+function buildSel(cands,d){
+  _sel={};_selLastN={};
+  cands.forEach(function(c){_sel[c.sym]=c.contracts||1;_selLastN[c.sym]=c.contracts||1;});
+  window._selCands=cands;
+  renderSel();
+}
+function selVerdict(cands,d){
+  var acc=d.account||{},cu=d.cum||{},m=d.market||{};
+  var nav=Number(acc.nav_usd)||0;
+  var scap=Number(acc.single_cap_usd)||(nav*0.05);
+  var bcap=nav*0.12;
+  var stot=0,ptot=0,batchBoard=0;
+  var rows=cands.map(function(c){
+    var sel=_sel[c.sym]||0;
+    var mpc=(c.margin||0)/(c.contracts||1), ppc=(Number(c.credit)||0)*100;
+    if(sel>0){stot+=mpc*sel;ptot+=ppc*sel;}
+    batchBoard+=c.margin||0;
+    return {c:c,sel:sel,amt:mpc*sel,prem:ppc*sel,overSingle:mpc*sel>scap};
+  });
+  var existing=Math.max(0,(Number(cu.margin)||0)-batchBoard);
+  var totalM=existing+stot;
+  var hard=[],soft=[];
+  var html='<div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;padding:10px 14px;font-size:12.5px;line-height:1.8"><b>🧮 揀倉試算</b> <span style="color:#64748b">——勾你想開嘅候選、調張數，即刻計共收幾多、戶口做唔做得晒</span> <button id="selReset" style="float:right;font-size:11px;padding:2px 8px;border:1px solid #94a3b8;border-radius:5px;background:#fff;cursor:pointer">↺ 重設返板面建議</button>';
+  if((m.vix_band||'')!=='20-32') html+='<div style="background:#fffbeb;border:1px solid #f59e0b;border-radius:6px;padding:4px 10px;margin:6px 0">⚠️ 而家 VIX band 係 <b>'+m.vix_band+'</b>（唔係 20-32 開倉窗）——呢個試算只係計數，照規則唔應該開新倉。</div>';
+  html+='<div style="margin-top:8px">';
+  rows.forEach(function(r){
+    if(!r.sel)return;
+    html+='<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed #e2e8f0;padding:3px 0"><span><b>'+r.c.sym+'</b> '+r.sel+'張</span><span>'+(r.overSingle?'<span style="color:#b45309;font-weight:700">超單名錨 🟡</span>':'<span style="color:#15803d">單名OK</span>')+' · 收 $'+FMT2(r.prem)+' · 按金 $'+FMT2(r.amt)+'</span></div>';
+    if(r.overSingle)soft.push(r.c.sym+' 一張已超單名錨（錨 $'+FMT2(scap)+'，按金 $'+FMT2(r.amt)+'）——系統靠 12% 累計閘兜底，呢隻唔好加張');
+  });
+  if(!stot)html+='<div style="color:#64748b;padding:3px 0">未揀任何候選。</div>';
+  html+='</div>';
+  html+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px"><span>共收 premium <b>+$'+FMT2(ptot)+'</b></span><span>揀選按金 <b>$'+FMT2(stot)+'</b></span><span>'+(stot>bcap?'<span style="color:#b91c1c;font-weight:700">爆 12% 閘 🔴（閘 $'+FMT2(bcap)+'，超 $'+FMT2(stot-bcap)+'）</span>':'<span style="color:#15803d">12% 閘內 🟢（閘 $'+FMT2(bcap)+'，剩 $'+FMT2(bcap-stot)+'）</span>')+'</span><span>'+(totalM>nav?'<span style="color:#b91c1c;font-weight:700">總按金超現金 🔴</span>':'<span style="color:#15803d">現金足 🟢</span>（總按金 $'+FMT2(totalM)+'／現金 $'+FMT2(nav)+'）')+'</span></div>';
+  if(stot>bcap)hard.push('揀選按金 $'+FMT2(stot)+' 爆累計 12% 閘 $'+FMT2(bcap)+'——斬倉數或者唔好開咁多');
+  if(totalM>nav)hard.push('總按金（連現有簿 $'+FMT2(existing)+'）$'+FMT2(totalM)+' 超帳戶現金 $'+FMT2(nav));
+  var vBox,vt;
+  if(hard.length){vBox='background:#fef2f2;color:#b91c1c';vt='⚠️ 呢個組合破閘，唔好咁落：'+hard.join('；');}
+  else if(soft.length){vBox='background:#fffbeb;color:#b45309';vt='🟡 可以照開（板面設計如此），但留意：'+soft.join('；');}
+  else{vBox='background:#f0fdf4;color:#15803d';vt='✅ 呢個組合做得——共收 $'+FMT2(ptot)+'，冇破閘。落單前照 Futu 實價覆核 credit。';}
+  html+='<div style="margin-top:8px;border-radius:6px;padding:6px 10px;font-weight:700;'+vBox+'">'+vt+'</div></div>';
+  return html;
+}
+function renderSel(){
+  var box=document.getElementById('selBox');
+  if(!box||!window._selCands)return;
+  var d=window._tdD||{};
+  var cands=window._selCands;
+  var rows=cands.map(function(c){
+    var n=_sel[c.sym]||0;
+    var mpc=((c.margin||0)/(c.contracts||1)).toFixed(0),ppc=((Number(c.credit)||0)*100).toFixed(0);
+    return '<div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-bottom:1px solid #e2e8f0;padding:6px 0">'+
+      '<label style="display:flex;align-items:center;gap:7px;cursor:pointer;min-width:230px"><input type="checkbox" class="selck" data-sym="'+c.sym+'" '+(n>0?'checked':'')+' style="width:16px;height:16px;cursor:pointer"><b>'+c.sym+'</b> <span style="color:#475569">賣'+c.short_k+'P／買'+c.long_k+'P · '+expZh(c.expiry)+'</span></label>'+
+      '<span style="display:inline-flex;align-items:center;gap:6px"><button class="stp" data-sym="'+c.sym+'" data-d="-1" style="width:26px;height:26px;border:1px solid #94a3b8;border-radius:5px;background:#fff;cursor:pointer;font-size:14px;line-height:1">−</button><b style="min-width:18px;text-align:center" id="seln_'+c.sym+'">'+n+'</b><span style="color:#64748b;font-size:12px">張</span><button class="stp" data-sym="'+c.sym+'" data-d="1" style="width:26px;height:26px;border:1px solid #94a3b8;border-radius:5px;background:#fff;cursor:pointer;font-size:14px;line-height:1">＋</button></span>'+
+      '<span style="color:#475569;font-size:12px">每張約收 $'+ppc+' · 每張按金約 $'+mpc+'</span></div>';
+  }).join('');
+  box.innerHTML='<div style="font-size:12.5px;margin-bottom:2px"><b>🧮 揀倉試算</b> <span style="color:#64748b">——落單前喺度執好個組合</span></div><div style="padding:0 2px">'+rows+'</div>'+selVerdict(cands,d);
+}
+document.addEventListener('change',function(e){
+  var ck=e.target&&e.target.classList&&e.target.classList.contains('selck')?e.target:null;
+  if(!ck)return;
+  var sym=ck.dataset.sym;
+  if(ck.checked){_sel[sym]=_selLastN[sym]||1;}
+  else{_selLastN[sym]=_sel[sym]||1;_sel[sym]=0;}
+  renderSel();
+});
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.classList&&e.target.classList.contains('stp')?e.target:null;
+  if(b){
+    var sym=b.dataset.sym,nxt=Math.max(0,Math.min(20,(_sel[sym]||0)+Number(b.dataset.d)));
+    _sel[sym]=nxt;if(nxt>0)_selLastN[sym]=nxt;
+    renderSel();return;
+  }
+  if(e.target&&e.target.id==='selReset'){buildSel(window._selCands,window._tdD);}
+});
+/* hover：滑鼠移去盈虧圖 → 十字線＋圓點＋tooltip 顯示該收市價嘅賺蝕 */
+document.addEventListener('mousemove',function(e){
+  var hit=e.target&&e.target.closest?e.target.closest('.payoff-hit'):null;
+  if(!hit)return;
+  var card=hit.closest('.scen-wrap'),svg=card.querySelector('svg');
+  var r=svg.getBoundingClientRect(),VW=560,PL=16,PR=544,PT=30,PB=168;
+  var vx=(e.clientX-r.left)*(VW/r.width);
+  if(vx<PL)vx=PL; if(vx>PR)vx=PR;
+  var ds=hit.dataset,x0=+ds.x0,x1=+ds.x1;
+  var p=x0+(vx-PL)/(PR-PL)*(x1-x0);
+  var shortk=+ds.shortk,longk=+ds.longk,n=+ds.n,mw=+ds.mw,ml=+ds.ml;
+  var pnl=p>=shortk?mw:(p<=longk?-ml:(p-shortk)*100*n+mw);
+  var vmin=-ml*1.15,vmax=mw*1.6,yv=PB-(pnl-vmin)/(vmax-vmin)*(PB-PT);
+  var ch=card.querySelector('.payoff-ch'),dot=card.querySelector('.payoff-dot'),tip=card.querySelector('.payoff-tip');
+  ch.setAttribute('x1',vx);ch.setAttribute('x2',vx);ch.setAttribute('visibility','visible');
+  dot.setAttribute('cx',vx);dot.setAttribute('cy',yv);dot.setAttribute('visibility','visible');
+  tip.style.display='block';
+  tip.innerHTML='到期收市 $'+p.toFixed(1)+' → '+(pnl>=0?'<b>贏 $'+FMT2(pnl)+'</b>':'<b>蝕 $'+FMT2(-pnl)+'</b>');
+  var cr2=card.getBoundingClientRect();
+  var tl=e.clientX-cr2.left+14,tt=r.top-cr2.top-8;
+  if(tl+tip.offsetWidth>cr2.width-6)tl=e.clientX-cr2.left-tip.offsetWidth-14;
+  tip.style.left=tl+'px';tip.style.top=tt+'px';
+});
+document.addEventListener('mouseout',function(e){
+  var card=e.target&&e.target.closest?e.target.closest('.scen-wrap'):null;
+  if(card&&!(e.relatedTarget&&card.contains(e.relatedTarget))){
+    var t=card.querySelector('.payoff-tip');if(t)t.style.display='none';
+    var ch=card.querySelector('.payoff-ch');if(ch)ch.setAttribute('visibility','hidden');
+    var d=card.querySelector('.payoff-dot');if(d)d.setAttribute('visibility','hidden');
+  }
+});
 function manualRefresh(){
   loadMarket();
   /* ⭐ 11-06 fresh-first：🔄 先打 bridge /today_fresh（單飛 gen＋直接回新 json，跳過 Pages CDN 延遲）；
@@ -541,11 +678,28 @@ function renderToday(d){
   window.__today=d;updateOverviewLive();
   var vcol=(v.level||'').indexOf('🔴')>=0?'r':((v.level||'').indexOf('🟡')>=0?'y':'g');
   var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+'</span><span class="pill '+vcol+'"'+(v.delta_note?' title="'+v.delta_note+'"':'')+'>單名 δ'+(v.delta_single!=null?v.delta_single:'—')+(v.delta_note?'（'+v.delta_note+'）':'')+'</span><span class="pill '+(d.data_fresh?(d.intraday?'b':'g'):'y')+'">'+(d.intraday?'現價（開市中）':'收市價 '+d.bar_date+(m.bar_wd?'（'+m.bar_wd+'）':''))+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
+  var rr0=d.radar||{},rlv=(rr0.level||'').toUpperCase();
+  if(rlv.indexOf('RED')>=0)h+='<div style="background:#fef2f2;border:1.5px solid #dc2626;border-radius:8px;padding:8px 12px;margin-top:8px;font-weight:700;color:#b91c1c;font-size:13.5px">🔴 殺倉雷達 RED——新倉暫停（AI 池＋指數腿封；C96 豁免腿照規則開）'+((rr0.reasons&&rr0.reasons.length)?'<div style="font-weight:400;font-size:12px;margin-top:4px">'+rr0.reasons.map(function(x){return '<div>· '+x+'</div>';}).join('')+'</div>':'')+'</div>';
+  else if(rlv.indexOf('YEL')>=0)h+='<div style="background:#fffbeb;border:1.5px solid #d97706;border-radius:8px;padding:8px 12px;margin-top:8px;font-weight:700;color:#b45309;font-size:13.5px">🟡 殺倉雷達黃燈——縮細張數，見紅即停</div>';
+  var cu0=d.cum||{};
+  var vixOk=(m.vix_band==='20-32'),vixHalf=(m.vix_band==='<20'&&m.mkt_state==='bull');
+  var brReg=m.breadth_regime,brCls=(brReg==='normal'?'g':((brReg==='partial_kill'||brReg==='caution'||brReg==='warning')?'y':'r'));
+  var radCls=(rlv.indexOf('RED')>=0?'r':(rlv.indexOf('YEL')>=0?'y':'g'));
+  var mgCls=((Number(cu0.frac)||0)>(Number(cu0.cap_pct)||12)?'r':'g');
+  h+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill '+(vixOk?'g':(vixHalf?'y':'r'))+'">VIX '+(m.vix_band||'?')+(vixOk?' 開倉窗':(vixHalf?' 牛·單名放行':' 封'))+'</span><span class="pill '+brCls+'">廣度 '+m.breadth+'%'+(brReg==='partial_kill'?' 局部殺戮':'')+'</span><span class="pill '+radCls+'">雷達 '+(rr0.level||'?')+'</span><span class="pill '+(m.mkt_gate_bad?'r':'g')+'">全市閘 '+(m.mkt_gate_bad?'封':'開')+'</span><span class="pill '+mgCls+'">本批按金 '+cu0.frac+'%/'+cu0.cap_pct+'%</span></div>';
+  var vixV=Number(m.vix)||0;
+  var vixBar='<div style="margin-top:8px"><div style="display:flex;height:13px;border-radius:4px;overflow:hidden"><div style="width:35%;background:#e2e8f0" title="<14 觀望"></div><div style="width:10%;background:#e2e8f0" title="14-18"></div><div style="width:5%;background:#e2e8f0" title="18-20 毒帶"></div><div style="width:30%;background:#16a34a" title="20-32 開倉窗"></div><div style="width:20%;background:#dc2626" title=">32 全封"></div></div><div style="position:relative;height:14px;font-size:10px;color:#94a3b8"><span style="position:absolute;left:50%;transform:translateX(-50%)">20</span><span style="position:absolute;left:80%;transform:translateX(-50%)">32</span></div><div style="position:relative;height:22px"><span style="position:absolute;left:'+Math.min(98,Math.max(1,vixV/40*100))+'%;transform:translateX(-50%);font-size:12px;color:#0f172a;font-weight:700;white-space:nowrap">▲ VIX '+m.vix+'</span></div><div style="font-size:10px;color:#94a3b8">VIX 位置條（0–40）——綠＝20-32 開倉窗、紅＝&gt;32 全封</div></div>';
+  var brV=Number(m.breadth)||0,br5=m.breadth_5d;
+  var brMeter='<div style="margin-top:8px"><div style="display:flex;height:13px;border-radius:4px;overflow:hidden"><div style="width:50%;background:#dc26262e"></div><div style="width:15%;background:#d9770626"></div><div style="width:15%;background:#d9770655"></div><div style="width:20%;background:#16a34a"></div></div><div style="position:relative;height:44px;font-size:10.5px;color:#64748b"><span style="position:absolute;left:50%;top:0;height:44px;border-left:1px dashed #94a3b8"></span><span style="position:absolute;left:50%;top:28px;transform:translateX(4px);white-space:nowrap">50＝放行線（返到呢度重開 AI 池）</span>'+(m.breadth!=null?'<span style="position:absolute;left:'+Math.min(99,Math.max(1,brV))+'%;top:-3px;transform:translateX(-50%);color:#0f172a;font-weight:700;font-size:12px;white-space:nowrap">▲ 今日 '+m.breadth+'%</span>':'')+(br5!=null?'<span style="position:absolute;left:'+Math.min(99,Math.max(1,br5))+'%;top:14px;transform:translateX(-50%);white-space:nowrap">○ 5日前 '+br5+'%</span>':'')+'</div></div>';
+  var f=d.funnel||{};
+  var fmax=f.pool||1;
+  var fStages=[['池',f.pool],['動量過',f.mom_pos],['TOP6',f.top6],['IV 過',f.iv_ok],['業績過',f.earn_ok],['裂口過',f.gap_ok],['候選',f.final]];
+  var fBar='<div style="margin-top:10px"><b>今日過閘漏斗</b>——'+fmax+' 隻逐關剩幾多：</div>'+fStages.map(function(s,i){var w=Math.max(2,(s[1]||0)/fmax*100);var last=i===fStages.length-1;return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="width:56px;font-size:11px;color:#64748b;text-align:right;flex:none">'+s[0]+'</span><div style="flex:1;background:#f1f5f9;border-radius:3px;height:15px;position:relative"><div style="width:'+w+'%;height:100%;border-radius:3px;background:'+(last?'#16a34a':'#3b82f6')+'"></div><span style="position:absolute;left:7px;top:0;line-height:15px;font-size:10.5px;color:#0f172a;font-weight:600">'+(s[1]!=null?s[1]:'—')+'</span></div></div>';}).join('');
   h+='<div class="desc" style="margin-top:6px">'+(v.txt||'')+'</div>';
   document.getElementById('tdVerdict').innerHTML=h;
-  document.getElementById('tdMkt').innerHTML=(m.et_note?'<div class="note" style="margin:0 0 6px">🗓️ '+m.et_note+'</div>':'')+'SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b>'+(m.breadth_5d!=null?'（5日前 '+m.breadth_5d+'%）':'')+' · '+regimeTxt(m.breadth_regime)+(m.speed_bell?' <span class="pill r">⚡速度鐘：池廣度 5 日跌 ≥20pct</span>':'')+'<br>全市閘：'+rspGateTxt(m);
+  document.getElementById('tdMkt').innerHTML=(m.et_note?'<div class="note" style="margin:0 0 6px">🗓️ '+m.et_note+'</div>':'')+'SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b>'+(m.breadth_5d!=null?'（5日前 '+m.breadth_5d+'%）':'')+' · '+regimeTxt(m.breadth_regime)+(m.speed_bell?' <span class="pill r">⚡速度鐘：池廣度 5 日跌 ≥20pct</span>':'')+'<br>全市閘：'+rspGateTxt(m)+vixBar;
   var rr=d.radar||{};
-  document.getElementById('tdRadar').innerHTML='殺倉雷達 <b>'+rr.level+'</b> '+rr.note+'<br>'+(rr.reasons||[]).map(function(x){return '· '+x;}).join('<br>')+'<br>廣度 regime：<b>'+regimeTxt(m.breadth_regime)+'</b>';
+  document.getElementById('tdRadar').innerHTML='殺倉雷達 <b>'+rr.level+'</b> '+rr.note+'<br>'+(rr.reasons||[]).map(function(x){return '· '+x;}).join('<br>')+'<br>廣度 regime：<b>'+regimeTxt(m.breadth_regime)+'</b>'+brMeter;
   var g=d.golden||{};
   document.getElementById('tdGold').innerHTML='<span class="pill '+(g.in_window?'g':'n')+'">'+g.window+(g.in_window?' · 現正身處':' · 非黃金窗')+'</span><br><br>'+(g.note||'');
   var cfg=d.config||{};
@@ -572,21 +726,23 @@ function renderToday(d){
   var curIds=band==='20-32'?['2032']:(band==='>32'?['gt32']:['lt14','1418','1820']);
   var hl=(band==='20-32')?'#f0fdf4':'#fffbe6';
   curIds.forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background=hl;});
+  var scapRow=(d.account&&d.account.single_cap_usd)||2457;
   var cands=d.candidates||[],cw=document.getElementById('tdCandWrap'),cwHtml='';
   if(!cands.length){cwHtml='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
   else{
     var cu=d.cum||{};
     cwHtml='<div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">Spread（賣／買）</th><th>到期日</th><th class="num">Credit（每張收）</th><th class="num">張數</th><th class="num">Premium 共收</th><th class="num">按金＝最大虧損</th><th class="num">做完後現金*</th><th>來源</th></tr></thead><tbody>'+
-    cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+(c.pool?' <span class="pill y">C96</span>':'')+'</td><td class="num">'+c.spot+'</td><td class="num">賣<b>'+c.short_k+'</b>P／買'+c.long_k+'P</td><td>'+c.expiry+'<br><span style="font-size:11px;color:#64748b">'+expZh(c.expiry)+'·'+c.dte_td+'個交易日</span></td><td class="num">$'+c.credit+'（mid）'+(c.credit_worst?'<br><span style="font-size:11px;color:#64748b">掛價低至 $'+c.credit_worst+'</span>':'')+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（Futu OpenD）'?'<span class="pill g">鏈 mid·Futu</span>':(c.src==='鏈 mid（延遲價）'?'<span class="pill n">鏈 mid·延遲</span>':'BS'))+' IV'+c.iv_used+'%</td></tr>';}).join('')+
-    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。定價三層（11-05）：鏈 mid·Futu＝OpenD 實時 bid/ask（listed strikes、真 δ／真鏈 IV）＞鏈 mid·延遲＝yfinance（延遲約 0–15 分）＞BS 估算；延長時段 bid/ask 會闊，落單前照 Futu 實價覆核。</div>'+
-    '<div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12.5px;line-height:1.75"><b>📌 點落單（Futu App 組合單——兩腿一張單同時成交，唔准一邊一邊做，拆腿會有裸短 put 風險窗口）</b><br>'+
+    cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+(c.pool?' <span class="pill y">C96</span>':'')+(c.margin>scapRow?' <span class="pill y" title="一張按金超單名 5% 錨——靠 12% 累計閘兜底，呢隻唔好加張">超單名錨</span>':'')+'</td><td class="num">'+c.spot+'</td><td class="num">賣<b>'+c.short_k+'</b>P／買'+c.long_k+'P</td><td>'+c.expiry+'<br><span style="font-size:11px;color:#64748b">'+expZh(c.expiry)+'·'+c.dte_td+'個交易日</span></td><td class="num">$'+c.credit+'（mid）'+(c.credit_worst?'<br><span style="font-size:11px;color:#64748b">掛價低至 $'+c.credit_worst+'</span>':'')+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（Futu OpenD）'?'<span class="pill g">鏈 mid·Futu</span>':(c.src==='鏈 mid（延遲價）'?'<span class="pill n">鏈 mid·延遲</span>':'BS'))+' IV'+c.iv_used+'%</td></tr>';}).join('')+
+    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批（12% 閘裁完之後）按金 <b>$'+cu.margin+'</b>＝NAV <b>'+(cu.frac!=null?cu.frac+'%':'—')+'</b>（上限 '+cu.cap_pct+'%）'+((cu.dropped&&cu.dropped.length)?'；<b>被閘裁走唔好跟：'+cu.dropped.join('、')+'</b>':'')+'；現有真倉 short put：無（NBIS 特例見上卡）。<div style="background:#e5e7eb;border-radius:4px;height:8px;margin:6px 0 2px"><div style="border-radius:4px;height:8px;background:'+(Number(cu.frac)>Number(cu.cap_pct)?'#dc2626':'#16a34a')+';width:'+Math.min(100,(Number(cu.frac)||0)/(Number(cu.cap_pct)||12)*100)+'%"></div></div><span style="font-size:11px;color:#64748b">本批按金 vs 12% 閘：'+Math.min(999,Math.round((Number(cu.frac)||0)/(Number(cu.cap_pct)||12)*100))+'% 滿</span>。張數已按單名 5% cap 預裁。定價三層（11-05）：鏈 mid·Futu＝OpenD 實時 bid/ask（listed strikes、真 δ／真鏈 IV）＞鏈 mid·延遲＝yfinance（延遲約 0–15 分）＞BS 估算；延長時段 bid/ask 會闊，落單前照 Futu 實價覆核。</div>'+
+    '<div id="selBox" style="margin-top:12px"></div>'+
+    '<div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12.5px;line-height:1.75"><b>📌 點落單（Futu App 組合單——兩腿一張單同時成交，唔准一邊一邊做，拆腿會有裸短 put 風險窗口）</b><br>'+((v.credit_glass===false)?'<span style="color:#b45309">🟡 真價閘：現價未達模型價 85-90%——掛價由 mid 以下試價，唔好追價</span><br>':'')+
     '① 期權鏈揀候選嗰隻股 → <b>到期日照板面揀同一日</b>（例：2026-12-18＝12月18日到期，<b>唔好揀近月週選</b>——同一組 strike 近月 credit 細好多）<br>'+
     '② 撳「組合／策略單」→ 揀 <b>Bull Put Spread／賣出 Put 垂直價差</b><br>'+
     '③ Short leg（<b>賣出</b>）＝板面「賣」嗰個 strike；Long leg（<b>買入</b>）＝「買」嗰個；數量＝板面「張數」<br>'+
     '④ <b>限價</b>：掛板面 Credit mid 同「掛價低至」之間（例 mid $6.00／低至 $5.35 → 掛 $5.4–6.0 試）；<b>唔好用市價單</b>——盤口闊嘅日子市價單即刻食走你成個 spread 差價<br>'+
     '⑤ 確認頁核三個數：收 credit ≈板面 Premium÷張數÷100、最大虧損 ≈板面按金、盈虧平衡點 ＝ 賣出 strike − credit<br>'+
     '⑥ 成交後管理照規則：<b>credit 跌剩三成（PT50/60）就走</b>；到期日股價收市低過賣出 strike 先會被接貨</div>'+
-    '<div style="margin-top:12px"><b>📊 情景推演——每個候選開倉後會點</b> <span class="pill n">盈虧平衡／贏幾多／輸幾多，照板面自己的數計</span></div>'+
+    '<div style="margin-top:12px"><b>📊 情景推演——每個候選開倉後會點</b> <span class="pill n">到期盈虧圖：綠區＝贏、紅區＝輸；滑鼠移去圖上任何價位睇即時賺蝕</span></div>'+
     scenCards(cands);
   }
   var c96s=d.c96_screen||[];
@@ -598,8 +754,13 @@ function renderToday(d){
     '</tbody></table></div><div class="note">C96 局部殺戮時先出定價（其餘 regime 僅參考 screen）；earn「—」＝top-8 以外冇查 calendar。<b>credit＝mid 口徑</b>（short mid−long mid）；實際可成交＝sell@bid−buy@ask，會低過 mid——落單前照 Futu 實價覆核，<b>注意到期日要揀板面嗰個月選</b>（近月週選同一組 strike credit 細好多）。張數＝單名 5% cap 內裁（地板 1 張；闊 spread 一張 max loss 可能超 5% 單名錨，靠累計 12% 閘兜底）。paper 台照 AI 池 shadow 唔混池（11-17 檢討 C96 入 paper）。</div>';
   }
   cw.innerHTML=cwHtml;
+  if(cands.length){window._tdD=d;buildSel(cands,d);}
+  var fe=document.getElementById('tdRouteTxt');if(fe&&d.funnel)fe.insertAdjacentHTML('beforeend',fBar);
   var nb=d.nbis||{};
-  document.getElementById('tdNbis').innerHTML='現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）· 技術燈 '+nb.light+'<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'));
+  var nbL=(nb.light==='red'?'r':((nb.light==='amber'||nb.light==='yellow')?'y':'g'));
+  var nbSpot=Number(nb.spot)||0,zl=163/175*100,zw=(165-163)/65*100,spLeft=Math.min(97,Math.max(2,nbSpot/175*100));
+  var nbGap=Math.max(0,163-nbSpot);
+  document.getElementById('tdNbis').innerHTML='<span class="pill '+nbL+'">技術燈 '+nb.light+'</span> 現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'))+'<div style="margin-top:8px"><div style="position:relative;height:13px;border-radius:4px;background:#e2e8f0"><div style="position:absolute;left:'+zl+'%;width:'+zw+'%;top:0;bottom:0;background:#d97706"></div></div><div style="position:relative;height:34px;font-size:10px;color:#64748b"><span style="position:absolute;left:'+(zl+zw/2)+'%;transform:translateX(-50%);top:16px;white-space:nowrap">163–165 觸發區（165＝被接貨線）</span>'+(nbSpot?'<span style="position:absolute;left:'+spLeft+'%;top:-2px;transform:translateX(-50%);color:#0f172a;font-weight:700;font-size:12px;white-space:nowrap">▲ '+nb.spot+'</span>':'')+'</div><div style="font-size:10.5px;color:#94a3b8">價格軌 $110–175：現價離觸發區仲有 +'+(nbSpot?(nbGap/nbSpot*100).toFixed(0):'—')+'% 上落先到——今晚到期，最怕隔夜裂口穿 163。</div></div>';
   fetch('paper_book.json?v='+Date.now()).then(function(r){return r.json();}).then(function(b){
     var s=b.summary||{},op=(b.entries||[]).filter(function(e){return e.status==='open';}),cl=b.closed||[];
     var bar='<div style="background:#e5e7eb;border-radius:4px;height:8px;margin:6px 0"><div style="background:#3b82f6;border-radius:4px;height:8px;width:'+Math.min(100,(s.week||0)/2*100)+'%"></div></div>';
@@ -688,11 +849,14 @@ function loadMarket(){
   });
 }
 function countdown(){
-  var exp=new Date('2026-11-06T16:00:00-05:00'),now=new Date();
+  var nb=(window.__today&&window.__today.nbis)||{};
+  var expStr=nb.expiry||'2026-11-06';
+  var exp=new Date(expStr+'T16:00:00-05:00'),now=new Date();
   var days=Math.ceil((exp-now)/86400000);
   var el=document.getElementById('nbisCountdown');
-  if(now>exp){el.innerHTML='<span class="pill n">已到期</span>';return;}
-  el.innerHTML='<span class="pill r">剩 '+days+' 日（11-06 16:00 ET 到期）</span>';
+  if(!el)return;
+  if(now>exp){el.innerHTML=(Date.now()-exp.getTime()>3*86400000)?'<span class="pill n">已結算（'+expStr+'）</span>':'<span class="pill n">已到期（'+expStr+'）</span>';return;}
+  el.innerHTML='<span class="pill r">剩 '+days+' 日（'+expStr+' 16:00 ET 到期）</span>';
 }
 var PROG_KEY='usd_prog_2026';
 function drawProg(){
