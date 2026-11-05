@@ -467,6 +467,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <script>
 var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
 function setTab(id,el){document.querySelectorAll('.tabc').forEach(function(e){e.style.display='none';});document.getElementById(id).style.display='block';document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('act');});el.classList.add('act');}
+function expZh(e){try{var dt=new Date(e+'T00:00:00');return (dt.getMonth()+1)+'月'+dt.getDate()+'日（週'+'日一二三四五六'[dt.getDay()]+'）';}catch(err){return '';}}
 function manualRefresh(){
   loadMarket();
   /* ⭐ 11-06 fresh-first：🔄 先打 bridge /today_fresh（單飛 gen＋直接回新 json，跳過 Pages CDN 延遲）；
@@ -557,16 +558,23 @@ function renderToday(d){
   if(!cands.length){cwHtml='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
   else{
     var cu=d.cum||{};
-    cwHtml='<div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">Spread</th><th>到期</th><th class="num">Credit</th><th class="num">張</th><th class="num">Premium</th><th class="num">按金</th><th class="num">做完後現金*</th><th>來源</th></tr></thead><tbody>'+
-    cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+(c.pool?' <span class="pill y">C96</span>':'')+'</td><td class="num">'+c.spot+'</td><td class="num">'+c.short_k+'/'+c.long_k+'</td><td>'+c.expiry+'<span class="pill n" style="margin-left:4px">'+c.dte_td+'td</span></td><td class="num">'+c.credit+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（Futu OpenD）'?'<span class="pill g">鏈 mid·Futu</span>':(c.src==='鏈 mid（延遲價）'?'<span class="pill n">鏈 mid·延遲</span>':'BS'))+' IV'+c.iv_used+'%</td></tr>';}).join('')+
-    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。定價三層（11-05）：鏈 mid·Futu＝OpenD 實時 bid/ask（listed strikes、真 δ／真鏈 IV）＞鏈 mid·延遲＝yfinance（延遲約 0–15 分）＞BS 估算；延長時段 bid/ask 會闊，落單前照 Futu 實價覆核。</div>';
+    cwHtml='<div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">Spread（賣／買）</th><th>到期日</th><th class="num">Credit（每張收）</th><th class="num">張數</th><th class="num">Premium 共收</th><th class="num">按金＝最大虧損</th><th class="num">做完後現金*</th><th>來源</th></tr></thead><tbody>'+
+    cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+(c.pool?' <span class="pill y">C96</span>':'')+'</td><td class="num">'+c.spot+'</td><td class="num">賣<b>'+c.short_k+'</b>P／買'+c.long_k+'P</td><td>'+c.expiry+'<br><span style="font-size:11px;color:#64748b">'+expZh(c.expiry)+'·'+c.dte_td+'個交易日</span></td><td class="num">$'+c.credit+'（mid）'+(c.credit_worst?'<br><span style="font-size:11px;color:#64748b">掛價低至 $'+c.credit_worst+'</span>':'')+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（Futu OpenD）'?'<span class="pill g">鏈 mid·Futu</span>':(c.src==='鏈 mid（延遲價）'?'<span class="pill n">鏈 mid·延遲</span>':'BS'))+' IV'+c.iv_used+'%</td></tr>';}).join('')+
+    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。定價三層（11-05）：鏈 mid·Futu＝OpenD 實時 bid/ask（listed strikes、真 δ／真鏈 IV）＞鏈 mid·延遲＝yfinance（延遲約 0–15 分）＞BS 估算；延長時段 bid/ask 會闊，落單前照 Futu 實價覆核。</div>'+
+    '<div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12.5px;line-height:1.75"><b>📌 點落單（Futu App 組合單——兩腿一張單同時成交，唔准一邊一邊做，拆腿會有裸短 put 風險窗口）</b><br>'+
+    '① 期權鏈揀候選嗰隻股 → <b>到期日照板面揀同一日</b>（例：2026-12-18＝12月18日到期，<b>唔好揀近月週選</b>——同一組 strike 近月 credit 細好多）<br>'+
+    '② 撳「組合／策略單」→ 揀 <b>Bull Put Spread／賣出 Put 垂直價差</b><br>'+
+    '③ Short leg（<b>賣出</b>）＝板面「賣」嗰個 strike；Long leg（<b>買入</b>）＝「買」嗰個；數量＝板面「張數」<br>'+
+    '④ <b>限價</b>：掛板面 Credit mid 同「掛價低至」之間（例 mid $6.00／低至 $5.35 → 掛 $5.4–6.0 試）；<b>唔好用市價單</b>——盤口闊嘅日子市價單即刻食走你成個 spread 差價<br>'+
+    '⑤ 確認頁核三個數：收 credit ≈板面 Premium÷張數÷100、最大虧損 ≈板面按金、盈虧平衡點 ＝ 賣出 strike − credit<br>'+
+    '⑥ 成交後管理照規則：<b>credit 跌剩三成（PT50/60）就走</b>；到期日 V 收市低過賣出 strike 先會被接貨</div>';
   }
   var c96s=d.c96_screen||[];
   if(c96s.length){
     var c96c=d.c96_candidates||[];
     cwHtml+='<div style="margin-top:12px"><b>板塊頭部 C96 screen</b> <span class="pill n">11 行業×top-8——局部殺戮時真倉建議面換呢個池（11-05 雙閘）</span></div><div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">momentum 63td</th><th class="num">IV 分位</th><th>IV 閘</th><th>Earn</th><th>Gap</th><th>定價</th></tr></thead><tbody>'+
     c96s.map(function(x){var pr=c96c.find(function(c){return c.sym===x.sym;});
-      return '<tr><td><b>'+x.sym+'</b></td><td class="num">'+x.close+'</td><td class="num">+'+x.mom63+'%</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl:'—')+'</td><td>'+(x.iv==='死亡區'?'<span class="pill r">死亡區</span>':(x.iv==='半'?'<span class="pill y">半</span>':'<span class="pill g">全</span>'))+'</td><td>'+(x.earn==='禁'?'<span class="pill r">禁</span>':(x.earn==='ok'?'<span class="pill g">ok</span>':'—'))+'</td><td>'+(x.gap==='禁'?'<span class="pill r">禁</span>':'<span class="pill g">ok</span>')+'</td><td class="num">'+(pr?pr.short_k+'/'+pr.long_k+' $'+pr.credit+'（'+pr.dte_td+'td）<br><span style="color:#64748b;font-size:11px">'+pr.contracts+'張 · max loss $'+pr.max_loss+' · prem $'+pr.premium_in+' · δ'+pr.delta+'</span>':'—')+'</td></tr>';}).join('')+
+      return '<tr><td><b>'+x.sym+'</b></td><td class="num">'+x.close+'</td><td class="num">+'+x.mom63+'%</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl:'—')+'</td><td>'+(x.iv==='死亡區'?'<span class="pill r">死亡區</span>':(x.iv==='半'?'<span class="pill y">半</span>':'<span class="pill g">全</span>'))+'</td><td>'+(x.earn==='禁'?'<span class="pill r">禁</span>':(x.earn==='ok'?'<span class="pill g">ok</span>':'—'))+'</td><td>'+(x.gap==='禁'?'<span class="pill r">禁</span>':'<span class="pill g">ok</span>')+'</td><td class="num">'+(pr?'賣<b>'+pr.short_k+'</b>P／買'+pr.long_k+'P　$'+pr.credit+'（mid）<br><span style="color:#64748b;font-size:11px">'+expZh(pr.expiry)+'到期 · '+pr.dte_td+'個交易日'+(pr.credit_worst?' · 掛價低至 $'+pr.credit_worst:'')+'</span><br><span style="color:#64748b;font-size:11px">'+pr.contracts+'張 · 最大虧損 $'+pr.max_loss+' · 共收 $'+pr.premium_in+' · δ'+pr.delta+'</span>':'—')+'</td></tr>';}).join('')+
     '</tbody></table></div><div class="note">C96 局部殺戮時先出定價（其餘 regime 僅參考 screen）；earn「—」＝top-8 以外冇查 calendar。<b>credit＝mid 口徑</b>（short mid−long mid）；實際可成交＝sell@bid−buy@ask，會低過 mid——落單前照 Futu 實價覆核，<b>注意到期日要揀板面嗰個月選</b>（近月週選同一組 strike credit 細好多）。張數＝單名 5% cap 內裁（地板 1 張；闊 spread 一張 max loss 可能超 5% 單名錨，靠累計 12% 閘兜底）。paper 台照 AI 池 shadow 唔混池（11-17 檢討 C96 入 paper）。</div>';
   }
   cw.innerHTML=cwHtml;
