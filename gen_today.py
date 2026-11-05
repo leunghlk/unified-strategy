@@ -299,6 +299,13 @@ screen.sort(key=lambda x: -x["mom63"])
 top6 = screen[:6]
 tradeable = [x for x in top6 if x["iv"] != "死亡區" and x["earn"] == "ok" and x["gap"] == "ok"]
 
+# ownable45 正選池快照→live（⭐11-05 用戶令：宇宙 tab TOP6 榜唔好再食 10-30 快照）
+OWNABLE45 = ["APP","TSM","ADI","ASML","AVGO","CCJ","INTU","LRCX","MRVL","STX","ADBE","AMD","CDNS","CSCO","FFIV","GFS","GLW","KLAC","MU","OKTA","PLTR","QLYS","SNDK","VICR","WDAY","AMAT","AMZN","APH","ARM","CRDO","DELL","DLR","FTNT","GEV","GOOGL","MSFT","NVT","QCOM","RBLX","STM","TSEM","TTD","UBER","WDC","IRM"]
+own_scr = [x for x in screen if x["sym"] in OWNABLE45][:6]
+ownable6 = [dict(sym=x["sym"], mom63=x["mom63"], close=x["close"], earn_td=x["earn_td"],
+                 earn_window=("撞窗" if x["earn_td"] is not None and x["earn_td"] <= 21
+                              else ("清窗" if x["earn_td"] is not None else "?"))) for x in own_scr]
+
 # ---------- 7. 候選倉：δ_today put spread spr10，tenor 30-45td（真鏈價優先，BS 兜底） ----------
 BS_R = 0.043
 candidates = []
@@ -561,8 +568,10 @@ elif breadth_regime == "partial_kill":
     ai_sealed = True
     if vix_band == "20-32":
         verdict_level, verdict_txt = "🟡 半開（局部殺戮）", "AI 池廣度 %.1f<50（5日前 %.1f）但全市閘企穩（RSP ≥ SMA50）→ AI 單名封（10月段結構）；真倉建議面轉板塊頭部 C96（%d 隻過閘）照 δ%.2f spr10；指數腿照 VIX floor 開；現有腿照 PT50/roll" % (breadth, breadth_5d if breadth_5d is not None else breadth, len(c96_candidates), delta_today)
+    elif vix_band == "<20" and mkt_state == "bull":
+        verdict_level, verdict_txt = "🟡 半開（局部殺戮，熊狀態門放行）", "AI 池廣度 %.1f<50 → AI 單名封；但 VIX %.1f<20＋牛狀態（SPX %.0f≥SMA200 %.0f，11-02 拍板 20bull 實錘）→ 板塊頭部 C96（%d 隻過閘）照 δ%.2f spr10 可開；指數腿照封（floor20 唔郁）；現有腿照 PT50/roll" % (breadth, vix, spx, spx_sma200, len(c96_candidates), delta_today)
     else:
-        verdict_level, verdict_txt = "🔴 封刀（局部殺戮）", "AI 池廣度 %.1f<50 且 VIX band（%s）唔放行指數腿 → 全封；現有腿照 PT50/roll" % (breadth, vix_band)
+        verdict_level, verdict_txt = "🔴 封刀（局部殺戮）", "AI 池廣度 %.1f<50 且 VIX band（%s）唔放行單名／指數腿 → 全封；現有腿照 PT50/roll" % (breadth, vix_band)
 elif vix_band == "<20" and mkt_state == "bull":
     verdict_level, verdict_txt = "🟡 半開（熊狀態門放行）", "VIX %.1f <20 但牛狀態（SPX %.0f ≥ SMA200 %.0f）→ 單名照 screen 過閘開（⭐11-02 拍板，七窗 OOS 20bull 實錘）；XSP 照封（指數腿 floor20 唔郁）；現有腿照 PT50/roll" % (vix, spx, spx_sma200)
 elif vix_band == "<20":
@@ -636,6 +645,7 @@ out = dict(
     golden=gold,
     screen=top6, candidates=candidates, paper_candidates=paper_candidates,
     c96_screen=c96_screen[:12], c96_candidates=c96_candidates,
+    ownable6=ownable6,
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),
              cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin)),
     nbis=nbis,

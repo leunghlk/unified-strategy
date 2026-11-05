@@ -92,7 +92,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <span class="tab" data-t="t2" onclick="setTab('t2',this)">🧬 統一簿規格</span>
   <span class="tab" data-t="t3" onclick="setTab('t3',this)">🔬 OOS 七窗</span>
   <span class="tab" data-t="t4" onclick="setTab('t4',this)">💰 回本路徑</span>
-  <span class="tab" data-t="t5" onclick="setTab('t5',this)">🌌 宇宙 117</span>
+  <span class="tab" data-t="t5" onclick="setTab('t5',this)">🌌 宇宙 117＋C96</span>
   <span class="tab" data-t="t6" onclick="setTab('t6',this)">⚙️ Engine·TG·拍板</span>
 </div></div>
 
@@ -113,11 +113,11 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <h3>今日做咩<span class="pill b" style="margin-left:6px" id="tdRoute">—</span></h3>
       <div class="note" id="tdRouteTxt" style="margin:4px 0 10px">—</div>
       <div class="table-scroll"><table>
-        <thead><tr><th>Screen top-6（mom63）</th><th>收市</th><th>IV 分位</th><th>業績閘</th><th>裂口閘</th></tr></thead>
+        <thead><tr><th>Screen top-6（mom63）</th><th class="num">收市</th><th class="num">IV 分位</th><th>業績閘</th><th>裂口閘</th></tr></thead>
         <tbody id="tdScreen"><tr><td colspan="5">—</td></tr></tbody>
       </table></div>
       <div class="note" style="margin-top:6px">篩選方法：<b>pool117 全池</b>（ownable45＋fleet72，avoid23 唔入池）內計 <b>mom63</b>（過去 63 個交易日回報），&gt;0 先合格，排前 6；再逐隻過閘——IV 分位（&lt;25% 死亡區硬禁／25–50 半倉）、業績（前 21td 禁＋後 5td 冷靜）、裂口（chg1d&gt;8% 禁）、殺倉雷達 veto、廣度凍結梯、VIX band、按金閘。表內只顯示業績／裂口兩欄，其餘閘係簿級，封刀時全簿唔開。</div>
-      <div class="note">同「🌌 宇宙 117」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池快照</b>（10-30 規劃版，六隻全 ownable：MRVL 全池計只係 rank11）；呢邊係 <b>pool117 全池＋最新價（開市時＝現價）</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；快照榜留做規劃參考。</div>
+      <div class="note">同「🌌 宇宙 117＋C96」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池 live 榜</b>（today.json ownable6，11-05 起同呢邊一份數據）；呢邊係 <b>pool117 全池＋最新價（開市時＝現價）</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；ownable45 榜留做正選池參考。</div>
       <div style="margin-top:10px" id="tdCandWrap"></div>
     </div>
   </div>
@@ -173,7 +173,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <!-- ═══════════ T1 總覽 ═══════════ -->
 <div id="t1" class="tabc" style="display:none">
   <div class="grid g3">
-    <div class="card kpi hero"><div class="l">帳戶淨值（Futu OpenD 口徑）</div><div class="v">HK$382,349</div><div class="a">＝現金 137,311＋證券 160,286＋在途 84,752<br>2026-10-31 bridge /real_funds 實測 · 拍板①②：跟 OpenD 口徑，在途確認返還</div></div>
+    <div class="card kpi hero"><div class="l">帳戶淨值（Futu OpenD 口徑）</div><div class="v" id="accV">HK$382,349</div><div class="a" id="accA">＝現金 137,311＋證券 160,286＋在途 84,752<br>2026-10-31 bridge /real_funds 實測 · 拍板①②：跟 OpenD 口徑，在途確認返還</div></div>
     <div class="card kpi"><div class="l">回本目標</div><div class="v">HK$700,000</div><div class="a">缺口 HK$317,651</div>
       <div class="pbar"><div id="progFill"></div></div><div class="a" id="progTxt">進度 0%（輸入每月注資自動更新，本機紀錄）</div></div>
     <div class="card kpi"><div class="l">主路徑（拍板③⑦）</div><div class="v up" style="font-size:21px">$40k/月＋12.42%</div><div class="a">median HAIR 12.42% → 約 8 個月<br>預計達標 <b style="color:var(--green)">2027-06</b></div></div>
@@ -386,19 +386,16 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
     </details>
   </div>
   <div class="card" style="margin-top:12px">
-    <h3>⭐ TOP6 動量榜（mom63・ownable45 正選快照 10-30）＋業績窗（11-02→12-02 共 33 隻）</h3>
+    <h3>⭐ TOP6 動量榜（mom63・ownable45 正選池 · live）＋業績窗（11-02→12-02 共 33 隻）</h3>
     <div class="table-scroll"><table>
       <thead><tr><th>#</th><th>名字</th><th class="num">mom63</th><th>業績窗 21td</th><th>可入性</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>MRVL</td><td class="num">+37.3%</td><td><span class="pill r">撞窗</span></td><td>業績後 5td 冷靜期過再議</td></tr>
-        <tr><td>2</td><td>DELL</td><td class="num">+22.2%</td><td><span class="pill r">撞窗</span></td><td>同上</td></tr>
-        <tr><td>3</td><td>AMD</td><td class="num">+19.2%</td><td><span class="pill r">撞窗</span></td><td>同上</td></tr>
-        <tr><td style="background:#f0fdf4"><b>4</b></td><td style="background:#f0fdf4"><b>MU</b></td><td class="num" style="background:#f0fdf4">+12.4%</td><td style="background:#f0fdf4"><span class="pill g">清窗</span></td><td style="background:#f0fdf4"><b>TOP6 唯一即時可入</b></td></tr>
-        <tr><td>5</td><td>NVDA</td><td class="num">+10.6%</td><td><span class="pill r">撞窗</span></td><td>業績後再議</td></tr>
-        <tr><td>6</td><td>ANET</td><td class="num">+9.2%</td><td><span class="pill r">撞窗</span></td><td>業績後再議</td></tr>
+      <tbody id="ownTop6">
+        <tr><td colspan="5" style="color:#94a3b8">10-30 快照 fallback：MRVL +37.3% 撞窗 · DELL +22.2% 撞窗 · AMD +19.2% 撞窗 · MU +12.4% 清窗 · NVDA +10.6% 撞窗 · ANET +9.2% 撞窗——今日台 today.json 讀到會自動覆寫成 live 榜</td></tr>
       </tbody>
     </table></div>
-    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。<b>注意口徑：呢個榜係 ownable45 正選池快照（10-30）——回測引擎正選係 pool117 全池 rank≤6（fleet 都入圍，如 RPD/TEM/ZS），live screen 跟引擎口徑，喺「🎯 今日台」。</b></div>
+    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。<b>⭐11-05 起呢個榜轉 live</b>（today.json ownable6——同一份 gen_today 數據，重跑即更）；灰字係 10-30 舊快照 fallback（today.json 讀唔到先見）。回測引擎正選係 pool117 全池 rank≤6（fleet 都入圍，如 RPD/TEM/ZS），落單跟「🎯 今日台」全池口徑。</div>
+    <div class="note" style="margin-top:6px">C96＝板塊頭部池（96 名）——<b>唔做廣度閘</b>（實證 16 假響輸 118池 7/8），做局部殺戮時嘅可做池：AI 單名封咗，醫療/能源/工業/公用等板塊頭部照 screen 過閘（今日台自動出候選）。來源：breadth_design_research_20261105 原裝設計＋c96_universe.json。</div>
+    <div id="c96Names" class="desc" style="margin-top:8px"><span style="color:#94a3b8">c96_universe.json 讀取中…</span></div>
   </div>
 </div>
 
@@ -475,6 +472,29 @@ function manualRefresh(){loadMarket();loadToday();}
 var NAV_USD=49145;
 function loadToday(){
   fetch('today.json?v='+Date.now()).then(function(r){return r.json();}).then(renderToday)
+  /* 帳戶卡 live（⭐11-05 用戶令）：bridge /real_funds 經 worker proxy；secret 唔入公開 repo——
+     ?bsecret=xxx 或 localStorage qbridge_secret；無 secret 顯示拍板②錨值 */
+  ;(function(){
+    var elV=document.getElementById('accV'),elA=document.getElementById('accA');
+    if(!elV)return;
+    var qs=new URLSearchParams(location.search).get('bsecret'),ls=null;
+    try{ls=localStorage.getItem('qbridge_secret');}catch(e){}
+    var sec=qs||ls;
+    if(qs&&qs!==ls){try{localStorage.setItem('qbridge_secret',qs);}catch(e){}}
+    if(!sec){elA.innerHTML+='<br><span style="color:#94a3b8">未接 bridge（顯示錨值）——加 ?bsecret= 或 localStorage qbridge_secret 即 live</span>';return;}
+    var r0=function(x){return x!=null&&x>0?Math.round(x).toLocaleString():null;};
+    fetch('https://quant-api.leunghlk.workers.dev/live/real_funds?secret='+encodeURIComponent(sec))
+    .then(function(r){return r.json();}).then(function(d){
+      if(!(d&&d.ok&&d.total_hkd!=null)){elA.innerHTML+='<br>bridge 回應失敗（'+((d&&d.error)||'?')+'）——顯示錨值';return;}
+      var parts=[];
+      if(d.cash_hkd>0)parts.push('現金 '+r0(d.cash_hkd));
+      if(d.securities_assets_hkd)parts.push('證券 '+r0(d.securities_assets_hkd));
+      if(d.fund_assets_hkd)parts.push('基金/現金寶 '+r0(d.fund_assets_hkd));
+      if(d.pending_asset_hkd)parts.push('在途 '+r0(d.pending_asset_hkd));
+      elV.textContent='HK$'+Math.round(d.total_hkd).toLocaleString();
+      elA.innerHTML='＝'+(parts.join('＋')||'—')+'<br>bridge 實時 '+(d.ts||'')+'（worker proxy）· 本金錨 HK$382,349（拍板② 10-31）唔跟市價郁';
+    }).catch(function(){elA.innerHTML+='<br>bridge 連唔到——顯示錨值';});
+  })()
   .catch(function(){document.getElementById('tdVerdict').innerHTML='<div class="desc">today.json 讀唔到——請跑 gen_today.py 或稍後再試。</div>';});
 }
 function renderToday(d){
@@ -500,6 +520,13 @@ function renderToday(d){
   if(fu.pool){
     document.getElementById('tdRouteTxt').innerHTML+=' <br><b>過閘漏斗</b>：池 '+fu.pool+' → mom63&gt;0 '+fu.mom_pos+' 隻 → top-6 → IV 過 '+fu.iv_ok+' → 業績過 '+fu.earn_ok+' → 裂口過 '+fu.gap_ok+' → <b>候選 '+fu.final+'</b>。per-name 五閘（動量/IV/業績/裂口/雷達）＋簿級三閘（廣度梯/義務 5%+12%/按金 65%）全過先落得單；'+(((v.level||'').indexOf('🔴')>=0)?'簿級現時紅——有候選都唔開。':'簿級狀態見頂部判決。');
   }
+  var ow=d.ownable6||[];
+  if(ow.length){
+    var ot6=document.getElementById('ownTop6');
+    if(ot6) ot6.innerHTML=ow.map(function(x,i){
+      return '<tr'+(x.earn_window==='清窗'?' style="background:#f0fdf4"':'')+'><td>'+(i+1)+'</td><td><b>'+x.sym+'</b></td><td class="num">+'+x.mom63+'%</td><td>'+(x.earn_window==='撞窗'?'<span class="pill r">撞窗（'+(x.earn_td!=null?x.earn_td+'td':'')+'）</span>':(x.earn_window==='清窗'?'<span class="pill g">清窗</span>':'—'))+'</td><td>'+(x.earn_window==='撞窗'?'業績後 5td 冷靜期過再議':'清窗——照其餘閘')+'</td></tr>';
+    }).join('');
+  }
   var band=m.vix_band||'',mst=m.mkt_state||'nan';
   document.getElementById('vixNow').textContent='現時 VIX '+m.vix+'（'+(mst==='bull'?'牛 SPX≥SMA200':(mst==='bear'?'熊 SPX<SMA200':'狀態 n/a'))+'）→ '+(band==='20-32'?'開倉窗':(band==='<20'?(mst==='bull'?'<20 牛狀態：單名放行（熊狀態門）':(mst==='bear'?'<20 熊狀態：全封':'<20（狀態 n/a，fail-closed 封）')):(band==='>32'?'>32 全封＋撤':band)));
   ['lt14','1418','1820','2032','gt32'].forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background='';});
@@ -510,14 +537,14 @@ function renderToday(d){
   if(!cands.length){cwHtml='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
   else{
     var cu=d.cum||{};
-    cwHtml='<div class="table-scroll"><table><thead><tr><th>候選</th><th>現價</th><th>Spread</th><th>到期</th><th>Credit</th><th>張</th><th>Premium</th><th>按金</th><th>做完後現金*</th><th>來源</th></tr></thead><tbody>'+
+    cwHtml='<div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">Spread</th><th>到期</th><th class="num">Credit</th><th class="num">張</th><th class="num">Premium</th><th class="num">按金</th><th class="num">做完後現金*</th><th>來源</th></tr></thead><tbody>'+
     cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+(c.pool?' <span class="pill y">C96</span>':'')+'</td><td class="num">'+c.spot+'</td><td class="num">'+c.short_k+'/'+c.long_k+'</td><td>'+c.expiry+'<span class="pill n" style="margin-left:4px">'+c.dte_td+'td</span></td><td class="num">'+c.credit+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（延遲價）'?'<span class="pill g">鏈 mid</span>':'BS')+' IV'+c.iv_used+'%</td></tr>';}).join('')+
     '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。價為 yfinance（開市時＝現價，延遲約 0–15 分），落單前用 Futu 實價覆核。</div>';
   }
   var c96s=d.c96_screen||[];
   if(c96s.length){
     var c96c=d.c96_candidates||[];
-    cwHtml+='<div style="margin-top:12px"><b>板塊頭部 C96 screen</b> <span class="pill n">11 行業×top-8——局部殺戮時真倉建議面換呢個池（11-05 雙閘）</span></div><div class="table-scroll"><table><thead><tr><th>候選</th><th>現價</th><th>momentum 63td</th><th>IV 分位</th><th>IV 閘</th><th>Earn</th><th>Gap</th><th>定價</th></tr></thead><tbody>'+
+    cwHtml+='<div style="margin-top:12px"><b>板塊頭部 C96 screen</b> <span class="pill n">11 行業×top-8——局部殺戮時真倉建議面換呢個池（11-05 雙閘）</span></div><div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">momentum 63td</th><th class="num">IV 分位</th><th>IV 閘</th><th>Earn</th><th>Gap</th><th>定價</th></tr></thead><tbody>'+
     c96s.map(function(x){var pr=c96c.find(function(c){return c.sym===x.sym;});
       return '<tr><td><b>'+x.sym+'</b></td><td class="num">'+x.close+'</td><td class="num">+'+x.mom63+'%</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl:'—')+'</td><td>'+(x.iv==='死亡區'?'<span class="pill r">死亡區</span>':(x.iv==='半'?'<span class="pill y">半</span>':'<span class="pill g">全</span>'))+'</td><td>'+(x.earn==='禁'?'<span class="pill r">禁</span>':(x.earn==='ok'?'<span class="pill g">ok</span>':'—'))+'</td><td>'+(x.gap==='禁'?'<span class="pill r">禁</span>':'<span class="pill g">ok</span>')+'</td><td class="num">'+(pr?pr.short_k+'/'+pr.long_k+' $'+pr.credit+'（'+pr.dte_td+'td）':'—')+'</td></tr>';}).join('')+
     '</tbody></table></div><div class="note">C96 局部殺戮時先出定價（其餘 regime 僅參考 screen）；earn「—」＝top-8 以外冇查 calendar。paper 台照 AI 池 shadow 唔混池（11-17 檢討 C96 入 paper）。</div>';
@@ -528,11 +555,18 @@ function renderToday(d){
   fetch('paper_book.json?v='+Date.now()).then(function(r){return r.json();}).then(function(b){
     var s=b.summary||{},op=(b.entries||[]).filter(function(e){return e.status==='open';}),cl=b.closed||[];
     var bar='<div style="background:#e5e7eb;border-radius:4px;height:8px;margin:6px 0"><div style="background:#3b82f6;border-radius:4px;height:8px;width:'+Math.min(100,(s.week||0)/2*100)+'%"></div></div>';
-    var ot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th>倉</th><th>Spread</th><th>到期</th><th>Credit</th><th>張</th><th>Mark</th><th>浮動</th></tr></thead><tbody>'+
+    var ot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th>倉</th><th class="num">Spread</th><th>到期</th><th class="num">Credit</th><th class="num">張</th><th class="num">Mark</th><th class="num">浮動</th></tr></thead><tbody>'+
       op.map(function(e){return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+e.contracts+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open paper 倉。</div>';
     var ct=cl.length?'<div class="note">已平倉：'+cl.map(function(e){return e.sym+' '+(e.realized>=0?'+':'')+'$'+e.realized.toFixed(0)+'（'+e.exit_reason.split('（')[0]+'）';}).join('、')+'</div>':'';
     document.getElementById('tdPaper').innerHTML='<div class="desc">觀察期 <b>'+b.started+' 起 · 第 '+s.week+'/2 週</b>'+bar+'realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · paper NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'＝'+(s.margin_used&&s.nav_paper?(100*s.margin_used/s.nav_paper).toFixed(1):'0')+'%）'+ct+ot+'<div class="note" style="margin-top:6px">口徑：跟 winner 引擎規則模擬（PT60 平倉、δ0.28、$1.2/張費、零滑價）；浮動＝未實現 P&L＝(credit−mark)×100×張−費（以 mid 平倉袋到幾多）；mark ET 開市每 5 分鐘更新（其餘時間 21:40 日更）；🧪＝shadow 倉（簿級 🔴 照開 test-only，11-04 追拍）。2 週期滿（約 11-17）無甩嘢即切真倉 PT60+δ0.28（11-02 追拍）。</div></div>';
   }).catch(function(){document.getElementById('tdPaper').textContent='paper_book.json 讀唔到。';});
+  fetch('c96_universe.json?v='+Date.now()).then(function(r){return r.json();}).then(function(u){
+    var h='',secs=u.sectors||{};
+    Object.keys(secs).forEach(function(k){h+='<b>'+k+'（'+secs[k].length+'）</b> <span style="line-height:2">'+secs[k].join(' ')+'</span><br>';});
+    if(u.extra&&u.extra.length)h+='<br><b>補充（'+u.extra.length+'）</b> <span style="line-height:2">'+u.extra.join(' ')+'</span>';
+    h+='<br><span style="color:#94a3b8">共 '+((u.all||[]).length)+' 名 · 11 行業×top-8＋補充——11-05 雙閘起局部殺戮時真倉建議面自動換呢個池</span>';
+    document.getElementById('c96Names').innerHTML=h;
+  }).catch(function(){var e=document.getElementById('c96Names'); if(e) e.innerHTML='<span style="color:#94a3b8">c96_universe.json 讀唔到。</span>';});
   document.getElementById('tdMeta').innerHTML='· 產生器：gen_today.py（本地）→ today.json；每 5 分鐘自動重讀，手動重跑即時更新。<br>· 真倉 screen 口徑：'+(cfg.live||'')+'；'+(cfg.shadow||'')+'。<br>· 落單程序：今日台候選 → 八閘逐條核（規格 tab）→ Futu 實價落 spread → 實價 POST 入 trade log → 三處驗證。<br>'+((d.notes||[]).map(function(x){return '· ⚠️ '+x;}).join('<br>')||'· 無異常紀錄。');
   calc();
 }
