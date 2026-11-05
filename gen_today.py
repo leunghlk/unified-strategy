@@ -623,6 +623,58 @@ nbis = dict(spot=usd(nbis_spot), strike=165, expiry="2026-11-06", trigger="163�
             td_left=4, shares=200, contracts=2,
             light=lights.get("NBIS-C-165.0-2026-11-06", "?"),
             plan="A 照企；週四到 163–165 → 揀：接受被 call @165（實現 −$7,000）／roll 170@11-20 收 credit")
+
+# ---------- 8b. 我的倉／YTD／回撤／義務比（⭐11-06 round-2 用戶令） ----------
+positions_out = []
+ytd = dict(real_realized_hkd=None, paper_realized_hkd=None, unrealized_hkd=None, base_hkd=None,
+           portfolio_return_pct=None, as_of=None)
+risk = dict(dd_win_pct=None, dd_win_peak_hkd=None, dd_win_now_hkd=None,
+            obligation_usd=None, cash_usd=None, oblig_cash_ratio=None)
+try:
+    _rec = json.load(open("/Users/leungkathy/quant_model/options_rec.json"))
+    _pf = _rec.get("portfolio") or {}
+    ytd = dict(real_realized_hkd=_pf.get("real_realized_hkd"),
+               paper_realized_hkd=_pf.get("paper_realized_hkd"),
+               unrealized_hkd=_pf.get("real_unrealized_hkd"),
+               base_hkd=_pf.get("base_hkd"),
+               portfolio_return_pct=_pf.get("return_pct"),
+               as_of=_rec.get("generated"))
+    for _p in (_rec.get("positions") or []):
+        if _p.get("status") != "open" or not _p.get("real"):
+            continue
+        _ep = _p.get("entry_prem") or 0
+        _cp = _p.get("cur_prem")
+        _rem = (_cp / _ep) if (_ep and _cp is not None) else None
+        positions_out.append(dict(
+            ticker=_p.get("ticker"), side=_p.get("side"), expiry=_p.get("expiry"), dte=_p.get("dte"),
+            strike=_p.get("strike"), contracts=_p.get("contracts"),
+            entry_prem=_ep, cur_prem=_cp,
+            pt_remaining=(int(round(_rem * 100)) if _rem is not None else None),
+            margin_req=_p.get("margin_req"), pnl_usd=_p.get("pnl_usd"), spot=_p.get("spot"),
+            pt_zone=("可平倉" if (_rem is not None and _rem <= 0.5) else ("接近" if (_rem is not None and _rem <= 0.7) else "未到")),
+            id=_p.get("id")))
+except Exception as _e:
+    note("我的倉讀取失敗：%s" % _e)
+try:
+    _mon = json.load(open("/Users/leungkathy/quant_model/options_monitor.json"))
+    _hist = _mon.get("history") or []
+    _sp = {x.get("id"): x.get("spot") for x in (_mon.get("positions") or [])}
+    for _po in positions_out:
+        if _po.get("spot") is None and _po.get("id") in _sp:
+            _po["spot"] = _sp[_po.get("id")]
+    _eqs = [h.get("equity_hkd") for h in _hist if h.get("equity_hkd")]
+    if _eqs:
+        _pk = max(_eqs)
+        risk["dd_win_peak_hkd"] = round(_pk)
+        risk["dd_win_now_hkd"] = round(_eqs[-1])
+        risk["dd_win_pct"] = round((_pk - _eqs[-1]) / _pk * 100, 1) if _pk else None
+    _oblig = 165 * 100 * (nbis.get("contracts") or 0) + sum(
+        (p.get("strike") or 0) * 100 * (p.get("contracts") or 0) for p in positions_out)
+    risk["obligation_usd"] = round(_oblig)
+    risk["cash_usd"] = round(NAV_USD)
+    risk["oblig_cash_ratio"] = round(_oblig / NAV_USD, 2) if NAV_USD else None
+except Exception as _e:
+    note("回撤／義務比計算失敗：%s" % _e)
 if nbis_spot:
     if nbis_spot < 163:
         nbis["state"] = "觸發區下——盯"
@@ -737,6 +789,7 @@ out = dict(
              cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin),
              dropped=cum_dropped),
     nbis=nbis,
+    positions=positions_out, ytd=ytd, risk=risk,
     account=dict(cash_hkd=CASH_HKD, fx=FX_USDHKD, nav_usd=round(NAV_USD, 0),
                  single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0)),
     config=dict(live="基座 δ0.30/PT50/spr10/35td（拍板④）", shadow="winner δ0.28/PT60 paper 影子 2 週（11-17 無甩嘢切真倉）"),
