@@ -4,7 +4,9 @@
 #   full（每交易日 21:40 HKT）：
 #   1. 讀 today.json paper_candidates（gen_today 21:35 先產，δ0.28 鏈 mid）
 #   2. 簿級閘跟今日台 verdict：🔴 照開但標 shadow（test-only，11-04 用戶追拍——保證 2 週期滿有執行面數據）；非 🔴 正式開
-#   3. open 倉 BS mark（IV 用 entry 時 iv_used）；PT60＝mark ≤ 40% entry credit 平倉；到期＝intrinsic
+#   3. open 倉 mark＝bridge Futu OpenD 真鏈 mid（⭐11-05 用戶令「全部都用 Futu OpenD 期權鏈」；
+#      必帶 &expiry=——OpenD full-chain row cap 截走遠月）→ BS（IV 用 entry 時 iv_used）兜底；
+#      PT60＝mark ≤ 40% entry credit 平倉；到期＝intrinsic
 #   4. 寫 paper_book.json → git commit+push（dashboard 讀）
 #   mark（ET 開市時段每 5 分鐘，11-04 用戶問 real-time P&L 後加）：
 #   - 純 MTM＋PT60/到期判定，唔開新倉；有意義狀態（marks/P&L/倉數）冇變就唔寫唔 push
@@ -47,6 +49,47 @@ def spot_of(sym):
     import yfinance as yf
     h = yf.Ticker(sym).history(period="5d")
     return float(h["Close"].iloc[-1]) if len(h) else None
+
+
+BRIDGE_SECRET = os.environ.get("FUTU_BRIDGE_SECRET", "qtbridge-K7s2-wolf-9mX4")
+
+
+def chain_mid(sym, expiry, ks, kl):
+    """⭐11-05: bridge Futu OpenD 真鏈 bid/ask mid（本地 127.0.0.1；公開 repo 頁唔會見 secret）。
+    必帶 &expiry=——OpenD full-chain 有 row cap 會截走遠月（11-05 TMO 12-18 實錘）。
+    舊 BS 入場嘅 non-listed strikes（如 ZS 201/181）→ snap 最近 listed（tol=max(5%,2.5)，
+    跟 bridge weekly_scan 死 strike 口徑）。→ (mid, src, ks_used, kl_used)；snap 唔到／
+    任一腿 bid/ask 缺＝(None, None, ks, kl)（fallback BS）。"""
+    try:
+        import urllib.request as _ur
+        _u = ("http://127.0.0.1:8765/options/chain?code=US.%s&expiry=%s&secret=%s"
+              % (sym, expiry, BRIDGE_SECRET))
+        _d = json.loads(_ur.urlopen(_u, timeout=20).read().decode("utf-8", "replace"))
+        if not _d.get("ok"):
+            return None, None, ks, kl
+        _mids = {}
+        for _e in (_d.get("expiries") or []):
+            if _e.get("expiry") != expiry:
+                continue
+            for _r in (_e.get("rows") or []):
+                if str(_r.get("type", "")).upper() != "PUT":
+                    continue
+                _k = _r.get("strike")
+                _b, _a = _r.get("bid"), _r.get("ask")
+                if _k is not None and _b is not None and _a is not None and _a > 0:
+                    _mids[float(_k)] = (_b + _a) / 2.0
+        def _pick(k):
+            if k in _mids:
+                return k
+            _tol = max(k * 0.05, 2.5)
+            _cands = [x for x in _mids if abs(x - k) <= _tol]
+            return min(_cands, key=lambda x: abs(x - k)) if _cands else None
+        _ku, _lu = _pick(float(ks)), _pick(float(kl))
+        if _ku is not None and _lu is not None and _mids[_ku] > 0:
+            return round(_mids[_ku] - _mids[_lu], 3), "Futu", _ku, _lu
+    except Exception:
+        pass
+    return None, None, ks, kl
 
 
 def weeks_in(started):
@@ -107,16 +150,25 @@ def _run(mode):
         if not S:
             continue
         e["spot_last"] = S
+        mark_src = "BS"
         try:
             d0 = date.fromisoformat(e["date"])
             de = date.fromisoformat(e["expiry"])
             t_left = max(td_between(date.today(), de), 1) / 252.0
             iv = e.get("iv", 0.35)
             mark = bs_put(S, e["short_k"], t_left, 0.043, iv) - bs_put(S, e["long_k"], t_left, 0.043, iv)
+            # ⭐11-05: bridge Futu 真鏈 mid 優先——PT60 判定唔再食 BS 假價；
+            # snap 過 strike 會記 mark_ks/mark_kl（audit 用）
+            _bm, _bs_rc, _ku, _lu = chain_mid(e["sym"], e["expiry"], e["short_k"], e["long_k"])
+            if _bm is not None:
+                mark, mark_src = _bm, "Futu"
+                if _ku != e["short_k"] or _lu != e["long_k"]:
+                    e["mark_ks"], e["mark_kl"] = _ku, _lu
             mark = max(mark, max(e["short_k"] - S - (e["short_k"] - e["long_k"]), 0.0))
         except Exception:
             continue
         e["mark"] = round(mark, 3)
+        e["mark_src"] = mark_src
         e["unrealized"] = round((e["credit"] - mark) * 100 * e["contracts"] - FEE_PER_CT * e["contracts"], 2)
         if mark <= PT_FOLD * e["credit"]:
             e["status"] = "closed"
@@ -124,7 +176,7 @@ def _run(mode):
             e["exit_reason"] = "PT60（mark %.3f ≤ 40%%×credit %.2f）" % (mark, e["credit"])
             e["realized"] = round((e["credit"] - mark) * 100 * e["contracts"] - FEE_PER_CT * e["contracts"], 2)
             book["closed"].append(e)
-            acts.append("PT60 平 %s %.2f→%.2f realized %+.0f" % (e["sym"], e["credit"], mark, e["realized"]))
+            acts.append("PT60 平 %s %.2f→%.2f（%s mark）realized %+.0f" % (e["sym"], e["credit"], mark, mark_src, e["realized"]))
         elif (de - date.today()).days <= 0:
             e["status"] = "closed"
             e["exit_date"] = today_iso
