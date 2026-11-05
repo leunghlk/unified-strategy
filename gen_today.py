@@ -56,6 +56,93 @@ def put_delta(S, K, T, r, iv):
     return N(d1) - 1.0
 
 
+# ---------- ⭐ 11-05 三層定價：bridge（Futu OpenD 真鏈）→ yf 鏈 mid → BS 兜底 ----------
+BRIDGE_SECRET = os.environ.get("FUTU_BRIDGE_SECRET", "qtbridge-K7s2-wolf-9mX4")
+
+
+def bridge_chain(s, exp_str):
+    """Futu OpenD 真實 bid/ask（127.0.0.1 bridge，本地 only——公開 repo 頁面唔會見 secret）。
+    bridge /options/chain 必須帶 &expiry=——OpenD full-chain 有 row cap 會截走遠月
+    （11-05 實錘：TMO 全鏈只返 786 rows 截到 12-04，12-18 月選完全唔見）。"""
+    try:
+        import urllib.request as _ur
+        _u = ("http://127.0.0.1:8765/options/chain?code=US.%s&expiry=%s&secret=%s"
+              % (s, exp_str, BRIDGE_SECRET))
+        _d = json.loads(_ur.urlopen(_u, timeout=25).read().decode("utf-8", "replace"))
+        if not _d.get("ok"):
+            return None
+        for _e in _d.get("expiries") or []:
+            if _e.get("expiry") != exp_str:
+                continue
+            _rows = sorted((_r for _r in (_e.get("rows") or [])
+                            if str(_r.get("type", "")).upper() == "PUT"
+                            and _r.get("strike") is not None
+                            and _r.get("bid") is not None and _r.get("ask") is not None),
+                           key=lambda r: -r["strike"])
+            if _rows:
+                return {"spot": _d.get("spot"), "puts": _rows}
+    except Exception:
+        pass
+    return None
+
+
+def price_spread(S, T, delta_tgt, iv, exp_str, sym=None):
+    """短 put spread 定價三層：①bridge 真鏈（真 bid/ask mid、真 δ、全部 listed strikes）
+    → ②yf 鏈 mid（延遲價，BS 行 K 貼最近 listed）→ ③BS 兜底。
+    → (Ks, Kl, credit, src, iv_out)；iv_out=鏈價時用該腿真鏈 IV（None=用輸入 iv）。
+    三層同一 δ 語意（行落 OTM 第一隻 |δ|≤delta_tgt）。"""
+    if sym:
+        _bc = bridge_chain(sym, exp_str)
+        if _bc:
+            try:
+                _ks = _kl = None
+                for _r in _bc["puts"]:
+                    if _r["strike"] < S * 0.6:
+                        break
+                    _dl = _r.get("delta")
+                    _dl = abs(float(_dl)) if _dl is not None else -put_delta(S, _r["strike"], T, BS_R, iv)
+                    if _dl <= delta_tgt:
+                        _ks = _r
+                        break
+                if _ks is not None and (_ks["ask"] or 0) > 0:
+                    _kt = _ks["strike"] * (1 - WIDTH)
+                    for _r in _bc["puts"]:
+                        if _r["strike"] <= _kt:
+                            _kl = _r
+                            break
+                if _ks is not None and _kl is not None and (_kl["ask"] or 0) > 0:
+                    _ms = (_ks["bid"] + _ks["ask"]) / 2.0
+                    _ml = (_kl["bid"] + _kl["ask"]) / 2.0
+                    if _ms > 0:
+                        _iv_out = _ks.get("iv")
+                        _iv_out = float(_iv_out) if _iv_out else None
+                        return (float(_ks["strike"]), float(_kl["strike"]),
+                                max(_ms - _ml, 0.01), "鏈 mid（Futu OpenD）", _iv_out)
+            except Exception:
+                pass
+    Ks = S
+    for k in range(0, 240):
+        K = round(S * (1.0 - 0.005 * k), 0)
+        Ks = K
+        if -put_delta(S, K, T, BS_R, iv) <= delta_tgt or K < S * 0.6:
+            break
+    Kl = round(Ks * (1 - WIDTH), 0)
+    credit = bs_put(S, Ks, T, BS_R, iv) - bs_put(S, Kl, T, BS_R, iv)
+    src = "BS(RV21×1.10)"
+    try:
+        puts = yf.Ticker(sym).option_chain(exp_str).puts if sym else None
+        if puts is not None and len(puts):
+            rs = puts.iloc[(puts["strike"] - Ks).abs().argmin()]
+            rl = puts.iloc[(puts["strike"] - Kl).abs().argmin()]
+            if float(rs["bid"]) > 0 and float(rs["ask"]) > 0 and float(rl["ask"]) > 0:
+                credit = (float(rs["bid"]) + float(rs["ask"])) / 2 - (float(rl["bid"]) + float(rl["ask"])) / 2
+                Ks, Kl = float(rs["strike"]), float(rl["strike"])
+                src = "鏈 mid（延遲價）"
+    except Exception:
+        pass
+    return float(Ks), float(Kl), max(credit, 0.01), src, None
+
+
 # ---------- ET 交易日曆（簡化：週一至五，唔計假期；tenor 選擇誤差可容忍，td 數另標） ----------
 def td_between(d0, d1):
     d, n = d0, 0
@@ -338,7 +425,7 @@ if yf_ok:
             S = px.get(s)
             if not S:
                 continue
-            # 候補 strike：δ_today（BS，IV=本地 rv21×1.10）
+            # 候補 strike：δ_today（三層定價 11-05：bridge 真鏈 → yf 鏈 mid → BS）
             rv21 = loc[s]["rv21_pctl"]
             iv = float(loc[s].get("rv21_pctl") or 0)  # pctl 唔係 iv；正確 iv 用本地 rv21 欄
             try:
@@ -346,55 +433,13 @@ if yf_ok:
             except Exception:
                 iv = 0.35
             iv = max(min(iv, 1.5), 0.12)
-            # strike walk 落去至 |put delta| ≤ delta_today（OTM 方向）
-            Ks = S
-            for k in range(0, 240):
-                K = round(S * (1.0 - 0.005 * k), 0)
-                Ks = K
-                if -put_delta(S, K, T, BS_R, iv) <= delta_today or K < S * 0.6:
-                    break
-            Kl = round(Ks * (1 - WIDTH), 0)
-            credit = bs_put(S, Ks, T, BS_R, iv) - bs_put(S, Kl, T, BS_R, iv)
-            src = "BS(RV21×1.10)"
-            bid_s = ask_s = bid_l = ask_l = None
-            try:
-                oc = yf.Ticker(s).option_chain(exp_str)
-                puts = oc.puts
-                row_s = puts.iloc[(puts["strike"] - Ks).abs().argmin()]
-                row_l = puts.iloc[(puts["strike"] - Kl).abs().argmin()]
-                bid_s, ask_s = float(row_s["bid"]), float(row_s["ask"])
-                bid_l, ask_l = float(row_l["bid"]), float(row_l["ask"])
-                if bid_s > 0 and ask_s > 0 and bid_l >= 0 and ask_l > 0:
-                    credit = (bid_s + ask_s) / 2 - (bid_l + ask_l) / 2
-                    Ks, Kl = float(row_s["strike"]), float(row_l["strike"])
-                    src = "鏈 mid（延遲價）"
-            except Exception:
-                pass
+            Ks, Kl, credit, src, iv_out = price_spread(S, T, delta_today, iv, exp_str, s)
             credit = max(credit, 0.01)
             max_loss_pc = (Ks - Kl) * 100 - credit * 100
             cap = NAV_USD * SINGLE_CAP_FRAC
             n_ct = max(int(cap // max_loss_pc), 1) if max_loss_pc > 0 else 1
             # 📒 Paper 台（winner PT60+δ0.28）：同批數據/鏈價，δ 強制 0.28（雷達唔縮深）
-            Ks_p = S
-            for k in range(0, 240):
-                K = round(S * (1.0 - 0.005 * k), 0)
-                Ks_p = K
-                if -put_delta(S, K, T, BS_R, iv) <= PAPER_DELTA or K < S * 0.6:
-                    break
-            Kl_p = round(Ks_p * (1 - WIDTH), 0)
-            credit_p = bs_put(S, Ks_p, T, BS_R, iv) - bs_put(S, Kl_p, T, BS_R, iv)
-            src_p = "BS(RV21×1.10)"
-            try:
-                _oc = yf.Ticker(s).option_chain(exp_str)
-                _puts = _oc.puts
-                _rs = _puts.iloc[(_puts["strike"] - Ks_p).abs().argmin()]
-                _rl = _puts.iloc[(_puts["strike"] - Kl_p).abs().argmin()]
-                if float(_rs["bid"]) > 0 and float(_rs["ask"]) > 0 and float(_rl["ask"]) > 0:
-                    credit_p = (float(_rs["bid"]) + float(_rs["ask"])) / 2 - (float(_rl["bid"]) + float(_rl["ask"])) / 2
-                    Ks_p, Kl_p = float(_rs["strike"]), float(_rl["strike"])
-                    src_p = "鏈 mid（延遲價）"
-            except Exception:
-                pass
+            Ks_p, Kl_p, credit_p, src_p, iv_out_p = price_spread(S, T, PAPER_DELTA, iv, exp_str, s)
             credit_p = max(credit_p, 0.01)
             ml_p = (Ks_p - Kl_p) * 100 - credit_p * 100
             n_p = max(int(cap // ml_p), 1) if ml_p > 0 else 1
@@ -402,7 +447,7 @@ if yf_ok:
                 sym=s, spot=usd(S), short_k=Ks_p, long_k=Kl_p, expiry=exp_str,
                 dte_td=td_between(today, exp_d), credit=usd(credit_p),
                 contracts=int(n_p), premium_in=usd(credit_p * 100 * n_p),
-                margin=usd(ml_p * n_p), iv_used=round(iv * 100, 1), src=src_p,
+                margin=usd(ml_p * n_p), iv_used=round((iv_out_p or iv) * 100, 1), src=src_p,
                 delta=PAPER_DELTA, pt="PT60"))
             candidates.append(dict(
                 sym=s, spot=usd(S), short_k=Ks, long_k=Kl, expiry=exp_str,
@@ -411,7 +456,7 @@ if yf_ok:
                 premium_in=usd(credit * 100 * n_ct),
                 margin=usd(max_loss_pc * n_ct),
                 cash_after=usd(CASH_HKD / FX_USDHKD + credit * 100 * n_ct),
-                iv_used=round(iv * 100, 1), src=src, delta=delta_today,
+                iv_used=round((iv_out or iv) * 100, 1), src=src, delta=delta_today,
                 rv21_pctl=x["rv21_pctl"], earn_td=x["earn_td"]))
     except Exception as ex:
         note("候選倉定價失敗：%s %s" % (ex.__class__.__name__, ex))
@@ -503,25 +548,7 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
             except Exception:
                 pass
             iv = max(min(iv, 1.5), 0.12)
-            Ks = S
-            for k in range(0, 240):
-                K = round(S * (1.0 - 0.005 * k), 0)
-                Ks = K
-                if -put_delta(S, K, _T, BS_R, iv) <= delta_c96 or K < S * 0.6:
-                    break
-            Kl = round(Ks * (1 - WIDTH), 0)
-            credit = bs_put(S, Ks, _T, BS_R, iv) - bs_put(S, Kl, _T, BS_R, iv)
-            src = "BS(RV21×1.10)"
-            try:
-                puts = yf.Ticker(s).option_chain(_exp_str).puts
-                rs = puts.iloc[(puts["strike"] - Ks).abs().argmin()]
-                rl = puts.iloc[(puts["strike"] - Kl).abs().argmin()]
-                if float(rs["bid"]) > 0 and float(rs["ask"]) > 0 and float(rl["ask"]) > 0:
-                    credit = (float(rs["bid"]) + float(rs["ask"])) / 2 - (float(rl["bid"]) + float(rl["ask"])) / 2
-                    Ks, Kl = float(rs["strike"]), float(rl["strike"])
-                    src = "鏈 mid（延遲價）"
-            except Exception:
-                pass
+            Ks, Kl, credit, src, iv_out = price_spread(S, _T, delta_c96, iv, _exp_str, s)
             credit = max(credit, 0.01)
             ml = (Ks - Kl) * 100 - credit * 100
             n_ct = max(int(_cap // ml), 1) if ml > 0 else 1
@@ -530,7 +557,7 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
                 dte_td=td_between(today, _exp_d), credit=usd(credit), width_pct=10,
                 contracts=int(n_ct), max_loss=usd(ml * n_ct), premium_in=usd(credit * 100 * n_ct),
                 margin=usd(ml * n_ct), cash_after=usd(CASH_HKD / FX_USDHKD + credit * 100 * n_ct),
-                iv_used=round(iv * 100, 1), src=src, delta=delta_c96,
+                iv_used=round((iv_out or iv) * 100, 1), src=src, delta=delta_c96,
                 rv21_pctl=x["rv21_pctl"], earn_td=x.get("earn_td"), pool="C96"))
     except Exception as ex:
         note("C96 候選定價失敗：%s %s" % (ex.__class__.__name__, ex))
