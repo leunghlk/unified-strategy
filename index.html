@@ -535,7 +535,7 @@ function renderToday(d){
   document.getElementById('tdRouteTxt').innerHTML='真倉跟<b>基座</b>（'+(cfg.live||'')+'）；winner '+((cfg.shadow||'').replace('winner ',''))+'。結構：<b>單名一律 10% put credit spread</b>（唔做 naked CSP）；XSP δ0.20 spr5 指數腿只喺 VIX 20–32 band 開（<b>'+m.vix_band+'</b> → '+(m.band_action||'')+'）；10-18 判決：雷達 YEL 唔停手、δ 縮深 0.02。';
   var scr=d.screen||[];
   document.getElementById('tdScreen').innerHTML=scr.length?scr.map(function(x){
-    return '<tr><td><b>'+x.sym+'</b> +'+x.mom63+'%</td><td class="num">'+(x.close!=null?x.close:'—')+'</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl+'%':'—')+'</td><td>'+(x.earn==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁（'+(x.earn_td!=null?x.earn_td+'td':'')+'）</span>')+'</td><td>'+(x.gap==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁')+'</td></tr>';
+    return '<tr><td><b>'+x.sym+'</b> +'+x.mom63+'%</td><td class="num">'+(x.close!=null?x.close:'—')+'</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl+'%':'—')+'</td><td>'+(x.earn==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁（'+(x.earn_td!=null?x.earn_td+'td':'')+'）</span>')+'</td><td>'+(x.gap==='ok'?'<span class="pill g">過</span>':'<span class="pill r">禁</span>')+'</td></tr>';
   }).join(''):'<tr><td colspan="5">無名過 mom63&gt;0</td></tr>';
   var fu=d.funnel||{};
   if(fu.pool){
