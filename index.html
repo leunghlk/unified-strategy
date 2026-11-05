@@ -467,7 +467,27 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <script>
 var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
 function setTab(id,el){document.querySelectorAll('.tabc').forEach(function(e){e.style.display='none';});document.getElementById(id).style.display='block';document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('act');});el.classList.add('act');}
-function manualRefresh(){loadMarket();loadToday();}
+function manualRefresh(){
+  loadMarket();
+  /* ⭐ 11-06 fresh-first：🔄 先打 bridge /today_fresh（單飛 gen＋直接回新 json，跳過 Pages CDN 延遲）；
+     無 secret／橋死／超時 → fallback 靜態 today.json（ Pages 版由 cron＋5分鐘觸發器兜底） */
+  (function(){
+    var qs=new URLSearchParams(location.search).get('bsecret'),ls=null;
+    try{ls=localStorage.getItem('qbridge_secret');}catch(e){}
+    var sec=qs||ls;
+    if(!sec){loadToday();return;}
+    var el=document.getElementById('tdVerdict');
+    if(el)el.insertAdjacentHTML('beforeend','<div id="genSpin" class="desc">⏳ 即場重跑 gen 中（~30 秒）…</div>');
+    fetch('https://quant-api.leunghlk.workers.dev/live/today_fresh?secret='+encodeURIComponent(sec),{cache:'no-store'})
+    .then(function(r){var st=r.headers.get('X-Gen-State');return r.json().then(function(j){return {j:j,st:st};});})
+    .then(function(w){
+      var sp=document.getElementById('genSpin');if(sp)sp.remove();
+      if(w.j&&w.j.as_of){renderToday(w.j);}
+      else{loadToday();}
+    })
+    .catch(function(){var sp=document.getElementById('genSpin');if(sp)sp.remove();loadToday();});
+  })();
+}
 /* ══════════ 今日台 ══════════ */
 var NAV_USD=49145;
 function loadToday(){
