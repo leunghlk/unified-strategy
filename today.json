@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-05 07:30 HKT",
+ "as_of": "2026-11-05 13:08 HKT",
  "bar_date": "2026-11-04",
  "data_fresh": true,
  "intraday": false,
@@ -11,16 +11,20 @@
   "vix_band": "<20",
   "band_action": "牛狀態放行單名（SPX≥SMA200，⭐11-02 拍板）；XSP 照封",
   "breadth": 30.8,
-  "breadth_regime": "collapse",
+  "breadth_regime": "partial_kill",
+  "breadth_5d": 38.5,
+  "speed_bell": false,
+  "rsp_above": true,
+  "rsp_below_recent5": false,
+  "mkt_gate_bad": false,
   "spx_sma200": 7320.35,
   "mkt_state": "bull",
-  "et_note": "ET 而家 2026-11-04 週三（已收市，16:00 ET）——下列＝今日（2026-11-04 週三）收市價；HKT 而家 11-05 07:30",
+  "et_note": "ET 而家 2026-11-05 週四（休市）——最新美股交易日係 2026-11-04（週三），HKT 而家 11-05 13:08",
   "bar_wd": "週三"
  },
  "radar": {
   "level": "RED",
   "reasons": [
-   "單名血 16 隻 chg1d≤−6%（worst VRT -12.9%）",
    "HY OAS 3.40（5日 +0.22）",
    "POW/QQQ ratio 0.598 破20d低＋40d新低（👑主trigger）"
   ],
@@ -28,9 +32,10 @@
  },
  "verdict": {
   "level": "🔴 封刀",
-  "txt": "雷達/廣度/VIX 至少一項封——今日唔開新倉，現有腿照 PT50/roll 規則行",
+  "txt": "雷達 RED——今日唔開新倉，現有腿照 PT50/roll 規則行",
   "delta_single": 0.3,
-  "delta_note": "δ0.30＝基座；雷達 RED 新倉暫停"
+  "delta_note": "δ0.30＝基座；雷達 RED 新倉暫停",
+  "ai_sealed": true
  },
  "funnel": {
   "pool": 117,
@@ -117,24 +122,25 @@
  ],
  "candidates": [
   {
-   "sym": "ZS",
-   "spot": 224.44,
-   "short_k": 210.0,
-   "long_k": 185.0,
+   "sym": "TMO",
+   "spot": 706.16,
+   "short_k": 680.0,
+   "long_k": 610.0,
    "expiry": "2026-12-18",
    "dte_td": 31,
-   "credit": 8.3,
+   "credit": 14.65,
    "width_pct": 10,
    "contracts": 1,
-   "max_loss": 1670.0,
-   "premium_in": 830.0,
-   "margin": 1670.0,
-   "cash_after": 49975.12,
-   "iv_used": 62.2,
+   "max_loss": 5535.0,
+   "premium_in": 1465.0,
+   "margin": 5535.0,
+   "cash_after": 50610.12,
+   "iv_used": 27.3,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
-   "rv21_pctl": 48.0,
-   "earn_td": 24
+   "rv21_pctl": 35.0,
+   "earn_td": 60,
+   "pool": "C96"
   }
  ],
  "paper_candidates": [
@@ -155,11 +161,164 @@
    "pt": "PT60"
   }
  ],
+ "c96_screen": [
+  {
+   "sym": "ISRG",
+   "mom63": 29.0,
+   "close": 482.1,
+   "rv21_pctl": 79.0,
+   "chg1d": 9.38,
+   "iv": "全",
+   "gap": "禁",
+   "earn": "ok",
+   "earn_td": 56
+  },
+  {
+   "sym": "PSX",
+   "mom63": 26.3,
+   "close": 259.63,
+   "rv21_pctl": 92.0,
+   "chg1d": -4.53,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "禁",
+   "earn_td": 0
+  },
+  {
+   "sym": "TMO",
+   "mom63": 21.7,
+   "close": 706.16,
+   "rv21_pctl": 35.0,
+   "chg1d": 1.12,
+   "iv": "半",
+   "gap": "ok",
+   "earn": "ok",
+   "earn_td": 60
+  },
+  {
+   "sym": "CRM",
+   "mom63": 21.6,
+   "close": 227.11,
+   "rv21_pctl": 45.0,
+   "chg1d": 2.21,
+   "iv": "半",
+   "gap": "ok",
+   "earn": "禁",
+   "earn_td": 20
+  },
+  {
+   "sym": "ABBV",
+   "mom63": 20.9,
+   "close": 294.83,
+   "rv21_pctl": 50.0,
+   "chg1d": 3.09,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "禁",
+   "earn_td": 0
+  },
+  {
+   "sym": "TSLA",
+   "mom63": 20.5,
+   "close": 385.19,
+   "rv21_pctl": 16.0,
+   "chg1d": -3.34,
+   "iv": "死亡區",
+   "gap": "ok",
+   "earn": "ok",
+   "earn_td": 60
+  },
+  {
+   "sym": "LLY",
+   "mom63": 19.0,
+   "close": 1417.99,
+   "rv21_pctl": 63.0,
+   "chg1d": 0.61,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "禁",
+   "earn_td": 0
+  },
+  {
+   "sym": "WDAY",
+   "mom63": 18.6,
+   "close": 201.84,
+   "rv21_pctl": 39.0,
+   "chg1d": 1.97,
+   "iv": "半",
+   "gap": "ok",
+   "earn": "禁",
+   "earn_td": 14
+  },
+  {
+   "sym": "V",
+   "mom63": 17.8,
+   "close": 436.57,
+   "rv21_pctl": 73.0,
+   "chg1d": 3.84,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "?"
+  },
+  {
+   "sym": "COP",
+   "mom63": 17.3,
+   "close": 136.94,
+   "rv21_pctl": 89.0,
+   "chg1d": -5.17,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "?"
+  },
+  {
+   "sym": "MRK",
+   "mom63": 17.1,
+   "close": 150.36,
+   "rv21_pctl": 78.0,
+   "chg1d": 3.93,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "?"
+  },
+  {
+   "sym": "MA",
+   "mom63": 16.8,
+   "close": 672.68,
+   "rv21_pctl": 82.0,
+   "chg1d": 3.94,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "?"
+  }
+ ],
+ "c96_candidates": [
+  {
+   "sym": "TMO",
+   "spot": 706.16,
+   "short_k": 680.0,
+   "long_k": 610.0,
+   "expiry": "2026-12-18",
+   "dte_td": 31,
+   "credit": 14.65,
+   "width_pct": 10,
+   "contracts": 1,
+   "max_loss": 5535.0,
+   "premium_in": 1465.0,
+   "margin": 5535.0,
+   "cash_after": 50610.12,
+   "iv_used": 27.3,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "rv21_pctl": 35.0,
+   "earn_td": 60,
+   "pool": "C96"
+  }
+ ],
  "cum": {
-  "margin": 1670.0,
-  "frac": 3.4,
+  "margin": 5535.0,
+  "frac": 11.3,
   "cap_pct": 12.0,
-  "cash_after": 47475.12
+  "cash_after": 43610.12
  },
  "nbis": {
   "spot": 141.52,
@@ -183,5 +342,7 @@
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",
   "shadow": "winner δ0.28/PT60 paper 影子 2 週（11-17 無甩嘢切真倉）"
  },
- "notes": []
+ "notes": [
+  "局部殺戮——真倉候選由 AI 池（1 隻）轉板塊頭部 C96（1 隻）；paper 台照 AI 池 shadow 唔混池"
+ ]
 }

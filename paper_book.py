@@ -95,7 +95,8 @@ def _run(mode):
     td = json.load(open(TODAY))
     today_iso = date.today().isoformat()
     v_level = (td.get("verdict") or {}).get("level", "")
-    blocked = "🔴" in v_level
+    # blocked＝唔准正式開：簿級 🔴，或 AI 池被封（局部殺戮／熊狀態門，⭐11-05 雙閘——ai_sealed）
+    blocked = "🔴" in v_level or bool((td.get("verdict") or {}).get("ai_sealed"))
     acts = []
 
     # 1) MTM＋平倉判定（PT60／到期）

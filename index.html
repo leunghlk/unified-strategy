@@ -484,7 +484,7 @@ function renderToday(d){
   var h='<div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><span style="font-size:24px;font-weight:800">'+(v.level||'?')+'</span><span class="pill '+vcol+'"'+(v.delta_note?' title="'+v.delta_note+'"':'')+'>單名 δ'+(v.delta_single!=null?v.delta_single:'—')+(v.delta_note?'（'+v.delta_note+'）':'')+'</span><span class="pill '+(d.data_fresh?(d.intraday?'b':'g'):'y')+'">'+(d.intraday?'現價（開市中）':'收市價 '+d.bar_date+(m.bar_wd?'（'+m.bar_wd+'）':''))+(d.data_fresh?'':'（過時）')+'</span><span class="pill n" style="margin-left:auto">更新 '+d.as_of+'</span></div>';
   h+='<div class="desc" style="margin-top:6px">'+(v.txt||'')+'</div>';
   document.getElementById('tdVerdict').innerHTML=h;
-  document.getElementById('tdMkt').innerHTML=(m.et_note?'<div class="note" style="margin:0 0 6px">🗓️ '+m.et_note+'</div>':'')+'SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b> · '+regimeTxt(m.breadth_regime);
+  document.getElementById('tdMkt').innerHTML=(m.et_note?'<div class="note" style="margin:0 0 6px">🗓️ '+m.et_note+'</div>':'')+'SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b>'+(m.breadth_5d!=null?'（5日前 '+m.breadth_5d+'%）':'')+' · '+regimeTxt(m.breadth_regime)+(m.speed_bell?' <span class="pill r">⚡速度鐘：池廣度 5 日跌 ≥20pct</span>':'')+'<br>全市閘：'+rspGateTxt(m);
   var rr=d.radar||{};
   document.getElementById('tdRadar').innerHTML='殺倉雷達 <b>'+rr.level+'</b> '+rr.note+'<br>'+(rr.reasons||[]).map(function(x){return '· '+x;}).join('<br>')+'<br>廣度 regime：<b>'+regimeTxt(m.breadth_regime)+'</b>';
   var g=d.golden||{};
@@ -506,14 +506,23 @@ function renderToday(d){
   var curIds=band==='20-32'?['2032']:(band==='>32'?['gt32']:['lt14','1418','1820']);
   var hl=(band==='20-32')?'#f0fdf4':'#fffbe6';
   curIds.forEach(function(k){var el=document.getElementById('vixRow_'+k); if(el) el.style.background=hl;});
-  var cands=d.candidates||[],cw=document.getElementById('tdCandWrap');
-  if(!cands.length){cw.innerHTML='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
+  var cands=d.candidates||[],cw=document.getElementById('tdCandWrap'),cwHtml='';
+  if(!cands.length){cwHtml='<div class="note">今日無候選倉——封刀或全數被閘裁走。跟判決行，唔追。</div>';}
   else{
     var cu=d.cum||{};
-    cw.innerHTML='<div class="table-scroll"><table><thead><tr><th>候選</th><th>現價</th><th>Spread</th><th>到期</th><th>Credit</th><th>張</th><th>Premium</th><th>按金</th><th>做完後現金*</th><th>來源</th></tr></thead><tbody>'+
-    cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+'</td><td class="num">'+c.spot+'</td><td class="num">'+c.short_k+'/'+c.long_k+'</td><td>'+c.expiry+'<span class="pill n" style="margin-left:4px">'+c.dte_td+'td</span></td><td class="num">'+c.credit+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（延遲價）'?'<span class="pill g">鏈 mid</span>':'BS')+' IV'+c.iv_used+'%</td></tr>';}).join('')+
+    cwHtml='<div class="table-scroll"><table><thead><tr><th>候選</th><th>現價</th><th>Spread</th><th>到期</th><th>Credit</th><th>張</th><th>Premium</th><th>按金</th><th>做完後現金*</th><th>來源</th></tr></thead><tbody>'+
+    cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+(c.pool?' <span class="pill y">C96</span>':'')+'</td><td class="num">'+c.spot+'</td><td class="num">'+c.short_k+'/'+c.long_k+'</td><td>'+c.expiry+'<span class="pill n" style="margin-left:4px">'+c.dte_td+'td</span></td><td class="num">'+c.credit+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（延遲價）'?'<span class="pill g">鏈 mid</span>':'BS')+' IV'+c.iv_used+'%</td></tr>';}).join('')+
     '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批按金 '+cu.margin+' 美元＝NAV '+(cu.frac!=null?cu.frac+'%':'—')+'（上限 '+cu.cap_pct+'%）；張數已按單名 5% cap 預裁。價為 yfinance（開市時＝現價，延遲約 0–15 分），落單前用 Futu 實價覆核。</div>';
   }
+  var c96s=d.c96_screen||[];
+  if(c96s.length){
+    var c96c=d.c96_candidates||[];
+    cwHtml+='<div style="margin-top:12px"><b>板塊頭部 C96 screen</b> <span class="pill n">11 行業×top-8——局部殺戮時真倉建議面換呢個池（11-05 雙閘）</span></div><div class="table-scroll"><table><thead><tr><th>候選</th><th>現價</th><th>momentum 63td</th><th>IV 分位</th><th>IV 閘</th><th>Earn</th><th>Gap</th><th>定價</th></tr></thead><tbody>'+
+    c96s.map(function(x){var pr=c96c.find(function(c){return c.sym===x.sym;});
+      return '<tr><td><b>'+x.sym+'</b></td><td class="num">'+x.close+'</td><td class="num">+'+x.mom63+'%</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl:'—')+'</td><td>'+(x.iv==='死亡區'?'<span class="pill r">死亡區</span>':(x.iv==='半'?'<span class="pill y">半</span>':'<span class="pill g">全</span>'))+'</td><td>'+(x.earn==='禁'?'<span class="pill r">禁</span>':(x.earn==='ok'?'<span class="pill g">ok</span>':'—'))+'</td><td>'+(x.gap==='禁'?'<span class="pill r">禁</span>':'<span class="pill g">ok</span>')+'</td><td class="num">'+(pr?pr.short_k+'/'+pr.long_k+' $'+pr.credit+'（'+pr.dte_td+'td）':'—')+'</td></tr>';}).join('')+
+    '</tbody></table></div><div class="note">C96 局部殺戮時先出定價（其餘 regime 僅參考 screen）；earn「—」＝top-8 以外冇查 calendar。paper 台照 AI 池 shadow 唔混池（11-17 檢討 C96 入 paper）。</div>';
+  }
+  cw.innerHTML=cwHtml;
   var nb=d.nbis||{};
   document.getElementById('tdNbis').innerHTML='現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）· 技術燈 '+nb.light+'<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'));
   fetch('paper_book.json?v='+Date.now()).then(function(r){return r.json();}).then(function(b){
@@ -528,10 +537,16 @@ function renderToday(d){
   calc();
 }
 function regimeTxt(r){
-  if(r==='collapse')return '<span style="color:var(--red);font-weight:700">塌陷（&lt;50——紅鐘已響）</span>';
+  if(r==='collapse')return '<span style="color:var(--red);font-weight:700">塌陷（紅鐘已響）</span>';
+  if(r==='partial_kill')return '<span style="color:#b45309;font-weight:700">局部殺戮（池&lt;50，全市閘企穩——AI 封、C96 頂上）</span>';
   if(r==='warning')return '<span style="color:var(--red)">警戒（65–80）</span>';
   if(r==='caution')return '<span style="color:#b45309">留意（50–65）</span>';
+  if(r==='nan')return '<span style="color:var(--red)">n/a（fail-closed）</span>';
   return '<span style="color:var(--green)">正常</span>';
+}
+function rspGateTxt(m){
+  if(m.rsp_above==null)return '<span class="pill n">數據唔到（全市閘今日停用）</span>';
+  return m.mkt_gate_bad?'<span class="pill r">RSP 跌穿／近5日曾穿 SMA50 → 硬封</span>':'<span class="pill g">RSP 企穩 SMA50 ✓</span>';
 }
 function calc(){
   var ks=parseFloat(document.getElementById('cKs').value),kl=parseFloat(document.getElementById('cKl').value),

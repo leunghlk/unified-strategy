@@ -22,6 +22,7 @@ LIVE_DELTA = 0.30              # 基座（拍板④ 真倉口徑）
 PAPER_DELTA = 0.28             # 📒 Paper 台 winner 口徑（PT60+δ0.28，雷達唔縮深）
 WIDTH = 0.10                   # spr10
 TENOR_TD = 35                  # 35td（band 30-45）
+C96_JSON = os.path.join(HERE, "c96_universe.json")   # 板塊頭部池（11-05 拍板：局部殺戮真倉換池用；研究原裝）
 notes = []
 
 
@@ -96,6 +97,14 @@ last_loc = loc_dates[-1]
 import numpy as np
 names = ["NVDA","AMD","AVGO","MRVL","ARM","QCOM","ADI","MPWR","VICR","AMBA","SITM","TSM","INTC","GFS","UMC","TSEM","STM","AMAT","LRCX","KLAC","ASML","TER","ONTO","ENTG","UCTT","CDNS","MU","SNDK","WDC","STX","FN","COHR","LITE","CIEN","AAOI","ALAB","CRDO","ANET","CSCO","NTGR","FFIV","HPE","GLW","APH","TEL","UI","VST","CEG","TLN","GEV","ETN","PWR","HUBB","NVT","POWL","BE","LEU","CCJ","NEE","SO","DUK","D","AEP","EXC","XEL","ETR","VRT","DELL","MOD","DLR","EQIX","IRM","MSFT","GOOGL","AMZN","META","IBM","NOW","CRM","ADBE","INTU","WDAY","SHOP","DDOG","SNOW","NET","PLTR","APP","TTD","U","RBLX","DUOL","UBER","DASH","ABNB","MELI","CRWD","PANW","ZS","S","FTNT","OKTA","TENB","QLYS","GEN","RPD","CHKP","NBIS","CIFR","CORZ","APLD","TEM","SOUN","BBAI","IONQ","MBLY","PONY"]
 
+# 板塊頭部 C96（11 行業 × top-8 ＋ 8 隻半導體/軟件補充——breadth_design_research_20261105 原裝池）
+# 用途唔係廣度閘（實證 16 假響輸 A117 7/8），係局部殺戮時嘅可做池：AI 封咗都有醫療/能源/工業/公用好做。
+try:
+    C96 = json.load(open(C96_JSON))["all"]
+except Exception as ex:
+    C96 = []
+    note("c96_universe.json 讀唔到（%s）——板塊頭部池停用" % ex.__class__.__name__)
+
 # 每名最新本地 mom63/rv21_pctl（新鮮度由 yf 覆寫價重算 mom63；rv21_pctl 用本地，標註）
 loc = {}
 for s in names:
@@ -122,10 +131,10 @@ def series(t):
 try:
     import yfinance as yf
     tick_map = {"^GSPC": "SPX", "^VIX": "VIX"}
-    dl = yf.download(names + ["^GSPC", "^VIX", "NBIS"], period="2y", interval="1d",
+    dl = yf.download(names + C96 + ["^GSPC", "^VIX", "NBIS", "RSP"], period="2y", interval="1d",
                      group_by="column", auto_adjust=False, progress=False, threads=True)
     last_close, prev_close = {}, {}
-    for t in names + ["^GSPC", "^VIX", "NBIS"]:
+    for t in names + C96 + ["^GSPC", "^VIX", "NBIS", "RSP"]:
         try:
             sub = series(t)
             if sub is not None and len(sub) >= 2:
@@ -154,13 +163,19 @@ try:
 except Exception:
     bar_date = last_loc
 
-# ---------- 3. 廣度（% above SMA50，118 名，用新鮮價全量重算） ----------
+# ---------- 3. 廣度雙閘（⭐11-05 拍板「雙閘全套」；實證 breadth_design_research_20261105） ----------
+# 118 池＝AI 戰場廣度（10月段唯一捉到嘅先知鐘，7/8）；RSP＝全市閘（26-03 陰跌唯一領先 +1）；
+# 速度鐘＝池廣度 5 日跌 ≥20pct（⚠️10-30 舊註解「80→50/5日」係 AI12 %SMA20 口徑，SMA50 下 0/8 全啞——實證後改正）。
+# 局部殺戮：池<50 而 RSP 企穩 → AI 單名封、真倉建議面轉 C96 板塊頭部、指數腿照 VIX floor（11-05 用戶令：封 AI 都要有嘢好做）。
 breadth = None
+breadth_5d = None
 mom = {}
+rsp_above = None            # 全市閘：RSP 收市 ≥ SMA50
+rsp_below_recent5 = False   # 全市閘：近 5 日曾跌穿（陰跌 catch）
+speed_bell = False
 try:
     import numpy as _np
-    above = 0
-    tot = 0
+    above = above5 = tot = 0
     for t in names:
         try:
             sub = series(t)
@@ -171,24 +186,43 @@ try:
             tot += 1
             if arr[-1] > sma50:
                 above += 1
+            if len(arr) >= 56 and arr[-6] > arr[-56:-6].mean():
+                above5 += 1
             r63 = arr[-1] / arr[-64] - 1.0 if len(arr) > 64 else float("nan")
             mom[t] = r63
         except Exception:
             pass
     breadth = round(100.0 * above / max(tot, 1), 1)
+    breadth_5d = round(100.0 * above5 / max(tot, 1), 1)
+    if breadth is not None and breadth_5d is not None and breadth_5d - breadth >= 20.0:
+        speed_bell = True
 except Exception:
     breadth = float(mkt_breadth[-1]) if mkt_breadth else None
     note("廣度用本地 breadth_pct12（%s）" % last_loc)
+try:
+    _rsp = series("RSP")
+    if _rsp is not None and len(_rsp) > 60:
+        _rsma = _rsp.rolling(50).mean()
+        rsp_above = bool(_rsp.iloc[-1] >= _rsma.iloc[-1])
+        rsp_below_recent5 = bool((_rsp.tail(5) < _rsma.tail(5)).any())
+except Exception:
+    note("RSP 全市閘數據攞唔到——全市閘今日停用（其餘閘照行，fail-closed 已有四層）")
 
-# 廣度先兆梯（10-30 判決：92%→25% 早 2-4 日；80→50/5日=鐘）
+# 廣度 regime（雙閘版：全市閘凌駕 → 硬封刀；池<50 或速度鐘響而全市企穩 → 局部殺戮）
+mkt_gate_bad = None if rsp_above is None else (not rsp_above or rsp_below_recent5)
 breadth_regime = "normal"
-if breadth is not None:
-    if breadth < 50:
-        breadth_regime = "collapse"
-    elif breadth < 65:
-        breadth_regime = "warning"
-    elif breadth < 80:
-        breadth_regime = "caution"
+if mkt_gate_bad:
+    breadth_regime = "collapse"                     # 全市閘響 → 硬封刀（全市塌，RSP 曾係最接近嘅領先指標）
+elif breadth is not None and breadth < 50:
+    breadth_regime = "partial_kill"                 # 局部殺戮：AI 戰場塌、全市企穩
+elif speed_bell:
+    breadth_regime = "partial_kill"                 # 速度鐘響（池 5 日急崩未穿 50）→ 先封 AI 戰場
+elif breadth is None:
+    breadth_regime = "nan"
+elif breadth < 65:
+    breadth_regime = "warning"
+elif breadth < 80:
+    breadth_regime = "caution"
 
 # ---------- 4. VIX band 判決（⭐11-02 拍板熊狀態門：VIX<20 牛狀態單名放行） ----------
 # 狀態定義＝引擎 spx_above_sma200 口徑：牛＝SPX 收市 ≥ SMA200；熊＝< SMA200 或攞唔到（fail-closed）。
@@ -361,6 +395,127 @@ if yf_ok:
 else:
     note("無新鮮鏈價——候選倉只出 screen 唔出定價")
 
+# ---------- 7b. 板塊頭部 C96 screen＋局部殺戮換池定價（⭐11-05 用戶令：廣度封 AI 後都要有嘢好做） ----------
+# rv21 分位由 yf 2y 序列自身重算（C96 唔喺本地 engine CSV）；earn 閘只查 top-8（慳 calendar calls）。
+def rv21_pctl_ser(sub):
+    import numpy as _np
+    arr = _np.asarray(sub, dtype=float)
+    if len(arr) < 80:
+        return None
+    lr = _np.diff(_np.log(arr))
+    rvs = [float(lr[i - 21:i].std(ddof=1) * _np.sqrt(252.0)) for i in range(21, len(lr) + 1)]
+    if not rvs:
+        return None
+    return 100.0 * sum(1 for v in rvs if v <= rvs[-1]) / len(rvs)
+
+
+c96_screen = []
+for s in C96:
+    try:
+        sub = series(s)
+        if sub is None or len(sub) < 60:
+            continue
+        last_px = float(sub.iloc[-1])
+        m63 = last_px / float(sub.iloc[-64]) - 1.0 if len(sub) > 64 else None
+        if not m63 or m63 <= 0:
+            continue
+        rv_p = rv21_pctl_ser(sub)
+        r1d = (px.get(s, last_px) / prev_close.get(s, last_px) - 1.0) if s in px and s in prev_close else float("nan")
+        c96_screen.append(dict(
+            sym=s, mom63=round(100 * m63, 1), close=usd(last_px),
+            rv21_pctl=(None if rv_p is None else round(rv_p, 0)),
+            chg1d=(None if math.isnan(r1d) else round(100 * r1d, 2)),
+            iv=("死亡區" if (rv_p is not None and rv_p < 25) else ("半" if (rv_p is not None and rv_p < 50) else "全")),
+            gap=("禁" if (not math.isnan(r1d) and r1d > 0.08) else "ok"),
+            earn="?"))
+    except Exception:
+        pass
+c96_screen.sort(key=lambda x: -x["mom63"])
+c96_top = c96_screen[:8]
+if yf_ok and c96_top:
+    # earn 閘：只為 top-8 拉 earnings calendar（≤21td 禁）
+    for x in c96_top:
+        try:
+            _cal = yf.Ticker(x["sym"]).calendar
+            _eds = (_cal or {}).get("Earnings Date")
+            _d0 = _eds[0] if isinstance(_eds, (list, tuple)) and len(_eds) else _eds
+            if isinstance(_d0, str):
+                _d0 = datetime.date.fromisoformat(str(_d0)[:10])
+            elif hasattr(_d0, "date"):
+                _d0 = _d0.date()
+            if _d0 is None:
+                continue
+            ed = td_between(today, _d0)
+            x["earn"] = "禁" if ed <= 21 else "ok"
+            x["earn_td"] = ed
+        except Exception:
+            pass
+
+c96_candidates = []
+if breadth_regime == "partial_kill" and yf_ok and c96_top:
+    c96_ok = [x for x in c96_top if x["iv"] != "死亡區" and x["gap"] == "ok" and x["earn"] != "禁"]
+    try:
+        _exps = next_fridays(today, 10)
+        _tgt = [d for d in _exps if 30 <= td_between(today, d) <= 45]
+        _exp_d = _tgt[0] if _tgt else _exps[min(5, len(_exps) - 1)]
+        _exp_str = _exp_d.strftime("%Y-%m-%d")
+        _T = max(td_between(today, _exp_d), 1) / 252.0
+        _cap = NAV_USD * SINGLE_CAP_FRAC
+        for x in c96_ok[:5]:
+            s = x["sym"]
+            S = px.get(s)
+            if not S:
+                continue
+            iv = 0.35
+            # C96 唔喺本地 engine——IV 用自身 21 日實現波動（年化）×1.10，唔係分位
+            try:
+                import numpy as _np
+                _arr = _np.asarray(series(s), dtype=float)
+                _lr = _np.diff(_np.log(_arr))
+                iv = float(_lr[-21:].std(ddof=1) * _np.sqrt(252.0)) * 1.10
+            except Exception:
+                pass
+            iv = max(min(iv, 1.5), 0.12)
+            Ks = S
+            for k in range(0, 240):
+                K = round(S * (1.0 - 0.005 * k), 0)
+                Ks = K
+                if -put_delta(S, K, _T, BS_R, iv) <= delta_today or K < S * 0.6:
+                    break
+            Kl = round(Ks * (1 - WIDTH), 0)
+            credit = bs_put(S, Ks, _T, BS_R, iv) - bs_put(S, Kl, _T, BS_R, iv)
+            src = "BS(RV21×1.10)"
+            try:
+                puts = yf.Ticker(s).option_chain(_exp_str).puts
+                rs = puts.iloc[(puts["strike"] - Ks).abs().argmin()]
+                rl = puts.iloc[(puts["strike"] - Kl).abs().argmin()]
+                if float(rs["bid"]) > 0 and float(rs["ask"]) > 0 and float(rl["ask"]) > 0:
+                    credit = (float(rs["bid"]) + float(rs["ask"])) / 2 - (float(rl["bid"]) + float(rl["ask"])) / 2
+                    Ks, Kl = float(rs["strike"]), float(rl["strike"])
+                    src = "鏈 mid（延遲價）"
+            except Exception:
+                pass
+            credit = max(credit, 0.01)
+            ml = (Ks - Kl) * 100 - credit * 100
+            n_ct = max(int(_cap // ml), 1) if ml > 0 else 1
+            c96_candidates.append(dict(
+                sym=s, spot=usd(S), short_k=Ks, long_k=Kl, expiry=_exp_str,
+                dte_td=td_between(today, _exp_d), credit=usd(credit), width_pct=10,
+                contracts=int(n_ct), max_loss=usd(ml * n_ct), premium_in=usd(credit * 100 * n_ct),
+                margin=usd(ml * n_ct), cash_after=usd(CASH_HKD / FX_USDHKD + credit * 100 * n_ct),
+                iv_used=round(iv * 100, 1), src=src, delta=delta_today,
+                rv21_pctl=x["rv21_pctl"], earn_td=x.get("earn_td"), pool="C96"))
+    except Exception as ex:
+        note("C96 候選定價失敗：%s %s" % (ex.__class__.__name__, ex))
+
+# 局部殺戮換池（⭐11-05）：真倉建議面 AI→C96；paper_candidates 照 AI 池 shadow（2 週試驗唔混池，11-17 檢討）
+if breadth_regime == "partial_kill" and c96_candidates:
+    note("局部殺戮——真倉候選由 AI 池（%d 隻）轉板塊頭部 C96（%d 隻）；paper 台照 AI 池 shadow 唔混池" % (len(candidates), len(c96_candidates)))
+    candidates = c96_candidates
+elif breadth_regime == "partial_kill":
+    candidates = []
+    note("局部殺戮——AI 池封、C96 冇過閘候選，真倉建議面空")
+
 cum_margin = sum(c["margin"] for c in candidates)
 cum_frac = cum_margin / NAV_USD if NAV_USD else None
 if cum_frac and cum_frac > CUM_CAP_FRAC and candidates:
@@ -387,18 +542,36 @@ if nbis_spot:
     else:
         nbis["state"] = "觸發區上 %+.1f%%" % (100 * (nbis_spot / 163 - 1))
 
-# ---------- 9. 總判決（⭐11-02 拍板熊狀態門：VIX<20 牛狀態單名半開、熊狀態全封；XSP floor20 照舊） ----------
+# ---------- 9. 總判決（⭐11-02 熊狀態門＋⭐11-05 廣度雙閘：局部殺戮分腿——AI 封、C96/指數腿照閘行） ----------
 verdict_level, verdict_txt = "封", ""
+ai_sealed = False          # AI 池新倉封咗未（局部殺戮／熊狀態門）——paper 台照開但強制 shadow
 if radar_level == "RED" or vix_band == ">32" or breadth_regime == "collapse":
-    verdict_level, verdict_txt = "🔴 封刀", "雷達/廣度/VIX 至少一項封——今日唔開新倉，現有腿照 PT50/roll 規則行"
+    ai_sealed = True
+    _why = []
+    if radar_level == "RED":
+        _why.append("雷達 RED")
+    if vix_band == ">32":
+        _why.append("VIX>32")
+    if breadth_regime == "collapse" and mkt_gate_bad:
+        _why.append("全市閘（RSP%s）" % ("跌穿 SMA50" if rsp_above is False else "近5日曾穿 SMA50"))
+    elif breadth_regime == "collapse" and breadth is not None:
+        _why.append("廣度 %.1f<50" % breadth)
+    verdict_level, verdict_txt = "🔴 封刀", "／".join(_why) + "——今日唔開新倉，現有腿照 PT50/roll 規則行"
+elif breadth_regime == "partial_kill":
+    ai_sealed = True
+    if vix_band == "20-32":
+        verdict_level, verdict_txt = "🟡 半開（局部殺戮）", "AI 池廣度 %.1f<50（5日前 %.1f）但全市閘企穩（RSP ≥ SMA50）→ AI 單名封（10月段結構）；真倉建議面轉板塊頭部 C96（%d 隻過閘）照 δ%.2f spr10；指數腿照 VIX floor 開；現有腿照 PT50/roll" % (breadth, breadth_5d if breadth_5d is not None else breadth, len(c96_candidates), delta_today)
+    else:
+        verdict_level, verdict_txt = "🔴 封刀（局部殺戮）", "AI 池廣度 %.1f<50 且 VIX band（%s）唔放行指數腿 → 全封；現有腿照 PT50/roll" % (breadth, vix_band)
 elif vix_band == "<20" and mkt_state == "bull":
     verdict_level, verdict_txt = "🟡 半開（熊狀態門放行）", "VIX %.1f <20 但牛狀態（SPX %.0f ≥ SMA200 %.0f）→ 單名照 screen 過閘開（⭐11-02 拍板，七窗 OOS 20bull 實錘）；XSP 照封（指數腿 floor20 唔郁）；現有腿照 PT50/roll" % (vix, spx, spx_sma200)
 elif vix_band == "<20":
+    ai_sealed = True
     verdict_level, verdict_txt = "🟡 全封（熊狀態門）", "VIX %.1f <20 且熊狀態（SPX %.0f < SMA200 %.0f 或攞唔到）→ XSP＋單名新倉一律唔開（fail-closed）；現有腿照 PT50/roll" % (vix, spx, spx_sma200)
 elif radar_level == "YEL":
     verdict_level, verdict_txt = "🟡 半開", "雷達 YEL：單名照做 δ 縮深 0.02；XSP 照 band 規則"
 else:
-    verdict_level, verdict_txt = "🟢 開倉窗", "band＋雷達＋廣度全過——跟 top-6 screen 開 spr10"
+    verdict_level, verdict_txt = "🟢 開倉窗", "band＋雙閘＋雷達全過——跟 top-6 screen 開 spr10"
 
 # 過閘漏斗（回答「候選係過咗幾多閘先出線」）
 funnel = dict(
@@ -451,14 +624,18 @@ out = dict(
                 vix=round(vix, 2) if vix and not math.isnan(vix) else None,
                 vix_chg=(None if not vix_prev or math.isnan(vix_prev) else round(vix - vix_prev, 2)),
                 vix_band=vix_band, band_action=band_action, breadth=breadth, breadth_regime=breadth_regime,
+                breadth_5d=breadth_5d, speed_bell=speed_bell,
+                rsp_above=rsp_above, rsp_below_recent5=rsp_below_recent5, mkt_gate_bad=mkt_gate_bad,
                 spx_sma200=round(spx_sma200, 2) if not math.isnan(spx_sma200) else None,
                 mkt_state=mkt_state,
                 et_note=et_note, bar_wd=bar_wd if 'bar_wd' in dir() else None),
     radar=dict(level=radar_level, reasons=radar_reasons, note=radar_note),
-    verdict=dict(level=verdict_level, txt=verdict_txt, delta_single=delta_today, delta_note=delta_note),
+    verdict=dict(level=verdict_level, txt=verdict_txt, delta_single=delta_today, delta_note=delta_note,
+                 ai_sealed=ai_sealed),
     funnel=funnel,
     golden=gold,
     screen=top6, candidates=candidates, paper_candidates=paper_candidates,
+    c96_screen=c96_screen[:12], c96_candidates=c96_candidates,
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),
              cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin)),
     nbis=nbis,
@@ -468,5 +645,7 @@ out = dict(
     notes=notes,
 )
 json.dump(out, open(OUT_JSON, "w"), ensure_ascii=False, indent=1)
-print("today.json written %s | verdict=%s | candidates=%d | breadth=%s | vix=%s" %
-      (out["as_of"], verdict_level, len(candidates), breadth, out["market"]["vix"]))
+print("today.json written %s | verdict=%s | cand=%d(AI%d+C96%d) | breadth=%s(5d %s bell=%s RSP%s) | vix=%s" %
+      (out["as_of"], verdict_level, len(candidates),
+       len([c for c in candidates if not c.get("pool")]), len(c96_candidates),
+       breadth, breadth_5d, speed_bell, rsp_above, out["market"]["vix"]))
