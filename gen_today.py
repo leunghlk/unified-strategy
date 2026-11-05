@@ -645,7 +645,7 @@ elif breadth_regime == "partial_kill":
     if credit_glass:
         verdict_level, verdict_txt = "🔴 封刀（局部殺戮＋credit break-glass）", "OAS/信用三條件齊（真信用事件保險，⭐11-05 拍板）→ C96 腿照封；現有腿照 PT50/roll"
     elif vix_band == "20-32":
-        verdict_level, verdict_txt = "🟡 半開（局部殺戮）", "AI 池廣度 %.1f<50（5日前 %.1f）但全市閘企穩（RSP ≥ SMA50）→ AI 單名封（10月段結構）；真倉建議面轉板塊頭部 C96（%d 隻過閘）照 δ%.2f、spread 闊度 10%（賣 put 買低 10% 嘅 put，收 credit）；指數腿（XSP）照 VIX floor 規則開；現有腿照 PT50/roll" % (breadth, breadth_5d if breadth_5d is not None else breadth, len(c96_candidates), delta_today)
+        verdict_level, verdict_txt = "🟡 半開（局部殺戮）", "AI 池廣度 %.1f<50（5日前 %.1f）但全市閘企穩（RSP ≥ SMA50）→ AI 單名封（10月段結構）；真倉建議面轉板塊頭部 C96（%d 隻過閘）照 δ%.2f、spread 闊度 10%%（賣 put 買低 10%% 嘅 put，收 credit）；指數腿（XSP）照 VIX floor 規則開；現有腿照 PT50/roll" % (breadth, breadth_5d if breadth_5d is not None else breadth, len(c96_candidates), delta_today)
     elif vix_band == "<20" and mkt_state == "bull":
         _red_note = "；雷達 RED 唔封 C96 腿（⭐11-05 拍板 b，實證 RED 日 C96 f10 +1.13%% 對 QQQ −0.96%% 方向相反）——C96 δ 縮深 0.02 至 %.2f（底 0.25）" % max(delta_today - 0.02, 0.25) if radar_level == "RED" else ""
         verdict_level, verdict_txt = "🟡 半開（局部殺戮，熊狀態門放行）", "AI 池廣度 %.1f<50 → AI 單名封；但 VIX %.1f<20＋牛狀態（SPX %.0f≥SMA200 %.0f，11-02 拍板 20bull 實錘）→ 板塊頭部 C96（%d 隻過閘）照 δ spr10 可開%s；指數腿照封（floor20 唔郁）；現有腿照 PT50/roll" % (breadth, vix, spx, spx_sma200, len(c96_candidates), _red_note)
