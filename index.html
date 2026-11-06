@@ -148,12 +148,16 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 
   <div class="grid g2" style="margin-top:12px">
     <div class="card">
-      <h3>🧨 NBIS 觸發線（11-06 到期）</h3>
+      <h3>🧨 NBIS（股票腿＋roll 決策）</h3>
       <div class="desc" id="tdNbis">—</div>
     </div>
     <div class="card">
       <h3>📒 我的倉（真倉持倉＋PT50 距離）</h3>
       <div class="desc" id="tdPos">載入中…</div>
+    </div>
+    <div class="card">
+      <h3>🧪 Paper 簿（唔入真倉風控）</h3>
+      <div class="desc" id="tdPaperBook">載入中…</div>
     </div>
     <div class="card">
       <h3>開倉試算（人手輸入，即場計）</h3>
@@ -772,7 +776,8 @@ function renderToday(d){
   var nbL=(nb.light==='red'?'r':((nb.light==='amber'||nb.light==='yellow')?'y':'g'));
   var nbRl=nb.roll||[];
   var nbRollHtml=nbRl.length?'<div style="margin-top:8px"><b>Roll 候選（2 張收 credit）</b><div class="table-scroll"><table><thead><tr><th>到期</th><th class="num">Strike</th><th class="num">mid</th><th class="num">2 張收</th></tr></thead><tbody>'+nbRl.map(function(r){return '<tr><td>'+r.expiry+'</td><td class="num">C'+r.strike+'</td><td class="num">$'+r.mid+'</td><td class="num"><b>$'+r.credit2.toLocaleString()+'</b></td></tr>';}).join('')+'</tbody></table></div><div style="font-size:10.5px;color:#94a3b8">IV 爆高＝credit 肥，但被 call @strike＝股票腿鎖定 (strike−200)×200 蝕；賣 call 無下行保護——風控喺股票腿（減倉），唔喺 roll。</div></div>':'';
-  document.getElementById('tdNbis').innerHTML='<span class="pill '+nbL+'">技術燈 '+nb.light+'</span> 現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股（avg $200，佔戶口 6 成）——165C×2 已於 11-06 過期收袋 <b style="color:#15803d">+$1,970</b>（原本最壞 −$7,000 接貨）<br>'+((nb.plan||'').replace('；','；<br>'))+nbRollHtml;
+  var nbBasisHtml=(nb.basis_now!=null&&nb.spot!=null)?(function(){var _sp=Number(nb.spot),_mid=(nb.basis_with_roll!=null)?(nb.basis_now-nb.basis_with_roll):null,_locked=(_mid!=null)?Math.abs(Math.round((140-200)*200+(nb.cc_banked||0)+_mid*200)):null,_now=Math.abs(Math.round((_sp-200)*200+(nb.cc_banked||0)));return '<div style="margin-top:6px">📏 <b>計埋 CC 嘅 breakeven</b>：avg $200 − CC 收袋 $'+(nb.cc_banked||0).toLocaleString()+' → 有效成本 <b>$'+nb.basis_now+'</b>（要 <b>+'+((nb.basis_now/_sp-1)*100).toFixed(0)+'%</b> 先回本）'+(_mid!=null?'；賣埋 12-18 C140（mid $'+_mid.toFixed(2)+'）→ <b>$'+nb.basis_with_roll+'</b>（+'+((nb.basis_with_roll/_sp-1)*100).toFixed(0)+'%）':'')+(nb.basis_with_roll!=null?'；若被 call @140：全 episode 鎖定 <b>−$'+_locked.toLocaleString()+'</b>（而家冇 call 就係 −$'+_now.toLocaleString()+'）':'')+'</div>';})():'';
+  document.getElementById('tdNbis').innerHTML='<span class="pill '+nbL+'">技術燈 '+nb.light+'</span> 現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股（avg $200，佔戶口 6 成）——165C×2 已於 11-06 過期收袋 <b style="color:#15803d">+$1,970</b>（原本最壞 −$7,000 接貨）<br>'+((nb.plan||'').replace('；','；<br>'))+nbBasisHtml+nbRollHtml;
   var pos=d.positions||[],yt=d.ytd||{},rk=d.risk||{},acc=d.account||{};
   var posEl=document.getElementById('tdPos');
   if(posEl){
@@ -788,11 +793,48 @@ function renderToday(d){
       '<td class="num">'+(dist!=null?(dist>=0?'+':'')+dist.toFixed(1)+'%':'—')+'</td>'+
       '<td class="num">'+(p.pnl_usd!=null?(p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0):'—')+'</td></tr>';
     }).join('')+'</tbody></table></div>';
-    var pp=d.positions_paper||[];
-    if(pp.length)posHtml+='<div style="margin-top:6px;font-size:12.5px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px">🧪 <b>paper 在場</b>（唔入真倉風控）：'+pp.map(function(p){return (p.book||'paper')+' '+p.ticker+' 賣'+p.strike+'P×'+p.contracts+'（'+expZh(p.expiry)+'，剩 '+p.dte+'td）credit 剩 '+(p.pt_remaining!=null?p.pt_remaining+'%':'—')+' '+(p.pt_zone||'');}).join('；')+'</div>';
     if(pos.some(function(p){return p.verified===false;}))posHtml+='<div class="note" style="margin-top:4px;color:#b45309">⚠️ 標「Futu 搵唔到」嘅倉：88日成交記錄＋現持倉都無呢筆——唔計入義務／風控行。係咪落咗喺另一個帳戶／未成交？確認咗話我知。</div>';
     posHtml+='<div class="note" style="margin-top:6px">PT50 規則：credit 跌剩 ≤50%（即 mark ≤ 入場÷2）就提前平倉袋差價。'+(rk.oblig_cash_ratio!=null?'<span style="display:inline-block;margin-top:4px">🛡️ <b>風控行</b>（OpenD 實數）：按金佔用 <b>'+(rk.margin_used_pct!=null?rk.margin_used_pct+'%':'—')+'</b>總資產（維持線 HK$'+(acc.maint_margin_hkd!=null?acc.maint_margin_hkd.toLocaleString():'—')+'——NBIS 再跌會逼近追按金）；<b>義務/現金 '+rk.oblig_cash_ratio+'</b>'+(rk.oblig_cash_ratio>1?' 🔴超 1 唔准開新倉':(rk.oblig_cash_ratio>0.8?' 🟡 >0.8 留意——開新倉前諗諗':' 🟢'))+'（義務 $'+(rk.obligation_usd!=null?rk.obligation_usd.toLocaleString():'—')+'＝Futu 驗證倉＋NBIS 165C÷live equity US$'+(rk.equity_usd_live!=null?rk.equity_usd_live.toLocaleString():'—')+'）</span>':'')+'</div>';
     posEl.innerHTML=posHtml;
+  }
+  var pbEl=document.getElementById('tdPaperBook');
+  if(pbEl){
+    var ppos=d.positions_paper||[];
+    var pbHtml=ppos.length?'<div class="table-scroll"><table><thead><tr><th>簿</th><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩</th><th>PT50</th><th class="num">浮動</th></tr></thead><tbody>'+
+      ppos.map(function(p){
+        return '<tr><td><span class="pill '+(p.book==='user_paper'?'b':'n')+'">'+(p.book==='user_paper'?'🧪 我落':(p.book||'paper'))+'</span></td>'+
+        '<td><b>'+p.ticker+'</b> 賣'+p.strike+'P'+(p.long_k?'／買'+p.long_k+'P':'')+'×'+p.contracts+'（'+expZh(p.expiry)+'，剩 '+p.dte+'td）</td>'+
+        '<td class="num">$'+(p.entry_prem!=null?p.entry_prem:'—')+'</td><td class="num">$'+(p.cur_prem!=null?p.cur_prem:'—')+'</td>'+
+        '<td class="num">'+(p.pt_remaining!=null?p.pt_remaining+'%':'—')+'</td>'+
+        '<td>'+(p.pt_zone==='可平倉'?'<span class="pill g">可平倉</span>':(p.pt_zone==='接近'?'<span class="pill y">接近</span>':(p.pt_zone==='未到'?'<span class="pill r">未到</span>':'—')))+'</td>'+
+        '<td class="num">'+(p.pnl_usd!=null?((p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0)):'—')+'</td></tr>';
+      }).join('')+'</tbody></table></div>':'<div class="note">paper 簿空——下面落單即出現（gen 下輪自動 mark 價）。</div>';
+    pbHtml+='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>🧪 落 paper 單</b>（bull put spread；只入 paper 簿，唔掂真倉）<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px">'+
+      '<input id="pbT" placeholder="TICKER" style="width:86px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px">'+
+      '<input id="pbSK" type="number" placeholder="賣出K" style="width:74px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px">'+
+      '<input id="pbLK" type="number" placeholder="保險K" style="width:74px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px">'+
+      '<input id="pbExp" placeholder="YYYY-MM-DD" style="width:104px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px">'+
+      '<input id="pbN" type="number" value="1" min="1" max="50" title="張數" style="width:50px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px">'+
+      '<input id="pbCr" type="number" step="0.01" placeholder="credit 選填" style="width:86px;padding:5px 8px;border:1px solid #cbd5e1;border-radius:8px;font-size:13px" title="收幾多 credit——留空就 gen 首次 mark 自動基準">'+
+      '<button id="pbGo" style="background:var(--blue);color:#fff;border:none;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px;font-weight:600">落單</button>'+
+      '<span id="pbMsg" style="font-size:12px;color:#64748b"></span></div>'+
+      '<div style="font-size:10.5px;color:#94a3b8;margin-top:4px">需本機 bridge（127.0.0.1:8765）＋ bsecret（網址加 ?bsecret= 一次）。例：V 410／365 2026-12-18。</div></div>';
+    pbEl.innerHTML=pbHtml;
+    var pbGo=document.getElementById('pbGo');
+    if(pbGo)pbGo.addEventListener('click',function(){
+      var msg=document.getElementById('pbMsg');var gc=function(i){var e=document.getElementById(i);return e?e.value.trim():'';};
+      var b={ticker:gc('pbT').toUpperCase(),short_k:parseFloat(gc('pbSK')),long_k:parseFloat(gc('pbLK')),expiry:gc('pbExp'),contracts:parseInt(gc('pbN'))||1};
+      var cr=parseFloat(gc('pbCr'));if(!isNaN(cr)&&cr>0)b.credit=cr;
+      var sec=null;try{sec=localStorage.getItem('qbridge_secret');}catch(e2){}
+      if(!sec){msg.textContent='⚠️ 冇 bsecret——網址加 ?bsecret=（一次）';msg.style.color='#b45309';return;}
+      if(!b.ticker||isNaN(b.short_k)||isNaN(b.long_k)||!/^\d{4}-\d{2}-\d{2}$/.test(b.expiry)||b.short_k<=b.long_k){msg.textContent='⚠️ 填齊：TICKER／賣K＞保險K／YYYY-MM-DD';msg.style.color='#b45309';return;}
+      msg.textContent='⏳ 落單中…';msg.style.color='#64748b';
+      fetch('http://127.0.0.1:8765/paper_order?secret='+encodeURIComponent(sec),{method:'POST',body:JSON.stringify(b)})
+        .then(function(r){return r.json();}).then(function(j){
+          if(j&&j.ok){msg.textContent='✅ 已入 paper 簿：'+b.ticker+' '+b.short_k+'/'+b.long_k+'×'+b.contracts+' '+b.expiry+'（gen 下輪自動 mark＋上表）';msg.style.color='#15803d';}
+          else{msg.textContent='⚠️ '+((j&&j.error)||'失敗');msg.style.color='#b45309';}
+        }).catch(function(){msg.textContent='⚠️ bridge 唔喺度（127.0.0.1:8765）';msg.style.color='#b45309';});
+    });
   }  fetch('paper_book.json?v='+Date.now()).then(function(r){return r.json();}).then(function(b){
     var s=b.summary||{},op=(b.entries||[]).filter(function(e){return e.status==='open';}),cl=b.closed||[];
     var bar='<div style="background:#e5e7eb;border-radius:4px;height:8px;margin:6px 0"><div style="background:#3b82f6;border-radius:4px;height:8px;width:'+Math.min(100,(s.week||0)/2*100)+'%"></div></div>';

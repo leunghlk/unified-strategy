@@ -620,7 +620,9 @@ cum_frac = cum_margin / NAV_USD if NAV_USD else None
 # ---------- 8. NBIS 倒數（⭐11-07：165C 已過期收袋 +$1,970，轉入 roll 決策） ----------
 nbis_spot = px.get("NBIS")
 nbis = dict(spot=usd(nbis_spot), strike=165, expiry="2026-11-06", trigger="165C 已過期（11-06 收袋 +$1,970）",
-            td_left=0, shares=200, contracts=0,
+            td_left=0, shares=200, contracts=0, avg_cost=200.0, cc_banked=1970,
+            basis_now=round((200.0 * 200 - 1970) / 200, 2),
+            basis_with_roll=None,
             light=lights.get("NBIS-C-165.0-2026-11-06", "?"),
             plan="股票腿先決（NBIS 佔戶口 6 成）：反彈減半 vs 照企；call 腿：12-18 C140×2 收 ~$3,194——賣 call 無下行保護，風控喺股票腿",
             roll=[])
@@ -754,6 +756,52 @@ try:
         _po["verified"] = bool(_po.get("ticker") in _fill_unds or _po.get("ticker") in _real_stock_tickers)
 except Exception as _e:
     note("我的倉讀取失敗：%s" % _e)
+# 用戶指示 paper 簿（bridge /paper_order 落單 → user_paper_orders.json；⭐11-07 button 用）
+try:
+    import yfinance as _yf3
+    _ords = json.load(open("/Users/leungkathy/quant_model/user_paper_orders.json"))
+except Exception:
+    _ords = []
+for _o in (_ords if isinstance(_ords, list) else []):
+    if _o.get("status") != "open":
+        continue
+    _d = dict(ticker=_o.get("ticker"), side=_o.get("side"), expiry=_o.get("expiry"),
+              dte=None, strike=_o.get("short_k"), long_k=_o.get("long_k"),
+              contracts=_o.get("contracts"), entry_prem=_o.get("entry_prem"),
+              cur_prem=None, pt_remaining=None, pt_zone="—",
+              pnl_usd=None, book=_o.get("book") or "user_paper", id=_o.get("id"))
+    try:
+        _edd = datetime.date.fromisoformat(str(_o.get("expiry")))
+        _d["dte"] = (_edd - datetime.date.today()).days
+    except Exception:
+        pass
+    try:
+        _ep = _o.get("entry_prem")
+        _ch = _yf3.Ticker(str(_o.get("ticker"))).option_chain(str(_o.get("expiry"))).puts
+        _mm = {}
+        for _r in _ch.itertuples():
+            if _r.strike in (float(_o.get("short_k")), float(_o.get("long_k"))):
+                _mm[float(_r.strike)] = ((_r.bid + _r.ask) / 2 if _r.ask else _r.lastPrice)
+        if _mm.get(float(_o.get("short_k"))) and _mm.get(float(_o.get("long_k"))) is not None:
+            _cur = round(_mm[float(_o.get("short_k"))] - _mm[float(_o.get("long_k"))], 2)
+            _d["cur_prem"] = _cur
+            if not (_ep and _ep > 0):
+                # ⭐ 11-07：button 落單冇填 credit → 首次 mark 自動做入場基準（寫返入 orders json）
+                _ep = _cur
+                _o["entry_prem"] = _ep
+                try:
+                    with open("/Users/leungkathy/quant_model/user_paper_orders.json", "w") as _f2:
+                        json.dump(_ords, _f2, ensure_ascii=False, indent=1)
+                except Exception:
+                    pass
+            _rem = _cur / _ep
+            _d["entry_prem"] = _ep
+            _d["pt_remaining"] = int(round(_rem * 100))
+            _d["pt_zone"] = ("可平倉" if _rem <= 0.5 else ("接近" if _rem <= 0.7 else "未到"))
+            _d["pnl_usd"] = round((_ep - _cur) * 100 * (_o.get("contracts") or 1), 0)
+    except Exception as _e4:
+        note("user paper mark 失敗 %s：%s" % (_o.get("ticker"), _e4.__class__.__name__))
+    positions_paper.append(_d)
 try:
     _mon = json.load(open("/Users/leungkathy/quant_model/options_monitor.json"))
     _sp = {x.get("id"): x.get("spot") for x in (_mon.get("positions") or [])}
@@ -793,6 +841,9 @@ if nbis_spot:
     except Exception as _e2:
         note("NBIS roll chain 失敗：%s" % _e2.__class__.__name__)
     nbis["roll"] = _rl
+    for _rr in _rl:
+        if _rr.get("expiry") == "2026-12-18" and _rr.get("strike") == 140:
+            nbis["basis_with_roll"] = round(nbis.get("basis_now") - _rr["mid"], 2)
     if nbis_spot < 120:
         nbis["state"] = "低於 120——按金警戒（佔戶口 6 成）"
     elif nbis_spot <= 145:
