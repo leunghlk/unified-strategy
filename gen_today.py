@@ -624,12 +624,100 @@ nbis = dict(spot=usd(nbis_spot), strike=165, expiry="2026-11-06", trigger="163�
             light=lights.get("NBIS-C-165.0-2026-11-06", "?"),
             plan="A 照企；週四到 163–165 → 揀：接受被 call @165（實現 −$7,000）／roll 170@11-20 收 credit")
 
-# ---------- 8b. 我的倉／YTD／回撤／義務比（⭐11-06 round-2 用戶令） ----------
+# ---------- 8b. 我的倉／戶口實數／風控行（⭐11-06 round-2；round-2b 蟲修＝真數源） ----------
+# ⭐ round-2b 蟲修：options_rec portfolio／monitor history 嗰啲 equity 係「引擎模擬簿」
+#   （700k 重基合成分母＋paper 模擬單 −90,945 溝埋），唔係用戶戶口——用戶鬧「d數唔岩」。
+#   戶口實數改由 bridge OpenD 直讀：/real_funds（帳戶總覽）＋/real_positions（逐倉盈虧）
+#   ＋/trade_history（88日 Futu 上限窗，Futu 自家成交記錄計已平倉淨數）。
+#   engine 簿數（ytd）保留但板面降級做「模擬簿」灰字。
+#   密鑰規矩：env FUTU_BRIDGE_SECRET → ~/.futu_bridge_secret，唔准寫死喺 repo。
+def _bridge_secret():
+    _s = os.environ.get("FUTU_BRIDGE_SECRET")
+    if not _s:
+        try:
+            with open(os.path.expanduser("~/.futu_bridge_secret")) as _f:
+                _s = _f.read().strip()
+        except Exception:
+            _s = None
+    return _s
+
+def _bridge_get(_path, _timeout=9):
+    _s = _bridge_secret()
+    if not _s:
+        return None
+    import urllib.request as _ur, urllib.parse as _up
+    try:
+        _url = "http://127.0.0.1:8765%s%ssecret=%s" % (_path, "&" if "?" in _path else "?", _up.quote(_s))
+        with _ur.urlopen(_url, timeout=_timeout) as _r:
+            return json.loads(_r.read().decode())
+    except Exception:
+        return None
+
+import re as _re
+_OPTCODE = _re.compile(r"^[A-Z]+\d+[CP]\d+$")
+
 positions_out = []
 ytd = dict(real_realized_hkd=None, paper_realized_hkd=None, unrealized_hkd=None, base_hkd=None,
            portfolio_return_pct=None, as_of=None)
-risk = dict(dd_win_pct=None, dd_win_peak_hkd=None, dd_win_now_hkd=None,
-            obligation_usd=None, cash_usd=None, oblig_cash_ratio=None)
+account = dict(total_hkd=None, equity_usd=None, us_cash_power_usd=None, long_mv_hkd=None,
+               fund_assets_hkd=None, init_margin_hkd=None, maint_margin_hkd=None, real_cash_hkd=None,
+               anchor_hkd=None, anchor_delta_pct=None, legs=[], opt_legs=[],
+               unreal_stock_hkd=None, unreal_opt_hkd=None,
+               closed_88d_usd=None, closed_88d_hkd=None, closed_codes={},
+               fill_unds=[], ts=None)
+risk = dict(obligation_usd=None, equity_usd_live=None, oblig_cash_ratio=None,
+            margin_used_pct=None)
+_fill_unds = set()
+_real_stock_tickers = set()
+try:
+    _funds = _bridge_get("/real_funds")
+    _rpos = _bridge_get("/real_positions")
+    _thist = _bridge_get("/trade_history?days=88", _timeout=15)
+    if _funds and _funds.get("ok"):
+        account.update(total_hkd=round(_funds.get("total_hkd") or 0),
+                       equity_usd=round(_funds.get("equity_usd") or 0, 1),
+                       us_cash_power_usd=round(_funds.get("us_cash_power_usd") or 0),
+                       long_mv_hkd=round(_funds.get("long_mv_hkd") or 0),
+                       fund_assets_hkd=round(_funds.get("fund_assets_hkd") or 0),
+                       init_margin_hkd=round(_funds.get("init_margin_hkd") or 0),
+                       maint_margin_hkd=round(_funds.get("maint_margin_hkd") or 0),
+                       real_cash_hkd=round(_funds.get("cash_hkd") or 0),
+                       anchor_hkd=round(CASH_HKD),
+                       anchor_delta_pct=(round(((_funds.get("total_hkd") or 0) - CASH_HKD) / CASH_HKD * 100, 1) if CASH_HKD else None),
+                       ts=_funds.get("ts"))
+        if account["init_margin_hkd"] and account["total_hkd"]:
+            risk["margin_used_pct"] = round(account["init_margin_hkd"] / account["total_hkd"] * 100, 1)
+    for _rp in ((_rpos or {}).get("positions") or []):
+        if _rp.get("kind") == "stock":
+            _real_stock_tickers.add(_rp.get("ticker"))
+            account["legs"].append(dict(ticker=_rp.get("ticker"), shares=_rp.get("shares"),
+                                        mkt_val_hkd=_rp.get("mkt_val_hkd"), pnl_hkd=_rp.get("pnl_hkd"),
+                                        pnl_pct=_rp.get("pnl_pct")))
+        elif _rp.get("kind") == "option":
+            account["opt_legs"].append(dict(ticker=_rp.get("ticker"), code=_rp.get("code"),
+                                            shares=_rp.get("shares"), strike=_rp.get("avg_cost"),
+                                            pnl_hkd=_rp.get("pnl_hkd"), expiry=str(_rp.get("code", ""))[-7:-5]))
+    account["unreal_stock_hkd"] = sum((l.get("pnl_hkd") or 0) for l in account["legs"])
+    account["unreal_opt_hkd"] = sum((l.get("pnl_hkd") or 0) for l in account["opt_legs"])
+    if _thist and _thist.get("ok"):
+        _flow = {}
+        for _d in (_thist.get("deals") or []):
+            _raw = _d.get("code", "")
+            _und = _raw.split(".", 1)[-1] if "." in _raw else _raw
+            _isopt = bool(_OPTCODE.match(_und))
+            _base = _re.sub(r"\d+[CP]\d+$", "", _und) if _isopt else _und
+            _mult = 100 if _isopt else 1
+            _sign = 1 if str(_d.get("side", "")).startswith("SELL") else -1
+            _flow[_base] = _flow.get(_base, 0.0) + _sign * (_d.get("qty") or 0) * (_d.get("price") or 0) * _mult
+            _fill_unds.add(_base)
+        account["fill_unds"] = sorted(_fill_unds)
+        _closed = {k: round(v) for k, v in sorted(_flow.items(), key=lambda kv: kv[1])
+                   if k not in _real_stock_tickers | {"NBIS"}}
+        account["closed_codes"] = _closed
+        account["closed_88d_usd"] = round(sum(_closed.values()))
+        account["closed_88d_hkd"] = round(account["closed_88d_usd"] * FX_USDHKD)
+except Exception as _e:
+    note("戶口實數讀取失敗：%s" % _e)
 try:
     _rec = json.load(open("/Users/leungkathy/quant_model/options_rec.json"))
     _pf = _rec.get("portfolio") or {}
@@ -653,28 +741,35 @@ try:
             margin_req=_p.get("margin_req"), pnl_usd=_p.get("pnl_usd"), spot=_p.get("spot"),
             pt_zone=("可平倉" if (_rem is not None and _rem <= 0.5) else ("接近" if (_rem is not None and _rem <= 0.7) else "未到")),
             id=_p.get("id")))
+    # verified 驗證：Futu 88日成交或現持倉搵唔到＝幽靈倉（IAU 11-06 實錘）→ 唔入義務計
+    for _po in positions_out:
+        _po["verified"] = bool(_po.get("ticker") in _fill_unds or _po.get("ticker") in _real_stock_tickers)
 except Exception as _e:
     note("我的倉讀取失敗：%s" % _e)
 try:
     _mon = json.load(open("/Users/leungkathy/quant_model/options_monitor.json"))
-    _hist = _mon.get("history") or []
     _sp = {x.get("id"): x.get("spot") for x in (_mon.get("positions") or [])}
     for _po in positions_out:
         if _po.get("spot") is None and _po.get("id") in _sp:
             _po["spot"] = _sp[_po.get("id")]
-    _eqs = [h.get("equity_hkd") for h in _hist if h.get("equity_hkd")]
-    if _eqs:
-        _pk = max(_eqs)
-        risk["dd_win_peak_hkd"] = round(_pk)
-        risk["dd_win_now_hkd"] = round(_eqs[-1])
-        risk["dd_win_pct"] = round((_pk - _eqs[-1]) / _pk * 100, 1) if _pk else None
-    _oblig = 165 * 100 * (nbis.get("contracts") or 0) + sum(
-        (p.get("strike") or 0) * 100 * (p.get("contracts") or 0) for p in positions_out)
-    risk["obligation_usd"] = round(_oblig)
-    risk["cash_usd"] = round(NAV_USD)
-    risk["oblig_cash_ratio"] = round(_oblig / NAV_USD, 2) if NAV_USD else None
 except Exception as _e:
-    note("回撤／義務比計算失敗：%s" % _e)
+    note("倉位 spot 併合失敗：%s" % _e)
+try:
+    # 義務＝真倉（Futu 驗證過）short strike notional＋NBIS 165C（未過期先計）
+    _oblig = sum((p.get("strike") or 0) * 100 * (p.get("contracts") or 0)
+                 for p in positions_out if p.get("verified"))
+    try:
+        if str(nbis.get("expiry") or "") >= datetime.date.today().isoformat():
+            _oblig += 165 * 100 * (nbis.get("contracts") or 0)
+    except Exception:
+        pass
+    risk["obligation_usd"] = round(_oblig)
+    _eq = account.get("equity_usd")
+    risk["equity_usd_live"] = _eq
+    risk["cash_usd"] = round(account.get("us_cash_power_usd") or 0)
+    risk["oblig_cash_ratio"] = (round(_oblig / _eq, 2) if _eq else None)
+except Exception as _e:
+    note("義務比計算失敗：%s" % _e)
 if nbis_spot:
     if nbis_spot < 163:
         nbis["state"] = "觸發區下——盯"
@@ -791,7 +886,7 @@ out = dict(
     nbis=nbis,
     positions=positions_out, ytd=ytd, risk=risk,
     account=dict(cash_hkd=CASH_HKD, fx=FX_USDHKD, nav_usd=round(NAV_USD, 0),
-                 single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0)),
+                 single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0), **account),
     config=dict(live="基座 δ0.30/PT50/spr10/35td（拍板④）", shadow="winner δ0.28/PT60 paper 影子 2 週（11-17 無甩嘢切真倉）"),
     notes=notes,
 )

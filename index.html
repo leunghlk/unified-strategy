@@ -652,6 +652,7 @@ function manualRefresh(){
 var NAV_USD=49145;
 function loadToday(){
   fetch('today.json?v='+Date.now()).then(function(r){return r.json();}).then(renderToday)
+  .catch(function(){document.getElementById('tdVerdict').innerHTML='<div class="desc">today.json 讀唔到——請跑 gen_today.py 或稍後再試。</div>';});
   /* 帳戶卡 live（⭐11-05 用戶令）：bridge /real_funds 經 worker proxy；secret 唔入公開 repo——
      ?bsecret=xxx 或 localStorage qbridge_secret；無 secret 顯示拍板②錨值 */
   ;(function(){
@@ -674,8 +675,7 @@ function loadToday(){
       elV.textContent='HK$'+Math.round(d.total_hkd).toLocaleString();
       elA.innerHTML='＝'+(parts.join('＋')||'—')+'<br>bridge 實時 '+(d.ts||'')+'（worker proxy）· 本金錨 HK$382,349（拍板② 10-31）唔跟市價郁';
     }).catch(function(){elA.innerHTML+='<br>bridge 連唔到——顯示錨值';});
-  })()
-  .catch(function(){document.getElementById('tdVerdict').innerHTML='<div class="desc">today.json 讀唔到——請跑 gen_today.py 或稍後再試。</div>';});
+  })();
 }
 function renderToday(d){
   var v=d.verdict||{},m=d.market||{};
@@ -698,12 +698,15 @@ function renderToday(d){
   var f=d.funnel||{};
   var fmax=f.pool||1;
   var fStages=[['池',f.pool],['動量過',f.mom_pos],['TOP6',f.top6],['IV 過',f.iv_ok],['業績過',f.earn_ok],['裂口過',f.gap_ok],['候選',f.final]];
-  var fBar='<div style="margin-top:10px"><b>今日過閘漏斗</b>——AI 池 '+fmax+' 隻，每關<b>通過幾多隻</b>（唔係逐關遞減；今日雷達 RED 封 AI 池，真倉 2 隻由 C96 板塊頭部池頂上）：</div>'+fStages.map(function(s,i){var w=Math.max(2,(s[1]||0)/fmax*100);var last=i===fStages.length-1;return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="width:56px;font-size:11px;color:#64748b;text-align:right;flex:none">'+s[0]+'</span><div style="flex:1;background:#f1f5f9;border-radius:3px;height:15px;position:relative"><div style="width:'+w+'%;height:100%;border-radius:3px;background:'+(last?'#16a34a':'#3b82f6')+'"></div><span style="position:absolute;left:7px;top:0;line-height:15px;font-size:10.5px;color:#0f172a;font-weight:600">'+(s[1]!=null?s[1]:'—')+'</span></div></div>';}).join('');
+  var fBar='<div style="margin-top:10px"><b>今日過閘漏斗</b>——AI 池 '+fmax+' 隻，每關<b>通過幾多隻</b>（唔係逐關遞減；今日雷達 RED 封 AI 池，真倉 '+(f.final||0)+' 隻由 C96 板塊頭部池頂上）：</div>'+fStages.map(function(s,i){var w=Math.max(2,(s[1]||0)/fmax*100);var last=i===fStages.length-1;return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="width:56px;font-size:11px;color:#64748b;text-align:right;flex:none">'+s[0]+'</span><div style="flex:1;background:#f1f5f9;border-radius:3px;height:15px;position:relative"><div style="width:'+w+'%;height:100%;border-radius:3px;background:'+(last?'#16a34a':'#3b82f6')+'"></div><span style="position:absolute;left:7px;top:0;line-height:15px;font-size:10.5px;color:#0f172a;font-weight:600">'+(s[1]!=null?s[1]:'—')+'</span></div></div>';}).join('');
   h+='<div class="desc" style="margin-top:6px">'+(v.txt||'')+'</div>';
-  var yt=d.ytd||{};
-  if(yt.real_realized_hkd!=null){
+  var yt=d.ytd||{},acc=d.account||{};
+  if(acc.total_hkd!=null){
     var fmtHkd=function(x){return (x<0?'−':'+')+'HK$'+Math.abs(Math.round(x)).toLocaleString();};
-    h+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 12px"><span>💰 <b>今年真倉已實現</b> <span style="color:#b91c1c;font-weight:700">'+fmtHkd(yt.real_realized_hkd)+'</span></span><span>paper 已實現 <span style="color:#b91c1c">'+fmtHkd(yt.paper_realized_hkd)+'</span></span><span>現持浮動 <span style="color:'+(yt.unrealized_hkd>=0?'#15803d':'#b91c1c')+';font-weight:600">'+fmtHkd(yt.unrealized_hkd)+'</span></span><span style="color:#64748b">（engine portfolio 口徑，含 10-15 爆倉期）</span></div>';
+    var legTxt=(acc.legs||[]).map(function(l){return l.ticker+' <span style="color:'+(l.pnl_hkd>=0?'#15803d':'#b91c1c')+';font-weight:600">'+fmtHkd(l.pnl_hkd)+'（'+(l.pnl_pct!=null?(l.pnl_pct>0?'+':'')+l.pnl_pct+'%':'—')+'）</span>';}).join('｜');
+    var optTxt=(acc.opt_legs||[]).map(function(l){var m=String(l.code||'').match(/([A-Z]+)(\d{6})([CP])(\d+)/);return (m?m[1]+' '+(+m[4]/1000)+m[3]:l.ticker)+' <span style="color:'+(l.pnl_hkd>=0?'#15803d':'#b91c1c')+';font-weight:600">'+fmtHkd(l.pnl_hkd)+'</span>';}).join('｜');
+    var worstCodes=Object.entries(acc.closed_codes||{}).slice(0,4).map(function(kv){return kv[0]+' −$'+Math.abs(kv[1]).toLocaleString();}).join('／');
+    h+='<div style="margin-top:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:7px 12px;font-size:12.5px;line-height:1.75">💰 <b>戶口實數</b>（OpenD '+(acc.ts||'')+'）：總資產 <b>HK$'+Math.round(acc.total_hkd).toLocaleString()+'</b>（US$'+(acc.equity_usd!=null?acc.equity_usd.toLocaleString():'—')+'）｜美股購買力 US$'+(acc.us_cash_power_usd!=null?acc.us_cash_power_usd.toLocaleString():'—')+(acc.anchor_delta_pct!=null?'｜vs 拍板②錨 HK$'+(acc.anchor_hkd!=null?Math.round(acc.anchor_hkd).toLocaleString():'—')+'：<span style="color:#b91c1c;font-weight:700">'+acc.anchor_delta_pct+'%</span>':'')+'<br>股票腿：'+(legTxt||'—')+(optTxt?'｜'+optTxt:'')+'<br>'+(acc.closed_88d_hkd!=null?'Futu 88日已平倉淨數 <b style="color:#b91c1c">'+fmtHkd(acc.closed_88d_hkd)+'</b>（主因 '+(worstCodes||'—')+'，美元）':'')+'<br><span style="color:#94a3b8;font-size:11px">引擎模擬簿（策略記帳，含 paper 模擬單——唔係戶口數）：真倉腿 '+fmtHkd(yt.real_realized_hkd)+'／模擬腿 '+fmtHkd(yt.paper_realized_hkd)+'</span></div>';
   }
   document.getElementById('tdVerdict').innerHTML=h;
   document.getElementById('tdMkt').innerHTML=(m.et_note?'<div class="note" style="margin:0 0 6px">🗓️ '+m.et_note+'</div>':'')+'SPX <b>'+(m.spx!=null?m.spx.toLocaleString():'—')+'</b>（'+(m.spx_chg!=null?(m.spx_chg>0?'+':'')+m.spx_chg+'%':'—')+'）<br>VIX <b>'+m.vix+'</b>（'+(m.vix_chg!=null?(m.vix_chg>0?'+':'')+m.vix_chg:'—')+'）→ band <b>'+m.vix_band+'</b>：'+(m.band_action||'')+'<br>廣度（118 名高於 SMA50）<b>'+m.breadth+'%</b>'+(m.breadth_5d!=null?'（5日前 '+m.breadth_5d+'%）':'')+' · '+regimeTxt(m.breadth_regime)+(m.speed_bell?' <span class="pill r">⚡速度鐘：池廣度 5 日跌 ≥20pct</span>':'')+'<br>全市閘：'+rspGateTxt(m)+vixBar;
@@ -770,7 +773,7 @@ function renderToday(d){
   var nbSpot=Number(nb.spot)||0,zl=163/175*100,zw=(165-163)/65*100,spLeft=Math.min(97,Math.max(2,nbSpot/175*100));
   var nbGap=Math.max(0,163-nbSpot);
   document.getElementById('tdNbis').innerHTML='<span class="pill '+nbL+'">技術燈 '+nb.light+'</span> 現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'))+'<div style="margin-top:8px"><div style="position:relative;height:13px;border-radius:4px;background:#e2e8f0"><div style="position:absolute;left:'+zl+'%;width:'+zw+'%;top:0;bottom:0;background:#d97706"></div></div><div style="position:relative;height:34px;font-size:10px;color:#64748b"><span style="position:absolute;left:'+(zl+zw/2)+'%;transform:translateX(-50%);top:16px;white-space:nowrap">163–165 觸發區（165＝被接貨線）</span>'+(nbSpot?'<span style="position:absolute;left:'+spLeft+'%;top:-2px;transform:translateX(-50%);color:#0f172a;font-weight:700;font-size:12px;white-space:nowrap">▲ '+nb.spot+'</span>':'')+'</div><div style="font-size:10.5px;color:#94a3b8">價格軌 $110–175：現價離觸發區仲有 +'+(nbSpot?(nbGap/nbSpot*100).toFixed(0):'—')+'% 上落先到——今晚到期，最怕隔夜裂口穿 163。</div></div>';
-  var pos=d.positions||[],yt=d.ytd||{},rk=d.risk||{};
+  var pos=d.positions||[],yt=d.ytd||{},rk=d.risk||{},acc=d.account||{};
   var posEl=document.getElementById('tdPos');
   if(posEl){
     var posHtml='';
@@ -778,14 +781,15 @@ function renderToday(d){
     else posHtml='<div class="table-scroll"><table><thead><tr><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩（mark÷入場）</th><th>PT50</th><th class="num">現價離接貨</th><th class="num">浮動</th></tr></thead><tbody>'+
     pos.map(function(p){
       var dist=(p.spot!=null&&p.strike)?((p.spot-p.strike)/p.strike*100):null;
-      return '<tr><td><b>'+p.ticker+'</b> 賣'+p.strike+'P×'+p.contracts+'（'+expZh(p.expiry)+'，剩 '+p.dte+'td）</td>'+
+      return '<tr><td><b>'+p.ticker+'</b> 賣'+p.strike+'P×'+p.contracts+'（'+expZh(p.expiry)+'，剩 '+p.dte+'td）'+(p.verified===false?' <span class="pill y">⚠️ Futu 搵唔到</span>':'')+'</td>'+
       '<td class="num">$'+p.entry_prem+'</td><td class="num">$'+(p.cur_prem!=null?p.cur_prem:'—')+'</td>'+
       '<td class="num">'+(p.pt_remaining!=null?p.pt_remaining+'%':'—')+'</td>'+
       '<td>'+(p.pt_zone==='可平倉'?'<span class="pill g">可平倉</span>':(p.pt_zone==='接近'?'<span class="pill y">接近</span>':'<span class="pill r">未到</span>'))+'</td>'+
       '<td class="num">'+(dist!=null?(dist>=0?'+':'')+dist.toFixed(1)+'%':'—')+'</td>'+
       '<td class="num">'+(p.pnl_usd!=null?(p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0):'—')+'</td></tr>';
     }).join('')+'</tbody></table></div>';
-    posHtml+='<div class="note" style="margin-top:6px">PT50 規則：credit 跌剩 ≤50%（即 mark ≤ 入場÷2）就提前平倉袋差價。'+(rk.oblig_cash_ratio!=null?'<span style="display:inline-block;margin-top:4px">🛡️ <b>風控行</b>：今夜監測窗回撤 <b>'+(rk.dd_win_pct!=null?rk.dd_win_pct+'%':'n/a')+'</b>；組合長線回報 <b>'+(yt.portfolio_return_pct!=null?yt.portfolio_return_pct+'%':'—')+'</b>（基數 HK$'+(yt.base_hkd!=null?Math.round(yt.base_hkd).toLocaleString():'—')+'，災難線 −29.1%）；<b>義務/現金 '+rk.oblig_cash_ratio+'</b>'+(rk.oblig_cash_ratio>1?' 🔴超 1 唔准開新倉':(rk.oblig_cash_ratio>0.8?' 🟡 >0.8 留意——開新倉前諗諗':' 🟢'))+'（義務 $'+(rk.obligation_usd!=null?rk.obligation_usd.toLocaleString():'—')+'／現金 $'+(rk.cash_usd!=null?rk.cash_usd.toLocaleString():'—')+'）</span>':'')+'</div>';
+    if(pos.some(function(p){return p.verified===false;}))posHtml+='<div class="note" style="margin-top:4px;color:#b45309">⚠️ 標「Futu 搵唔到」嘅倉：88日成交記錄＋現持倉都無呢筆——唔計入義務／風控行。係咪落咗喺另一個帳戶／未成交？確認咗話我知。</div>';
+    posHtml+='<div class="note" style="margin-top:6px">PT50 規則：credit 跌剩 ≤50%（即 mark ≤ 入場÷2）就提前平倉袋差價。'+(rk.oblig_cash_ratio!=null?'<span style="display:inline-block;margin-top:4px">🛡️ <b>風控行</b>（OpenD 實數）：按金佔用 <b>'+(rk.margin_used_pct!=null?rk.margin_used_pct+'%':'—')+'</b>總資產（維持線 HK$'+(acc.maint_margin_hkd!=null?acc.maint_margin_hkd.toLocaleString():'—')+'——NBIS 再跌會逼近追按金）；<b>義務/現金 '+rk.oblig_cash_ratio+'</b>'+(rk.oblig_cash_ratio>1?' 🔴超 1 唔准開新倉':(rk.oblig_cash_ratio>0.8?' 🟡 >0.8 留意——開新倉前諗諗':' 🟢'))+'（義務 $'+(rk.obligation_usd!=null?rk.obligation_usd.toLocaleString():'—')+'＝Futu 驗證倉＋NBIS 165C÷live equity US$'+(rk.equity_usd_live!=null?rk.equity_usd_live.toLocaleString():'—')+'）</span>':'')+'</div>';
     posEl.innerHTML=posHtml;
   }  fetch('paper_book.json?v='+Date.now()).then(function(r){return r.json();}).then(function(b){
     var s=b.summary||{},op=(b.entries||[]).filter(function(e){return e.status==='open';}),cl=b.closed||[];
