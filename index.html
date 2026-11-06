@@ -192,9 +192,19 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <div class="note" style="margin-top:8px" id="liveClause">⚠️ 真倉引擎條款：VIX[20,32] fail-closed——載入中…（數據源 today.json，隨 5 分鐘重讀更新）</div>
     </div>
     <div class="card">
-      <h3>💼 我的證券組合（統一總覽）</h3>
+      <h3>💼 我的證券組合（統一總覽）
+        <span style="float:right;display:inline-flex;gap:6px">
+          <button id="pfCcy" onclick="pfToggleCcy()" title="HKD ↔ USD 顯示切換" style="background:var(--blue);color:#fff;border:0;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:700">HKD</button>
+          <button id="pfRefresh" onclick="loadToday()" title="即刻拉 bridge OpenD 實數重繪" style="background:var(--ink,#333);color:#fff;border:0;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;font-weight:700">↻ 刷新</button>
+        </span></h3>
       <div class="desc" id="tdPortfolio">載入中…</div>
-      <div class="note" style="margin-top:6px">正股 ＋ 期權 ＋ 現金寶 · 基準 HKD 700,000（700k 重基）。資料源＝bridge OpenD 實數（今日台 5 分鐘刷新）。</div>
+      <div class="note" style="margin-top:6px">正股 ＋ 期權 ＋ 現金寶 · 基準 HKD 700,000（700k 重基）。資料源＝bridge OpenD 實數（今日台 5 分鐘刷新）。每格 hover 有解說。</div>
+    </div>
+    <div class="card">
+      <h3>🚦 閘門現況＋勝率（研究判決）</h3>
+      <div class="desc" id="tdGates">載入中…</div>
+      <div id="tdWin"></div>
+      <div class="note" style="margin-top:6px">閘門行＝live（today.json 每輪刷新）；勝率表＝sealed 研究判決（日期見列）。hover 每行有規則＋解封條件。</div>
     </div>
   </div>
 
@@ -760,7 +770,8 @@ function renderToday(d){
   if(cands.length){window._tdD=d;buildSel(cands,d);}
   var fe=document.getElementById('tdRouteTxt');if(fe&&d.funnel)fe.insertAdjacentHTML('beforeend',fBar);
   var pos=d.positions||[],yt=d.ytd||{},rk=d.risk||{},acc=d.account||{};
-  renderPortfolio(acc);
+  renderPortfolio(acc,rk);
+  renderGates(d);
   var posEl=document.getElementById('tdPos');
   if(posEl){
     var posHtml='';
@@ -907,10 +918,21 @@ function loadMarket(){
 function countdown(){
   /* NBIS episode 結清（11-07）——countdown 冇對象，保留空函數免 caller 壞 */
 }
-function renderPortfolio(acc){
+var PF_CCY='HKD', PF_ACC=null;
+function pfFmt(v,fx){ /* v 喺 HKD → 按 PF_CCY 出字串 */
+  var val=(PF_CCY==='USD')?v/fx:v;
+  return (PF_CCY==='USD'?'US$':'HK$')+Math.round(val).toLocaleString();
+}
+function pfToggleCcy(){
+  PF_CCY=(PF_CCY==='HKD')?'USD':'HKD';
+  var b=document.getElementById('pfCcy');if(b)b.textContent=PF_CCY;
+  if(PF_ACC)renderPortfolio(PF_ACC,PF_RK);
+}
+function renderPortfolio(acc,rk){
   var el=document.getElementById('tdPortfolio');if(!el)return;
   var BASE=700000;
   if(!acc||acc.total_hkd==null){el.innerHTML='<div class="note">⚠️ bridge 實數未到——唔出假數。</div>';return;}
+  PF_ACC=acc;PF_RK=rk||{};
   var fx=(acc.equity_usd&&acc.equity_usd>0)?(acc.total_hkd/acc.equity_usd):7.78;
   var total=acc.total_hkd,realized=total-BASE;
   var unreal=(acc.unreal_stock_hkd||0)+(acc.unreal_opt_hkd||0);
@@ -918,34 +940,91 @@ function renderPortfolio(acc){
   var fund=acc.fund_assets_hkd||0,cash=acc.real_cash_hkd||0,stock=acc.long_mv_hkd||0;
   var powHkd=(acc.us_cash_power_usd!=null)?acc.us_cash_power_usd*fx:null;
   var legs=acc.legs||[],ol=acc.opt_legs||[];
-  function hkd(v){return Math.round(v).toLocaleString();}
-  function pnl(v){return '<span style="color:'+(v>=0?'#15803d':'#dc2626')+'">'+(v>=0?'+':'−')+'HK$'+hkd(Math.abs(v))+'</span>';}
+  var C={up:'#15803d',dn:'#dc2626',blue:'#1a73e8',teal:'#0d9488'};
+  function pnl(v){return '<span style="color:'+(v>=0?C.up:C.dn)+';font-weight:600">'+(v>=0?'+':'−')+pfFmt(Math.abs(v),fx)+'</span>';}
   var h='';
   h+='<div class="kpi" style="margin-top:0">';
-  h+='<div class="k"><div class="lbl">總資產</div><div class="val">HK$'+hkd(total)+'</div><div class="small muted">基準 HK$700,000 · 回報 '+(ret>=0?'+':'')+ret.toFixed(1)+'%</div></div>';
-  h+='<div class="k"><div class="lbl">距 700k 回本</div><div class="val" style="color:#dc2626">HK$'+hkd(Math.max(0,BASE-total))+'</div><div class="small muted">已實現 P&L '+pnl(realized)+'</div></div>';
-  h+='<div class="k"><div class="lbl">未實現 P&L</div><div class="val">'+(unreal?pnl(unreal):'<span class="muted">—</span>')+'</div><div class="small muted">正股＋期權 Futu 口徑</div></div>';
-  h+='<div class="k"><div class="lbl">購買力</div><div class="val" style="color:#15803d">'+(powHkd!=null?'HK$'+hkd(powHkd):'—')+'</div><div class="small muted">US$'+hkd(acc.us_cash_power_usd||0)+'（現金寶 auto-redeem 計入）</div></div>';
+  h+='<div class="k" title="bridge OpenD 實數：結算現金＋正股市值＋現金寶基金。基準＝700k 重基（10-15 拍板）。"><div class="lbl">總資產</div><div class="val">'+pfFmt(total,fx)+'</div><div class="small muted">基準 '+pfFmt(BASE,fx)+' · 回報 '+(ret>=0?'+':'')+ret.toFixed(1)+'%</div></div>';
+  h+='<div class="k" title="700,000 − 總資產＝回本缺口。已實現 P&L 含 NBIS +25,396／LITE +520／DLLL +281／165C +1,970 等平倉記錄。"><div class="lbl">距 700k 回本</div><div class="val" style="color:'+C.dn+'">'+pfFmt(Math.max(0,BASE-total),fx)+'</div><div class="small muted">已實現 P&L '+pnl(realized)+'</div></div>';
+  h+='<div class="k" title="在場持倉浮動盈虧（Futu 口徑）。全清時＝0。"><div class="lbl">未實現 P&L</div><div class="val">'+(unreal?pnl(unreal):'<span class="muted">—</span>')+'</div><div class="small muted">正股＋期權浮動</div></div>';
+  h+='<div class="k" title="Futu 購買力＝US 現金購買力×匯率。現金寶 auto-redeem 計入，但唔係全部可以沽期權（美元購買力雙軌 09-04 判決：現金寶唔係空頭期權認可抵押品）。"><div class="lbl">購買力</div><div class="val" style="color:'+C.up+'">'+(powHkd!=null?pfFmt(powHkd,fx):'—')+'</div><div class="small muted">US$'+Math.round(acc.us_cash_power_usd||0).toLocaleString()+' · auto-redeem 計入</div></div>';
   h+='</div>';
-  var parts=[{k:'正股',v:stock,c:'#1a73e8'}];
-  if(ol.length)parts.push({k:'期權（沽空）',v:Math.abs(unreal_opt_liab(acc)),c:'#dc2626'});
-  parts.push({k:'現金寶（收息）',v:fund,c:'#16a34a'},{k:'結算現金',v:cash,c:'#0d9488'});
+  var parts=[{k:'正股',v:stock,c:C.blue,t:'正股市值（bridge long_mv）'},
+             {k:'現金寶（收息）',v:fund,c:'#16a34a',t:'現金寶基金資產——收息緊，唔當可用現金全數'},
+             {k:'結算現金',v:cash,c:C.teal,t:'已結算可用現金（bridge real_cash）'}];
+  if(ol.length&&PF_RK.obligation_usd)parts.splice(1,0,{k:'期權義務（short notional）',v:PF_RK.obligation_usd*fx,c:C.dn,t:'真倉 short strike notional（Futu 驗證）×匯率'});
   var sumAbs=parts.reduce(function(s,p){return s+Math.abs(p.v);},0)||1;
   h+='<div style="margin:10px 0 5px;font-weight:700;font-size:13px">資產分佈</div>';
-  h+='<div style="display:flex;height:14px;border-radius:4px;overflow:hidden;gap:2px">'+parts.map(function(p){return '<div style="background:'+p.c+';width:'+Math.max(1,Math.abs(p.v)/sumAbs*100)+'%" title="'+p.k+'"></div>';}).join('')+'</div>';
-  h+='<div style="margin-top:5px">'+parts.map(function(p){return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;margin-right:14px"><span style="width:10px;height:10px;border-radius:2px;background:'+p.c+';display:inline-block"></span>'+p.k+' <b>HK$'+hkd(p.v)+'</b></span>';}).join('')+'</div>';
-  h+='<div style="margin-top:10px;font-weight:700;font-size:13px">持倉明細</div>';
+  h+='<div style="display:flex;height:14px;border-radius:4px;overflow:hidden;gap:2px">'+parts.map(function(p){return '<div style="background:'+p.c+';width:'+Math.max(1,Math.abs(p.v)/sumAbs*100)+'%;transition:opacity .15s;cursor:default" title="'+p.t+'：'+pfFmt(p.v,fx)+'（'+(Math.abs(p.v)/sumAbs*100).toFixed(1)+'%）" onmouseover="this.style.opacity=.7" onmouseout="this.style.opacity=1"></div>';}).join('')+'</div>';
+  h+='<div style="margin-top:5px">'+parts.map(function(p){return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;margin-right:14px;cursor:default" title="'+p.t+'"><span style="width:10px;height:10px;border-radius:2px;background:'+p.c+';display:inline-block"></span>'+p.k+' <b>'+pfFmt(p.v,fx)+'</b></span>';}).join('')+'</div>';
+  h+='<div style="margin-top:10px;font-weight:700;font-size:13px">持倉明細 <span class="muted" style="font-weight:400;font-size:11px">（hover 行有解說）</span></div>';
   if(!legs.length&&!ol.length){
-    h+='<div class="note">無正股／期權持倉——11-07 全清（NBIS 200 股 @127 沽出淨 +$25,396、LITE +$520、DLLL +$281、165C 過期收袋 +$1,970）。現時等廣度修復先補回。</div>';
+    h+='<div class="note">無正股／期權持倉——11-07 全清（NBIS 200 股 @127 沽出淨 +$25,396、LITE +$520、DLLL +$281、165C 過期收袋 +$1,970）。等廣度修復先補回。</div>';
   }else{
-    if(legs.length)h+='<div class="table-scroll"><table><thead><tr><th>正股</th><th>股數</th><th class="num">市值(HK$)</th><th class="num">浮動 P&L</th></tr></thead><tbody>'+legs.map(function(l){return '<tr><td><b>'+(l.ticker||'—')+'</b></td><td>'+(l.shares!=null?l.shares:'—')+'</td><td class="num">'+(l.mkt_val_hkd!=null?hkd(l.mkt_val_hkd):'—')+'</td><td class="num">'+(l.pnl_hkd!=null?pnl(l.pnl_hkd):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
-    if(ol.length)h+='<div class="table-scroll" style="margin-top:6px"><table><thead><tr><th>期權</th><th class="num">浮動 P&L</th></tr></thead><tbody>'+ol.map(function(o){return '<tr><td>'+(o.code||o.ticker||'—')+'</td><td class="num">'+(o.pnl_hkd!=null?pnl(o.pnl_hkd):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+    if(legs.length)h+='<div class="table-scroll"><table><thead><tr><th>正股</th><th>股數</th><th class="num">市值</th><th class="num">浮動 P&L</th></tr></thead><tbody>'+legs.map(function(l){return '<tr title="市值 '+pfFmt(l.mkt_val_hkd||0,fx)+'；浮動 '+pfFmt(l.pnl_hkd||0,fx)+'（Futu 口徑）"><td><b>'+(l.ticker||'—')+'</b></td><td>'+(l.shares!=null?l.shares:'—')+'</td><td class="num">'+(l.mkt_val_hkd!=null?pfFmt(l.mkt_val_hkd,fx):'—')+'</td><td class="num">'+(l.pnl_hkd!=null?pnl(l.pnl_hkd):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+    if(ol.length)h+='<div class="table-scroll" style="margin-top:6px"><table><thead><tr><th>期權</th><th class="num">浮動 P&L</th></tr></thead><tbody>'+ol.map(function(o){return '<tr title="'+(o.code||'')+'；浮動 '+pfFmt(o.pnl_hkd||0,fx)+'"><td>'+(o.code||o.ticker||'—')+'</td><td class="num">'+(o.pnl_hkd!=null?pnl(o.pnl_hkd):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
   }
   el.innerHTML=h;
 }
-function unreal_opt_liab(acc){
-  /* 沽空期權負債唔在 account dict——全清期 0；有倉時用義務近似（風控行已有官方數） */
-  return 0;
+var PF_RK={};
+function gPill(tone,txt){var c={g:'#15803d',y:'#b45309',r:'#dc2626',n:'#64748b'}[tone]||'#64748b';return '<span style="background:'+c+';color:#fff;border-radius:10px;padding:2px 10px;font-size:11px;font-weight:700;white-space:nowrap">'+txt+'</span>';}
+function gRow(name,tone,pillTxt,detail,tip){
+  return '<tr title="'+String(tip||'').replace(/"/g,'&quot;')+'" style="border-bottom:1px solid rgba(0,0,0,.06)"><td style="padding:5px 8px 5px 0;font-weight:600;white-space:nowrap">'+name+'</td><td style="padding:5px 8px">'+gPill(tone,pillTxt)+'</td><td style="padding:5px 0;font-size:12px;color:#475569">'+detail+'</td></tr>';
+}
+function renderGates(d){
+  var el=document.getElementById('tdGates');if(!el)return;
+  renderWinRates();
+  var m=d.market||{},ra=d.radar||{},vd=d.verdict||{};
+  var h='';
+  h+='<div style="font-weight:700;font-size:13px;margin-bottom:4px">閘門 live 現況</div><div class="table-scroll"><table style="width:100%;border-collapse:collapse">';
+  var rspT=(m.rsp_above==null)?'n':(m.rsp_above?'g':'r');
+  var rspTxt=(m.rsp_above==null)?'無數據':(m.rsp_above?'企穩':'跌穿');
+  h+=gRow('① 全市閘（RSP vs SMA50）',rspT,rspTxt,(m.rsp_above==null)?'—':(m.rsp_above?'RSP 收市 ≥ SMA50':'RSP 跌穿 SMA50'),
+    '規則：RSP（equal-weight 全市 ETF）收市對 SMA50。跌穿＝全市塌陷→硬封刀（collapse 級）。解封：連續收市收復 SMA50 且近 5 日無曾穿。');
+  var brT=(m.breadth_regime=='collapse')?'r':((m.breadth_regime=='partial_kill')?'y':(m.breadth!=null&&m.breadth>=50?'g':'y'));
+  var bellTxt=m.speed_bell?'⚡鐘響':'鐘靜';
+  h+=gRow('② 廣度雙閘（AI 池）',brT,(m.breadth!=null?('廣度 '+m.breadth):'—'),(m.breadth!=null?('放行線 50 · 5日前 '+(m.breadth_5d!=null?m.breadth_5d:'—')+' · '+bellTxt):'—'),
+    '規則：AI 池 %SMA20 廣度 ≥50 放行單名；<50 封 AI 池。速度鐘＝5日 −20pct 急崩預警（11-05 改制）。解封：廣度收復 ≥50。');
+  var raT=(ra.level=='RED')?'r':((ra.level=='YEL')?'y':(ra.level=='GRN'?'g':'n'));
+  h+=gRow('③ 殺倉雷達',raT,(ra.level||'?'),((ra.reasons&&ra.reasons.length)?ra.reasons.join('；'):''),
+    '規則：六腿殺倉雷達（AI-trade 殺倉訊號終榜 10-16；爆前共通 β>3＋vol>0.6＋市值<$60B）。RED＝AI 池＋指數腿封，C96 淨縮 δ0.02。解封：OAS<3.20＋新深20歸零。');
+  var vT=(m.vix_band=='>32')?'r':((m.vix_band=='20-32')?'g':(m.vix_band=='<20'?(m.mkt_state=='bull'?'g':'r'):'n'));
+  h+=gRow('④ VIX 帶 [20,32]',vT,(m.vix!=null?('VIX '+m.vix):'—'),(m.band_action||'—'),
+    '規則：VIX[20,32] 開倉帶；>32 全封＋撤；<20 指數腿封（floor20 判決 x20 meanΔSh +0.323 唔准郁）、單名睇熊狀態門。攞唔到數＝fail-closed 封。');
+  var bsT=(m.mkt_state=='bull')?'g':'r';
+  h+=gRow('⑤ 熊狀態門（SPX vs SMA200）',bsT,String(m.mkt_state||'—').toUpperCase(),(m.spx_sma200!=null?('SMA200 線 @ '+Math.round(m.spx_sma200).toLocaleString()):'—'),
+    '規則：SPX 收市 ≥SMA200＝牛（放行單名）；<＝熊（封）。fail-closed：攞唔到數當熊。⭐只喺 VIX<20 先話事——VIX 20-32 時唔係佢封你。');
+  var cgT=vd.credit_glass?'r':'g';
+  h+=gRow('⑥ Credit break-glass',cgT,(vd.credit_glass?'觸發':'未觸發'),'三條齊先封：OAS≥3.20＋5日+15bp↑＋RSP跌穿',
+    '規則（11-05 拍板）：雷達豁免 C96 腿嘅保險——真信用事件三條件齊 → C96 照封。任一條跌出＝解。');
+  var vdS=vd.level||'—';
+  var vdT=vdS.indexOf('🔴')==0?'r':(vdS.indexOf('🟡')==0?'y':'g');
+  h+=gRow('⑦ 總判決',vdT,vdS,'',(vd.txt||''));
+  h+='</table></div>';
+  if(vd.ai_sealed)h+='<div class="note" style="margin-top:6px">⛔ AI 池新倉封住（paper 照 shadow）——解封要廣度 ≥50＋雷達非 RED。</div>';
+  el.innerHTML=h;
+}
+function renderWinRates(){
+  var el=document.getElementById('tdWin');if(!el)return;
+  var W=[
+    ['策略產能','HAIR 七窗 OOS median','12.42%/月 · CAGR 7.62%','11-01 終判：誠實產能；2026 單窗 14.06% 唔准單引'],
+    ['Short put v4g（paper 台）','年化/Sharpe','10.24%/0.70','10-25 修正版（假期結算修）；11-17 期滿切 PT60+δ0.28'],
+    ['C96 板塊頭部腿','RED 日方向實證','f10 +1.13% vs QQQ −0.96%','199日回測（11-05）：雷達 RED 日方向相反——做池唔做閘'],
+    ['指數腿 floor20','VIX<20 閘表現','x20 meanΔSh +0.323','11-02 七窗 sweep：floor20 係寶唔准郁'],
+    ['AI 池 beat-market','12 變體對決','全倒貼 no-go','11-01 判決：月勝 6/10 結構不可達（翻盤要 X=149%）'],
+    ['自動止蝕閘','backtest','毒——alert-only','10-30 三度強化；唯一例外自身 IV 分位<25%'],
+    ['IV 死亡區閘','rv21 分位 <25%','死亡區硬禁','10-30 六路判決：IV rank=folklore，σ距先係真'],
+    ['Gap guard','chg1d>8% 或 BE 破','禁開','09-15 判決'],
+    ['業績窗閘','業績 21td 內','禁開','10-16 判決：pre-earnings=最差格'],
+    ['累積按金閘','12% NAV cap','硬閘','參數錨 mu25 月錨＋MARGIN_HARD_CAP（10-02 拍板）'],
+    ['VIX fail-closed','[20,32] 外全封','硬閘','參數錨（10-02 拍板）']
+  ];
+  var h='<div style="font-weight:700;font-size:13px;margin:10px 0 4px">勝率／表現（sealed 研究判決）</div><div class="table-scroll"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr><th style="text-align:left;padding:4px 6px;border-bottom:2px solid rgba(0,0,0,.1)">策略／閘</th><th style="text-align:left;padding:4px 6px;border-bottom:2px solid rgba(0,0,0,.1)">口徑</th><th style="text-align:left;padding:4px 6px;border-bottom:2px solid rgba(0,0,0,.1)">數</th><th style="text-align:left;padding:4px 6px;border-bottom:2px solid rgba(0,0,0,.1)">判決＋註</th></tr></thead><tbody>';
+  W.forEach(function(w){
+    h+='<tr title="'+w[3]+'" style="border-bottom:1px solid rgba(0,0,0,.05)"><td style="padding:4px 6px;font-weight:600;white-space:nowrap">'+w[0]+'</td><td style="padding:4px 6px;color:#475569">'+w[1]+'</td><td style="padding:4px 6px;font-weight:700">'+w[2]+'</td><td style="padding:4px 6px;color:#64748b;font-size:11px">'+w[3].split('：')[0]+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  el.innerHTML=h;
 }
 var PROG_KEY='usd_prog_2026';
 function drawProg(){
