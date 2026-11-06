@@ -617,12 +617,13 @@ if cum_frac and cum_frac > CUM_CAP_FRAC and candidates:
 cum_margin = sum(c["margin"] for c in candidates)
 cum_frac = cum_margin / NAV_USD if NAV_USD else None
 
-# ---------- 8. NBIS 倒數 ----------
+# ---------- 8. NBIS 倒數（⭐11-07：165C 已過期收袋 +$1,970，轉入 roll 決策） ----------
 nbis_spot = px.get("NBIS")
-nbis = dict(spot=usd(nbis_spot), strike=165, expiry="2026-11-06", trigger="163–165（週四 11-05）",
-            td_left=4, shares=200, contracts=2,
+nbis = dict(spot=usd(nbis_spot), strike=165, expiry="2026-11-06", trigger="165C 已過期（11-06 收袋 +$1,970）",
+            td_left=0, shares=200, contracts=0,
             light=lights.get("NBIS-C-165.0-2026-11-06", "?"),
-            plan="A 照企；週四到 163–165 → 揀：接受被 call @165（實現 −$7,000）／roll 170@11-20 收 credit")
+            plan="股票腿先決（NBIS 佔戶口 6 成）：反彈減半 vs 照企；call 腿：12-18 C140×2 收 ~$3,194——賣 call 無下行保護，風控喺股票腿",
+            roll=[])
 
 # ---------- 8b. 我的倉／戶口實數／風控行（⭐11-06 round-2；round-2b 蟲修＝真數源） ----------
 # ⭐ round-2b 蟲修：options_rec portfolio／monitor history 嗰啲 equity 係「引擎模擬簿」
@@ -657,6 +658,7 @@ import re as _re
 _OPTCODE = _re.compile(r"^[A-Z]+\d+[CP]\d+$")
 
 positions_out = []
+positions_paper = []
 ytd = dict(real_realized_hkd=None, paper_realized_hkd=None, unrealized_hkd=None, base_hkd=None,
            portfolio_return_pct=None, as_of=None)
 account = dict(total_hkd=None, equity_usd=None, us_cash_power_usd=None, long_mv_hkd=None,
@@ -727,20 +729,26 @@ try:
                base_hkd=_pf.get("base_hkd"),
                portfolio_return_pct=_pf.get("return_pct"),
                as_of=_rec.get("generated"))
+    positions_paper = []
     for _p in (_rec.get("positions") or []):
-        if _p.get("status") != "open" or not _p.get("real"):
+        if _p.get("status") != "open":
             continue
         _ep = _p.get("entry_prem") or 0
         _cp = _p.get("cur_prem")
         _rem = (_cp / _ep) if (_ep and _cp is not None) else None
-        positions_out.append(dict(
+        _d = dict(
             ticker=_p.get("ticker"), side=_p.get("side"), expiry=_p.get("expiry"), dte=_p.get("dte"),
             strike=_p.get("strike"), contracts=_p.get("contracts"),
             entry_prem=_ep, cur_prem=_cp,
             pt_remaining=(int(round(_rem * 100)) if _rem is not None else None),
             margin_req=_p.get("margin_req"), pnl_usd=_p.get("pnl_usd"), spot=_p.get("spot"),
             pt_zone=("可平倉" if (_rem is not None and _rem <= 0.5) else ("接近" if (_rem is not None and _rem <= 0.7) else "未到")),
-            id=_p.get("id")))
+            id=_p.get("id"))
+        if _p.get("real"):
+            positions_out.append(_d)
+        else:
+            _d["book"] = _p.get("book") or "paper"
+            positions_paper.append(_d)
     # verified 驗證：Futu 88日成交或現持倉搵唔到＝幽靈倉（IAU 11-06 實錘）→ 唔入義務計
     for _po in positions_out:
         _po["verified"] = bool(_po.get("ticker") in _fill_unds or _po.get("ticker") in _real_stock_tickers)
@@ -771,12 +779,26 @@ try:
 except Exception as _e:
     note("義務比計算失敗：%s" % _e)
 if nbis_spot:
-    if nbis_spot < 163:
-        nbis["state"] = "觸發區下——盯"
-    elif nbis_spot <= 165:
-        nbis["state"] = "⚠️ 觸發區內"
+    _rl = []
+    try:
+        import yfinance as _yf2
+        for _exp in ("2026-11-20", "2026-12-18"):
+            _cc = _yf2.Ticker("NBIS").option_chain(_exp).calls
+            for _r in _cc.itertuples():
+                if _r.strike in (130.0, 135.0, 140.0, 150.0):
+                    _mid = (_r.bid + _r.ask) / 2 if _r.ask else _r.lastPrice
+                    if _mid:
+                        _rl.append(dict(expiry=_exp, strike=int(_r.strike), mid=round(float(_mid), 2),
+                                        credit2=round(float(_mid) * 200)))
+    except Exception as _e2:
+        note("NBIS roll chain 失敗：%s" % _e2.__class__.__name__)
+    nbis["roll"] = _rl
+    if nbis_spot < 120:
+        nbis["state"] = "低於 120——按金警戒（佔戶口 6 成）"
+    elif nbis_spot <= 145:
+        nbis["state"] = "賣 call 收息區（12-18 C140 錨）"
     else:
-        nbis["state"] = "觸發區上 %+.1f%%" % (100 * (nbis_spot / 163 - 1))
+        nbis["state"] = "反彈——140C 接貨風險升"
 
 # ---------- 9. 總判決（⭐11-02 熊狀態門＋⭐11-05 雙閘＋⭐11-05 拍板(b)：雷達 RED 豁免 C96 腿） ----------
 # 分腿制：雷達只封 AI 池＋指數腿；C96 腿閘＝RSP 全市閘＋VIX band＋credit break-glass，雷達 RED 淨縮 δ0.02。
@@ -884,7 +906,7 @@ out = dict(
              cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin),
              dropped=cum_dropped),
     nbis=nbis,
-    positions=positions_out, ytd=ytd, risk=risk,
+    positions=positions_out, positions_paper=positions_paper, ytd=ytd, risk=risk,
     account=dict(cash_hkd=CASH_HKD, fx=FX_USDHKD, nav_usd=round(NAV_USD, 0),
                  single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0), **account),
     config=dict(live="基座 δ0.30/PT50/spr10/35td（拍板④）", shadow="winner δ0.28/PT60 paper 影子 2 週（11-17 無甩嘢切真倉）"),

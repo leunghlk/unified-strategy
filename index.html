@@ -770,14 +770,14 @@ function renderToday(d){
   var fe=document.getElementById('tdRouteTxt');if(fe&&d.funnel)fe.insertAdjacentHTML('beforeend',fBar);
   var nb=d.nbis||{};
   var nbL=(nb.light==='red'?'r':((nb.light==='amber'||nb.light==='yellow')?'y':'g'));
-  var nbSpot=Number(nb.spot)||0,zl=163/175*100,zw=(165-163)/65*100,spLeft=Math.min(97,Math.max(2,nbSpot/175*100));
-  var nbGap=Math.max(0,163-nbSpot);
-  document.getElementById('tdNbis').innerHTML='<span class="pill '+nbL+'">技術燈 '+nb.light+'</span> 現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股＋short '+nb.contracts+'×'+nb.strike+'C（'+nb.expiry+'，剩 '+nb.td_left+'td）<br><b>觸發線 '+nb.trigger+'</b><br>'+((nb.plan||'').replace('；','；<br>'))+'<div style="margin-top:8px"><div style="position:relative;height:13px;border-radius:4px;background:#e2e8f0"><div style="position:absolute;left:'+zl+'%;width:'+zw+'%;top:0;bottom:0;background:#d97706"></div></div><div style="position:relative;height:34px;font-size:10px;color:#64748b"><span style="position:absolute;left:'+(zl+zw/2)+'%;transform:translateX(-50%);top:16px;white-space:nowrap">163–165 觸發區（165＝被接貨線）</span>'+(nbSpot?'<span style="position:absolute;left:'+spLeft+'%;top:-2px;transform:translateX(-50%);color:#0f172a;font-weight:700;font-size:12px;white-space:nowrap">▲ '+nb.spot+'</span>':'')+'</div><div style="font-size:10.5px;color:#94a3b8">價格軌 $110–175：現價離觸發區仲有 +'+(nbSpot?(nbGap/nbSpot*100).toFixed(0):'—')+'% 上落先到——今晚到期，最怕隔夜裂口穿 163。</div></div>';
+  var nbRl=nb.roll||[];
+  var nbRollHtml=nbRl.length?'<div style="margin-top:8px"><b>Roll 候選（2 張收 credit）</b><div class="table-scroll"><table><thead><tr><th>到期</th><th class="num">Strike</th><th class="num">mid</th><th class="num">2 張收</th></tr></thead><tbody>'+nbRl.map(function(r){return '<tr><td>'+r.expiry+'</td><td class="num">C'+r.strike+'</td><td class="num">$'+r.mid+'</td><td class="num"><b>$'+r.credit2.toLocaleString()+'</b></td></tr>';}).join('')+'</tbody></table></div><div style="font-size:10.5px;color:#94a3b8">IV 爆高＝credit 肥，但被 call @strike＝股票腿鎖定 (strike−200)×200 蝕；賣 call 無下行保護——風控喺股票腿（減倉），唔喺 roll。</div></div>':'';
+  document.getElementById('tdNbis').innerHTML='<span class="pill '+nbL+'">技術燈 '+nb.light+'</span> 現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股（avg $200，佔戶口 6 成）——165C×2 已於 11-06 過期收袋 <b style="color:#15803d">+$1,970</b>（原本最壞 −$7,000 接貨）<br>'+((nb.plan||'').replace('；','；<br>'))+nbRollHtml;
   var pos=d.positions||[],yt=d.ytd||{},rk=d.risk||{},acc=d.account||{};
   var posEl=document.getElementById('tdPos');
   if(posEl){
     var posHtml='';
-    if(!pos.length)posHtml='<div class="note">現時無真倉 short put 在場（NBIS 特例見左卡）。</div>';
+    if(!pos.length)posHtml='<div class="note">現時無真倉 short put 在場（NBIS 165C 已於 11-06 過期收袋 +$1,970——股票腿決策見左卡）。</div>';
     else posHtml='<div class="table-scroll"><table><thead><tr><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩（mark÷入場）</th><th>PT50</th><th class="num">現價離接貨</th><th class="num">浮動</th></tr></thead><tbody>'+
     pos.map(function(p){
       var dist=(p.spot!=null&&p.strike)?((p.spot-p.strike)/p.strike*100):null;
@@ -788,6 +788,8 @@ function renderToday(d){
       '<td class="num">'+(dist!=null?(dist>=0?'+':'')+dist.toFixed(1)+'%':'—')+'</td>'+
       '<td class="num">'+(p.pnl_usd!=null?(p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0):'—')+'</td></tr>';
     }).join('')+'</tbody></table></div>';
+    var pp=d.positions_paper||[];
+    if(pp.length)posHtml+='<div style="margin-top:6px;font-size:12.5px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:6px 10px">🧪 <b>paper 在場</b>（唔入真倉風控）：'+pp.map(function(p){return (p.book||'paper')+' '+p.ticker+' 賣'+p.strike+'P×'+p.contracts+'（'+expZh(p.expiry)+'，剩 '+p.dte+'td）credit 剩 '+(p.pt_remaining!=null?p.pt_remaining+'%':'—')+' '+(p.pt_zone||'');}).join('；')+'</div>';
     if(pos.some(function(p){return p.verified===false;}))posHtml+='<div class="note" style="margin-top:4px;color:#b45309">⚠️ 標「Futu 搵唔到」嘅倉：88日成交記錄＋現持倉都無呢筆——唔計入義務／風控行。係咪落咗喺另一個帳戶／未成交？確認咗話我知。</div>';
     posHtml+='<div class="note" style="margin-top:6px">PT50 規則：credit 跌剩 ≤50%（即 mark ≤ 入場÷2）就提前平倉袋差價。'+(rk.oblig_cash_ratio!=null?'<span style="display:inline-block;margin-top:4px">🛡️ <b>風控行</b>（OpenD 實數）：按金佔用 <b>'+(rk.margin_used_pct!=null?rk.margin_used_pct+'%':'—')+'</b>總資產（維持線 HK$'+(acc.maint_margin_hkd!=null?acc.maint_margin_hkd.toLocaleString():'—')+'——NBIS 再跌會逼近追按金）；<b>義務/現金 '+rk.oblig_cash_ratio+'</b>'+(rk.oblig_cash_ratio>1?' 🔴超 1 唔准開新倉':(rk.oblig_cash_ratio>0.8?' 🟡 >0.8 留意——開新倉前諗諗':' 🟢'))+'（義務 $'+(rk.obligation_usd!=null?rk.obligation_usd.toLocaleString():'—')+'＝Futu 驗證倉＋NBIS 165C÷live equity US$'+(rk.equity_usd_live!=null?rk.equity_usd_live.toLocaleString():'—')+'）</span>':'')+'</div>';
     posEl.innerHTML=posHtml;
