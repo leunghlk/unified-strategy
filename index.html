@@ -148,10 +148,6 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 
   <div class="grid g2" style="margin-top:12px">
     <div class="card">
-      <h3>🧨 NBIS（股票腿＋roll 決策）</h3>
-      <div class="desc" id="tdNbis">—</div>
-    </div>
-    <div class="card">
       <h3>📒 我的倉（真倉持倉＋PT50 距離）</h3>
       <div class="desc" id="tdPos">載入中…</div>
     </div>
@@ -161,11 +157,11 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
     </div>
     <div class="card">
       <h3>開倉試算（人手輸入，即場計）</h3>
-      <div class="desc" style="display:flex;gap:8px;flex-wrap:wrap">
-        <label>Short K <input id="cKs" type="number" step="0.5" style="width:76px"></label>
-        <label>Long K <input id="cKl" type="number" step="0.5" style="width:76px"></label>
-        <label>Credit <input id="cCr" type="number" step="0.05" style="width:70px"></label>
-        <label>張數 <input id="cN" type="number" step="1" style="width:56px"></label>
+      <div class="desc" style="display:flex;flex-direction:column;gap:6px">
+        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">Short K</span><input id="cKs" type="number" step="0.5" style="width:150px"></label>
+        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">Long K</span><input id="cKl" type="number" step="0.5" style="width:150px"></label>
+        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">Credit</span><input id="cCr" type="number" step="0.05" style="width:150px"></label>
+        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">張數</span><input id="cN" type="number" step="1" style="width:150px"></label>
       </div>
       <div class="desc" id="cOut" style="margin-top:8px;font-weight:700">填入四格即計：premium／最大虧損＝按金／佔 NAV／做完後現金。</div>
       <div class="note" style="margin-top:6px">試算口徑：put spread 按金＝最大虧損＝(Ks−Kl)×100×張數−premium；NAV 錨 US$49,145（HK$382,349÷7.78）；單名閘 5%＝US$2,457，簿計閘 12%＝US$5,897。</div>
@@ -196,14 +192,9 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <div class="note" style="margin-top:8px" id="liveClause">⚠️ 真倉引擎條款：VIX[20,32] fail-closed——載入中…（數據源 today.json，隨 5 分鐘重讀更新）</div>
     </div>
     <div class="card">
-      <h3>🧨 NBIS 拆彈倒數（最急）<span class="pill r" style="margin-left:6px">11-06 到期</span></h3>
-      <div class="desc">
-        持倉：200 股 @200 成本＋short 2×165C（11-06）。上週五收 <b>154.14</b>，165C bid 4.55（IV 110.8%）。<br>
-        OTM 6.6% ≈ 0.5σ（4 交易日）→ <b>P(被 call) ≈ 30%</b>。<br>
-        <b>建議（拍板⑤）：A 照企</b>——4 日剩餘時間值約 US$1,820，theta 全在我方；110% IV 下買回（B）最貴，roll 11-20（C）同樣要先買貴貨。<br>
-        <b>觸發線</b>：週四（11-05）收市前 NBIS 站上 <b>163–165</b> → 兩條路重判：①接受被 call @165（實現 −$7,000＝原定拆彈出口＋premium 淨收）②roll up 170 @11-20（110% IV 收多注 credit，恢復軌續跑）。
-      </div>
-      <div class="a" id="nbisCountdown" style="margin-top:8px;font-weight:700"></div>
+      <h3>💼 我的證券組合（統一總覽）</h3>
+      <div class="desc" id="tdPortfolio">載入中…</div>
+      <div class="note" style="margin-top:6px">正股 ＋ 期權 ＋ 現金寶 · 基準 HKD 700,000（700k 重基）。資料源＝bridge OpenD 實數（今日台 5 分鐘刷新）。</div>
     </div>
   </div>
 
@@ -365,10 +356,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <h3>🗓️ 行動曆</h3>
       <div class="desc" style="line-height:2">
         <b>11-02（一）</b>：DST flip，launchd 定時＋1h 檢查<br>
-        <b>11-05（四）</b>：NBIS 觸發線判決夜（163–165）<br>
-        <b>11-06（五）</b>：NBIS 165C 到期結算<br>
         <b>11-13</b>：PPI——11-13 到期倉禁開<br>
-        <b>11-20</b>：roll 錨期<br>
+        <b>11-17</b>：paper 期滿檢討（切 PT60+δ0.28）<br>
         <b>每月 1 日</b>：注資入帳＋本台進度更新<br>
         <b>12 月中–1 月</b>：live 首倉最早窗（須 VIX≥20＋八閘全過）
       </div>
@@ -418,7 +407,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <tr><td>②</td><td>在途 84,752</td><td><span class="pill g">確認返還（計入 382,349）</span></td></tr>
         <tr><td>③</td><td>注資額</td><td><span class="pill g">$40,000/月</span></td></tr>
         <tr><td>④</td><td>paper 台驗證期</td><td><span class="pill g">基座 config 直接上線；PT60+δ0.28 paper 自動跑（零等待）</span></td></tr>
-        <tr><td>⑤</td><td>NBIS 2×165C 11-06</td><td><span class="pill g">A 照企＋週四 163–165 觸發線</span></td></tr>
+        <tr><td>⑤</td><td>NBIS 2×165C 11-06</td><td><span class="pill n">已結清——11-06 過期收袋 +$1,970；股票 200 股 11-07 @127 沽出</span></td></tr>
         <tr><td>⑥</td><td>業績後冷靜期</td><td><span class="pill g">5 交易日（已確認 11-02，自動跟業績日）</span></td></tr>
         <tr><td>⑦</td><td>May-2027 死線</td><td><span class="pill g">順延；注資上門檻 → 2027-06</span></td></tr>
       </tbody>
@@ -434,7 +423,6 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
           <tr><td><b>今日台數據產生器</b></td><td>gen_today.py → today.json（即市＋避雷＋screen＋候選倉＋paper 台全自動更新＋自動 push）</td><td>每交易日 07:30＋21:35 HKT</td><td><span class="pill g">已裝 launchd（11-02）</span></td></tr>
           <tr><td><b>📒 Paper 台（winner）</b></td><td>paper_book.py：PT60+δ0.28 四週觀察簿（MTM＋PT60 平倉模擬＋自動 push，dashboard 顯示）</td><td>每交易日 21:40 HKT</td><td><span class="pill g">已裝 launchd（11-02）</span></td></tr>
           <tr><td><b>統一簿掃描</b></td><td>八閘全過篩選 → 當日候選（正選制：閘/wr/best-ay）</td><td>每交易日 ET 開市前＋開市後各 1 次</td><td><span class="pill y">待過目</span></td></tr>
-          <tr><td><b>NBIS 觸發線監察</b></td><td>NBIS 觸 163／165 兩檔 TG；11-06 到期日全天候</td><td>美股時段每 5 分鐘</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td><b>回本進度週報</b></td><td>NAV vs 目標、當月注資、累計 HAIR premium、月度里程碑</td><td>週日 20:00 HKT</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td><b>殺倉雷達 v2（現役）</b></td><td>六腿監察，黃燈禁新倉——沿用唔改</td><td>已運行</td><td><span class="pill g">現役</span></td></tr>
           <tr><td><b>CSP 技術燈（現役）</b></td><td>綠黃紅止蝕紀律——沿用唔改</td><td>已運行</td><td><span class="pill g">現役</span></td></tr>
@@ -449,7 +437,6 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
           <tr><td>開倉候選</td><td>八閘全過嘅正選（每日 pre-open 1 條）</td><td>1 條/日</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td>閘紅燈</td><td>八閘任何一閘由綠轉紅（複合觸發必列明邊條中）</td><td>即時，每閘每日 1 次</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td>按金警告</td><td>usage &gt;65%</td><td>即時</td><td><span class="pill y">待過目</span></td></tr>
-          <tr><td>NBIS 觸發線</td><td>163／165 兩檔＋到期日提醒</td><td>每檔 1 次</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td>業績窗週提醒</td><td>持倉/候選名進入 21td 窗</td><td>週一 1 次</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td>回本週報</td><td>進度＋注資＋HAIR 累計</td><td>週日 1 次</td><td><span class="pill y">待過目</span></td></tr>
         </tbody>
@@ -749,7 +736,7 @@ function renderToday(d){
     var cu=d.cum||{};
     cwHtml='<div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">Spread（賣／買）</th><th>到期日</th><th class="num">Credit（每張收）</th><th class="num">張數</th><th class="num">Premium 共收</th><th class="num">按金＝最大虧損</th><th class="num">做完後現金*</th><th>來源</th></tr></thead><tbody>'+
     cands.map(function(c){return '<tr><td><b>'+c.sym+'</b> δ'+c.delta+(c.pool?' <span class="pill y">C96</span>':'')+(c.margin>scapRow?' <span class="pill y" title="一張按金超單名 5% 錨——靠 12% 累計閘兜底，呢隻唔好加張">超單名錨</span>':'')+'</td><td class="num">'+c.spot+'</td><td class="num">賣<b>'+c.short_k+'</b>P／買'+c.long_k+'P</td><td>'+c.expiry+'<br><span style="font-size:11px;color:#64748b">'+expZh(c.expiry)+'·'+c.dte_td+'個交易日</span></td><td class="num">$'+c.credit+'（mid）'+(c.credit_worst?'<br><span style="font-size:11px;color:#64748b">掛價低至 $'+c.credit_worst+'</span>':'')+'</td><td class="num">'+c.contracts+'</td><td class="num">$'+c.premium_in+'</td><td class="num">$'+c.margin+'</td><td class="num">$'+c.cash_after+'</td><td>'+(c.src==='鏈 mid（Futu OpenD）'?'<span class="pill g">鏈 mid·Futu</span>':(c.src==='鏈 mid（延遲價）'?'<span class="pill n">鏈 mid·延遲</span>':'BS'))+' IV'+c.iv_used+'%</td></tr>';}).join('')+
-    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批（12% 閘裁完之後）按金 <b>$'+cu.margin+'</b>＝NAV <b>'+(cu.frac!=null?cu.frac+'%':'—')+'</b>（上限 '+cu.cap_pct+'%）'+((cu.dropped&&cu.dropped.length)?'；<b>被閘裁走唔好跟：'+cu.dropped.join('、')+'</b>':'')+'；現有真倉 short put：無（NBIS 特例見上卡）。<div style="background:#e5e7eb;border-radius:4px;height:8px;margin:6px 0 2px"><div style="border-radius:4px;height:8px;background:'+(Number(cu.frac)>Number(cu.cap_pct)?'#dc2626':'#16a34a')+';width:'+Math.min(100,(Number(cu.frac)||0)/(Number(cu.cap_pct)||12)*100)+'%"></div></div><span style="font-size:11px;color:#64748b">本批按金 vs 12% 閘：'+Math.min(999,Math.round((Number(cu.frac)||0)/(Number(cu.cap_pct)||12)*100))+'% 滿</span>。張數已按單名 5% cap 預裁。定價三層（11-05）：鏈 mid·Futu＝OpenD 實時 bid/ask（listed strikes、真 δ／真鏈 IV）＞鏈 mid·延遲＝yfinance（延遲約 0–15 分）＞BS 估算；延長時段 bid/ask 會闊，落單前照 Futu 實價覆核。</div>'+
+    '</tbody></table></div><div class="note">*做完後現金＝NAV 錨＋premium 入帳；按金＝最大虧損（Futu spread 口徑）。簿計：本批（12% 閘裁完之後）按金 <b>$'+cu.margin+'</b>＝NAV <b>'+(cu.frac!=null?cu.frac+'%':'—')+'</b>（上限 '+cu.cap_pct+'%）'+((cu.dropped&&cu.dropped.length)?'；<b>被閘裁走唔好跟：'+cu.dropped.join('、')+'</b>':'')+'。現有真倉 short put：無。<div style="background:#e5e7eb;border-radius:4px;height:8px;margin:6px 0 2px"><div style="border-radius:4px;height:8px;background:'+(Number(cu.frac)>Number(cu.cap_pct)?'#dc2626':'#16a34a')+';width:'+Math.min(100,(Number(cu.frac)||0)/(Number(cu.cap_pct)||12)*100)+'%"></div></div><span style="font-size:11px;color:#64748b">本批按金 vs 12% 閘：'+Math.min(999,Math.round((Number(cu.frac)||0)/(Number(cu.cap_pct)||12)*100))+'% 滿</span>。張數已按單名 5% cap 預裁。定價三層（11-05）：鏈 mid·Futu＝OpenD 實時 bid/ask（listed strikes、真 δ／真鏈 IV）＞鏈 mid·延遲＝yfinance（延遲約 0–15 分）＞BS 估算；延長時段 bid/ask 會闊，落單前照 Futu 實價覆核。</div>'+
     '<div id="selBox" style="margin-top:12px"></div>'+
     '<div style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:8px;padding:10px 14px;margin-top:10px;font-size:12.5px;line-height:1.75"><b>📌 點落單（Futu App 組合單——兩腿一張單同時成交，唔准一邊一邊做，拆腿會有裸短 put 風險窗口）</b><br>'+((v.credit_glass===false)?'<span style="color:#b45309">🟡 真價閘：現價未達模型價 85-90%——掛價由 mid 以下試價，唔好追價</span><br>':'')+
     '① 期權鏈揀候選嗰隻股 → <b>到期日照板面揀同一日</b>（例：2026-12-18＝12月18日到期，<b>唔好揀近月週選</b>——同一組 strike 近月 credit 細好多）<br>'+
@@ -772,17 +759,12 @@ function renderToday(d){
   cw.innerHTML=cwHtml;
   if(cands.length){window._tdD=d;buildSel(cands,d);}
   var fe=document.getElementById('tdRouteTxt');if(fe&&d.funnel)fe.insertAdjacentHTML('beforeend',fBar);
-  var nb=d.nbis||{};
-  var nbL=(nb.light==='red'?'r':((nb.light==='amber'||nb.light==='yellow')?'y':'g'));
-  var nbRl=nb.roll||[];
-  var nbRollHtml=nbRl.length?'<div style="margin-top:8px"><b>Roll 候選（2 張收 credit）</b><div class="table-scroll"><table><thead><tr><th>到期</th><th class="num">Strike</th><th class="num">mid</th><th class="num">2 張收</th></tr></thead><tbody>'+nbRl.map(function(r){return '<tr><td>'+r.expiry+'</td><td class="num">C'+r.strike+'</td><td class="num">$'+r.mid+'</td><td class="num"><b>$'+r.credit2.toLocaleString()+'</b></td></tr>';}).join('')+'</tbody></table></div><div style="font-size:10.5px;color:#94a3b8">IV 爆高＝credit 肥，但被 call @strike＝股票腿鎖定 (strike−200)×200 蝕；賣 call 無下行保護——風控喺股票腿（減倉），唔喺 roll。</div></div>':'';
-  var nbBasisHtml=(nb.basis_now!=null&&nb.spot!=null)?(function(){var _sp=Number(nb.spot),_mid=(nb.basis_with_roll!=null)?(nb.basis_now-nb.basis_with_roll):null,_locked=(_mid!=null)?Math.abs(Math.round((140-200)*200+(nb.cc_banked||0)+_mid*200)):null,_now=Math.abs(Math.round((_sp-200)*200+(nb.cc_banked||0)));return '<div style="margin-top:6px">📏 <b>計埋 CC 嘅 breakeven</b>：avg $200 − CC 收袋 $'+(nb.cc_banked||0).toLocaleString()+' → 有效成本 <b>$'+nb.basis_now+'</b>（要 <b>+'+((nb.basis_now/_sp-1)*100).toFixed(0)+'%</b> 先回本）'+(_mid!=null?'；賣埋 12-18 C140（mid $'+_mid.toFixed(2)+'）→ <b>$'+nb.basis_with_roll+'</b>（+'+((nb.basis_with_roll/_sp-1)*100).toFixed(0)+'%）':'')+(nb.basis_with_roll!=null?'；若被 call @140：全 episode 鎖定 <b>−$'+_locked.toLocaleString()+'</b>（而家冇 call 就係 −$'+_now.toLocaleString()+'）':'')+'</div>';})():'';
-  document.getElementById('tdNbis').innerHTML='<span class="pill '+nbL+'">技術燈 '+nb.light+'</span> 現價 <b>'+nb.spot+'</b>（'+(nb.state||'—')+'）<br>持倉：'+nb.shares+' 股（avg $200，佔戶口 6 成）——165C×2 已於 11-06 過期收袋 <b style="color:#15803d">+$1,970</b>（原本最壞 −$7,000 接貨）<br>'+((nb.plan||'').replace('；','；<br>'))+nbBasisHtml+nbRollHtml;
   var pos=d.positions||[],yt=d.ytd||{},rk=d.risk||{},acc=d.account||{};
+  renderPortfolio(acc);
   var posEl=document.getElementById('tdPos');
   if(posEl){
     var posHtml='';
-    if(!pos.length)posHtml='<div class="note">現時無真倉 short put 在場（NBIS 165C 已於 11-06 過期收袋 +$1,970——股票腿決策見左卡）。</div>';
+    if(!pos.length)posHtml='<div class="note">現時無真倉 short put 在場。</div>';
     else posHtml='<div class="table-scroll"><table><thead><tr><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩（mark÷入場）</th><th>PT50</th><th class="num">現價離接貨</th><th class="num">浮動</th></tr></thead><tbody>'+
     pos.map(function(p){
       var dist=(p.spot!=null&&p.strike)?((p.spot-p.strike)/p.strike*100):null;
@@ -794,7 +776,7 @@ function renderToday(d){
       '<td class="num">'+(p.pnl_usd!=null?(p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0):'—')+'</td></tr>';
     }).join('')+'</tbody></table></div>';
     if(pos.some(function(p){return p.verified===false;}))posHtml+='<div class="note" style="margin-top:4px;color:#b45309">⚠️ 標「Futu 搵唔到」嘅倉：88日成交記錄＋現持倉都無呢筆——唔計入義務／風控行。係咪落咗喺另一個帳戶／未成交？確認咗話我知。</div>';
-    posHtml+='<div class="note" style="margin-top:6px">PT50 規則：credit 跌剩 ≤50%（即 mark ≤ 入場÷2）就提前平倉袋差價。'+(rk.oblig_cash_ratio!=null?'<span style="display:inline-block;margin-top:4px">🛡️ <b>風控行</b>（OpenD 實數）：按金佔用 <b>'+(rk.margin_used_pct!=null?rk.margin_used_pct+'%':'—')+'</b>總資產（維持線 HK$'+(acc.maint_margin_hkd!=null?acc.maint_margin_hkd.toLocaleString():'—')+'——NBIS 再跌會逼近追按金）；<b>義務/現金 '+rk.oblig_cash_ratio+'</b>'+(rk.oblig_cash_ratio>1?' 🔴超 1 唔准開新倉':(rk.oblig_cash_ratio>0.8?' 🟡 >0.8 留意——開新倉前諗諗':' 🟢'))+'（義務 $'+(rk.obligation_usd!=null?rk.obligation_usd.toLocaleString():'—')+'＝Futu 驗證倉＋NBIS 165C÷live equity US$'+(rk.equity_usd_live!=null?rk.equity_usd_live.toLocaleString():'—')+'）</span>':'')+'</div>';
+    posHtml+='<div class="note" style="margin-top:6px">PT50 規則：credit 跌剩 ≤50%（即 mark ≤ 入場÷2）就提前平倉袋差價。'+(rk.oblig_cash_ratio!=null?'<span style="display:inline-block;margin-top:4px">🛡️ <b>風控行</b>（OpenD 實數）：按金佔用 <b>'+(rk.margin_used_pct!=null?rk.margin_used_pct+'%':'—')+'</b>總資產（維持線 HK$'+(acc.maint_margin_hkd!=null?acc.maint_margin_hkd.toLocaleString():'—')+'；全清狀態＝fund-pledge 口徑，唔係持倉風險）；<b>義務/現金 '+rk.oblig_cash_ratio+'</b>'+(rk.oblig_cash_ratio>1?' 🔴超 1 唔准開新倉':(rk.oblig_cash_ratio>0.8?' 🟡 >0.8 留意——開新倉前諗諗':' 🟢'))+'（義務 $'+(rk.obligation_usd!=null?rk.obligation_usd.toLocaleString():'—')+'＝Futu 驗證倉÷live equity US$'+(rk.equity_usd_live!=null?rk.equity_usd_live.toLocaleString():'—')+'）</span>':'')+'</div>';
     posEl.innerHTML=posHtml;
   }
   var pbEl=document.getElementById('tdPaperBook');
@@ -923,14 +905,47 @@ function loadMarket(){
   });
 }
 function countdown(){
-  var nb=(window.__today&&window.__today.nbis)||{};
-  var expStr=nb.expiry||'2026-11-06';
-  var exp=new Date(expStr+'T16:00:00-05:00'),now=new Date();
-  var days=Math.ceil((exp-now)/86400000);
-  var el=document.getElementById('nbisCountdown');
-  if(!el)return;
-  if(now>exp){el.innerHTML=(Date.now()-exp.getTime()>3*86400000)?'<span class="pill n">已結算（'+expStr+'）</span>':'<span class="pill n">已到期（'+expStr+'）</span>';return;}
-  el.innerHTML='<span class="pill r">剩 '+days+' 日（'+expStr+' 16:00 ET 到期）</span>';
+  /* NBIS episode 結清（11-07）——countdown 冇對象，保留空函數免 caller 壞 */
+}
+function renderPortfolio(acc){
+  var el=document.getElementById('tdPortfolio');if(!el)return;
+  var BASE=700000;
+  if(!acc||acc.total_hkd==null){el.innerHTML='<div class="note">⚠️ bridge 實數未到——唔出假數。</div>';return;}
+  var fx=(acc.equity_usd&&acc.equity_usd>0)?(acc.total_hkd/acc.equity_usd):7.78;
+  var total=acc.total_hkd,realized=total-BASE;
+  var unreal=(acc.unreal_stock_hkd||0)+(acc.unreal_opt_hkd||0);
+  var ret=(total-BASE)/BASE*100;
+  var fund=acc.fund_assets_hkd||0,cash=acc.real_cash_hkd||0,stock=acc.long_mv_hkd||0;
+  var powHkd=(acc.us_cash_power_usd!=null)?acc.us_cash_power_usd*fx:null;
+  var legs=acc.legs||[],ol=acc.opt_legs||[];
+  function hkd(v){return Math.round(v).toLocaleString();}
+  function pnl(v){return '<span style="color:'+(v>=0?'#15803d':'#dc2626')+'">'+(v>=0?'+':'−')+'HK$'+hkd(Math.abs(v))+'</span>';}
+  var h='';
+  h+='<div class="kpi" style="margin-top:0">';
+  h+='<div class="k"><div class="lbl">總資產</div><div class="val">HK$'+hkd(total)+'</div><div class="small muted">基準 HK$700,000 · 回報 '+(ret>=0?'+':'')+ret.toFixed(1)+'%</div></div>';
+  h+='<div class="k"><div class="lbl">距 700k 回本</div><div class="val" style="color:#dc2626">HK$'+hkd(Math.max(0,BASE-total))+'</div><div class="small muted">已實現 P&L '+pnl(realized)+'</div></div>';
+  h+='<div class="k"><div class="lbl">未實現 P&L</div><div class="val">'+(unreal?pnl(unreal):'<span class="muted">—</span>')+'</div><div class="small muted">正股＋期權 Futu 口徑</div></div>';
+  h+='<div class="k"><div class="lbl">購買力</div><div class="val" style="color:#15803d">'+(powHkd!=null?'HK$'+hkd(powHkd):'—')+'</div><div class="small muted">US$'+hkd(acc.us_cash_power_usd||0)+'（現金寶 auto-redeem 計入）</div></div>';
+  h+='</div>';
+  var parts=[{k:'正股',v:stock,c:'#1a73e8'}];
+  if(ol.length)parts.push({k:'期權（沽空）',v:Math.abs(unreal_opt_liab(acc)),c:'#dc2626'});
+  parts.push({k:'現金寶（收息）',v:fund,c:'#16a34a'},{k:'結算現金',v:cash,c:'#0d9488'});
+  var sumAbs=parts.reduce(function(s,p){return s+Math.abs(p.v);},0)||1;
+  h+='<div style="margin:10px 0 5px;font-weight:700;font-size:13px">資產分佈</div>';
+  h+='<div style="display:flex;height:14px;border-radius:4px;overflow:hidden;gap:2px">'+parts.map(function(p){return '<div style="background:'+p.c+';width:'+Math.max(1,Math.abs(p.v)/sumAbs*100)+'%" title="'+p.k+'"></div>';}).join('')+'</div>';
+  h+='<div style="margin-top:5px">'+parts.map(function(p){return '<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;margin-right:14px"><span style="width:10px;height:10px;border-radius:2px;background:'+p.c+';display:inline-block"></span>'+p.k+' <b>HK$'+hkd(p.v)+'</b></span>';}).join('')+'</div>';
+  h+='<div style="margin-top:10px;font-weight:700;font-size:13px">持倉明細</div>';
+  if(!legs.length&&!ol.length){
+    h+='<div class="note">無正股／期權持倉——11-07 全清（NBIS 200 股 @127 沽出淨 +$25,396、LITE +$520、DLLL +$281、165C 過期收袋 +$1,970）。現時等廣度修復先補回。</div>';
+  }else{
+    if(legs.length)h+='<div class="table-scroll"><table><thead><tr><th>正股</th><th>股數</th><th class="num">市值(HK$)</th><th class="num">浮動 P&L</th></tr></thead><tbody>'+legs.map(function(l){return '<tr><td><b>'+(l.ticker||'—')+'</b></td><td>'+(l.shares!=null?l.shares:'—')+'</td><td class="num">'+(l.mkt_val_hkd!=null?hkd(l.mkt_val_hkd):'—')+'</td><td class="num">'+(l.pnl_hkd!=null?pnl(l.pnl_hkd):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+    if(ol.length)h+='<div class="table-scroll" style="margin-top:6px"><table><thead><tr><th>期權</th><th class="num">浮動 P&L</th></tr></thead><tbody>'+ol.map(function(o){return '<tr><td>'+(o.code||o.ticker||'—')+'</td><td class="num">'+(o.pnl_hkd!=null?pnl(o.pnl_hkd):'—')+'</td></tr>';}).join('')+'</tbody></table></div>';
+  }
+  el.innerHTML=h;
+}
+function unreal_opt_liab(acc){
+  /* 沽空期權負債唔在 account dict——全清期 0；有倉時用義務近似（風控行已有官方數） */
+  return 0;
 }
 var PROG_KEY='usd_prog_2026';
 function drawProg(){

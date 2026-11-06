@@ -248,10 +248,10 @@ def series(t):
 try:
     import yfinance as yf
     tick_map = {"^GSPC": "SPX", "^VIX": "VIX"}
-    dl = yf.download(names + C96 + ["^GSPC", "^VIX", "NBIS", "RSP"], period="2y", interval="1d",
+    dl = yf.download(names + C96 + ["^GSPC", "^VIX", "RSP"], period="2y", interval="1d",
                      group_by="column", auto_adjust=False, progress=False, threads=True)
     last_close, prev_close = {}, {}
-    for t in names + C96 + ["^GSPC", "^VIX", "NBIS", "RSP"]:
+    for t in names + C96 + ["^GSPC", "^VIX", "RSP"]:
         try:
             sub = series(t)
             if sub is not None and len(sub) >= 2:
@@ -617,15 +617,7 @@ if cum_frac and cum_frac > CUM_CAP_FRAC and candidates:
 cum_margin = sum(c["margin"] for c in candidates)
 cum_frac = cum_margin / NAV_USD if NAV_USD else None
 
-# ---------- 8. NBIS 倒數（⭐11-07：165C 已過期收袋 +$1,970，轉入 roll 決策） ----------
-nbis_spot = px.get("NBIS")
-nbis = dict(spot=usd(nbis_spot), strike=165, expiry="2026-11-06", trigger="165C 已過期（11-06 收袋 +$1,970）",
-            td_left=0, shares=200, contracts=0, avg_cost=200.0, cc_banked=1970,
-            basis_now=round((200.0 * 200 - 1970) / 200, 2),
-            basis_with_roll=None,
-            light=lights.get("NBIS-C-165.0-2026-11-06", "?"),
-            plan="股票腿先決（NBIS 佔戶口 6 成）：反彈減半 vs 照企；call 腿：12-18 C140×2 收 ~$3,194——賣 call 無下行保護，風控喺股票腿",
-            roll=[])
+# ---------- 8. NBIS 倒數（已移除——11-07 episode 結清：200 股 @127 沽出＋165C 過期收袋，帳戶全清） ----------
 
 # ---------- 8b. 我的倉／戶口實數／風控行（⭐11-06 round-2；round-2b 蟲修＝真數源） ----------
 # ⭐ round-2b 蟲修：options_rec portfolio／monitor history 嗰啲 equity 係「引擎模擬簿」
@@ -698,6 +690,11 @@ try:
                                         mkt_val_hkd=_rp.get("mkt_val_hkd"), pnl_hkd=_rp.get("pnl_hkd"),
                                         pnl_pct=_rp.get("pnl_pct")))
         elif _rp.get("kind") == "option":
+            _oc = str(_rp.get("code", "")).split(".", 1)[-1]
+            _om = _re.search(r"(\d{6})[CP]", _oc)
+            _oexp = _om.group(1) if _om else ""
+            if _oexp and _oexp < datetime.date.today().strftime("%y%m%d"):
+                continue  # 11-07：過期未結算 Futu row（例 NBIS 261106C165000）唔入帳面——同義務閘一致
             account["opt_legs"].append(dict(ticker=_rp.get("ticker"), code=_rp.get("code"),
                                             shares=_rp.get("shares"), strike=_rp.get("avg_cost"),
                                             pnl_hkd=_rp.get("pnl_hkd"), expiry=str(_rp.get("code", ""))[-7:-5]))
@@ -716,7 +713,7 @@ try:
             _fill_unds.add(_base)
         account["fill_unds"] = sorted(_fill_unds)
         _closed = {k: round(v) for k, v in sorted(_flow.items(), key=lambda kv: kv[1])
-                   if k not in _real_stock_tickers | {"NBIS"}}
+                   if k not in _real_stock_tickers}
         account["closed_codes"] = _closed
         account["closed_88d_usd"] = round(sum(_closed.values()))
         account["closed_88d_hkd"] = round(account["closed_88d_usd"] * FX_USDHKD)
@@ -811,14 +808,9 @@ try:
 except Exception as _e:
     note("倉位 spot 併合失敗：%s" % _e)
 try:
-    # 義務＝真倉（Futu 驗證過）short strike notional＋NBIS 165C（未過期先計）
+    # 義務＝真倉（Futu 驗證過）short strike notional
     _oblig = sum((p.get("strike") or 0) * 100 * (p.get("contracts") or 0)
                  for p in positions_out if p.get("verified"))
-    try:
-        if str(nbis.get("expiry") or "") >= datetime.date.today().isoformat():
-            _oblig += 165 * 100 * (nbis.get("contracts") or 0)
-    except Exception:
-        pass
     risk["obligation_usd"] = round(_oblig)
     _eq = account.get("equity_usd")
     risk["equity_usd_live"] = _eq
@@ -826,30 +818,6 @@ try:
     risk["oblig_cash_ratio"] = (round(_oblig / _eq, 2) if _eq else None)
 except Exception as _e:
     note("義務比計算失敗：%s" % _e)
-if nbis_spot:
-    _rl = []
-    try:
-        import yfinance as _yf2
-        for _exp in ("2026-11-20", "2026-12-18"):
-            _cc = _yf2.Ticker("NBIS").option_chain(_exp).calls
-            for _r in _cc.itertuples():
-                if _r.strike in (130.0, 135.0, 140.0, 150.0):
-                    _mid = (_r.bid + _r.ask) / 2 if _r.ask else _r.lastPrice
-                    if _mid:
-                        _rl.append(dict(expiry=_exp, strike=int(_r.strike), mid=round(float(_mid), 2),
-                                        credit2=round(float(_mid) * 200)))
-    except Exception as _e2:
-        note("NBIS roll chain 失敗：%s" % _e2.__class__.__name__)
-    nbis["roll"] = _rl
-    for _rr in _rl:
-        if _rr.get("expiry") == "2026-12-18" and _rr.get("strike") == 140:
-            nbis["basis_with_roll"] = round(nbis.get("basis_now") - _rr["mid"], 2)
-    if nbis_spot < 120:
-        nbis["state"] = "低於 120——按金警戒（佔戶口 6 成）"
-    elif nbis_spot <= 145:
-        nbis["state"] = "賣 call 收息區（12-18 C140 錨）"
-    else:
-        nbis["state"] = "反彈——140C 接貨風險升"
 
 # ---------- 9. 總判決（⭐11-02 熊狀態門＋⭐11-05 雙閘＋⭐11-05 拍板(b)：雷達 RED 豁免 C96 腿） ----------
 # 分腿制：雷達只封 AI 池＋指數腿；C96 腿閘＝RSP 全市閘＋VIX band＋credit break-glass，雷達 RED 淨縮 δ0.02。
@@ -956,7 +924,6 @@ out = dict(
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),
              cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin),
              dropped=cum_dropped),
-    nbis=nbis,
     positions=positions_out, positions_paper=positions_paper, ytd=ytd, risk=risk,
     account=dict(cash_hkd=CASH_HKD, fx=FX_USDHKD, nav_usd=round(NAV_USD, 0),
                  single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0), **account),
