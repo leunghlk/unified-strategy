@@ -619,6 +619,17 @@ cum_frac = cum_margin / NAV_USD if NAV_USD else None
 
 # ---------- 8. NBIS 倒數（已移除——11-07 episode 結清：200 股 @127 沽出＋165C 過期收袋，帳戶全清） ----------
 
+# ⭐11-07 用戶令：每條候選 leg 番歷史勝率（per-symbol WR；spr10_2026 優先→v4g naked；樣本少照畀、UI 顯示 n 筆）
+try:
+    _wrdb = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "per_symbol_wr.json")))
+except Exception:
+    _wrdb = {}
+for _c in candidates + c96_candidates:
+    _w = _wrdb.get(str(_c.get("sym") or ""))
+    if _w:
+        _c["wr"], _c["wr_n"], _c["wr_src"] = _w.get("wr"), _w.get("n"), _w.get("src")
+
+
 # ---------- 8b. 我的倉／戶口實數／風控行（⭐11-06 round-2；round-2b 蟲修＝真數源） ----------
 # ⭐ round-2b 蟲修：options_rec portfolio／monitor history 嗰啲 equity 係「引擎模擬簿」
 #   （700k 重基合成分母＋paper 模擬單 −90,945 溝埋），唔係用戶戶口——用戶鬧「d數唔岩」。
