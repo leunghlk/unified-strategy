@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-07 11:39 HKT",
+ "as_of": "2026-11-08 01:23 HKT",
  "bar_date": "2026-11-06",
  "data_fresh": true,
  "intraday": false,
@@ -19,7 +19,7 @@
   "mkt_gate_bad": false,
   "spx_sma200": 7325.05,
   "mkt_state": "bull",
-  "et_note": "ET 而家 2026-11-06 週五（已收市，16:00 ET）——下列＝今日（2026-11-06 週五）收市價；HKT 而家 11-07 11:39",
+  "et_note": "ET 而家 2026-11-07 週六（休市）——最新美股交易日係 2026-11-06（週五），HKT 而家 11-08 01:23",
   "bar_wd": "週五"
  },
  "radar": {
@@ -136,7 +136,7 @@
    "premium_in": 535.5,
    "margin": 3964.5,
    "cash_after": 49680.62,
-   "iv_used": 25.8,
+   "iv_used": 26.1,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "rv21_pctl": 85.0,
@@ -144,7 +144,9 @@
    "pool": "C96",
    "wr": 50,
    "wr_n": 2,
-   "wr_src": "v4g_naked"
+   "wr_src": "v4g_naked",
+   "status": "❌ 作廢",
+   "status_why": "執行審計：可執行 credit 2.90 對票面 mid 5.13＝−43%；短腿 mid spread 46% 過流動性閘——票面 mid 係 fiction（2026-11-07）"
   }
  ],
  "paper_candidates": [],
@@ -294,7 +296,7 @@
    "premium_in": 535.5,
    "margin": 3964.5,
    "cash_after": 49680.62,
-   "iv_used": 25.8,
+   "iv_used": 26.1,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "rv21_pctl": 85.0,
@@ -302,7 +304,9 @@
    "pool": "C96",
    "wr": 50,
    "wr_n": 2,
-   "wr_src": "v4g_naked"
+   "wr_src": "v4g_naked",
+   "status": "❌ 作廢",
+   "status_why": "執行審計：可執行 credit 2.90 對票面 mid 5.13＝−43%；短腿 mid spread 46% 過流動性閘——票面 mid 係 fiction（2026-11-07）"
   },
   {
    "sym": "MO",
@@ -319,7 +323,7 @@
    "premium_in": 211.5,
    "margin": 2038.5,
    "cash_after": 49356.62,
-   "iv_used": 23.9,
+   "iv_used": 24.2,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "rv21_pctl": 80.0,
@@ -327,7 +331,10 @@
    "pool": "C96",
    "wr": 100,
    "wr_n": 1,
-   "wr_src": "v4g_naked"
+   "wr_src": "v4g_naked",
+   "exec_credit": 0.46,
+   "status": "✅ 可落",
+   "status_why": "短腿 22% 過閘；長腿（買）mid spread 149% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $0.46 對 mid $0.71（−35%）"
   },
   {
    "sym": "MA",
@@ -344,12 +351,15 @@
    "premium_in": 830.0,
    "margin": 5670.0,
    "cash_after": 49975.12,
-   "iv_used": 25.2,
+   "iv_used": 25.5,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "rv21_pctl": 89.0,
    "earn_td": 59,
-   "pool": "C96"
+   "pool": "C96",
+   "exec_credit": 4.35,
+   "status": "⛔ 流動性閘",
+   "status_why": "短腿（賣）mid spread 62% >35%——收價 fiction，掛 mid 都收唔到（MAX_SPREAD_FRAC 0.35）"
   },
   {
    "sym": "TMO",
@@ -366,12 +376,15 @@
    "premium_in": 980.0,
    "margin": 6020.0,
    "cash_after": 50125.12,
-   "iv_used": 35.4,
+   "iv_used": 35.8,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "rv21_pctl": 61.0,
    "earn_td": 59,
-   "pool": "C96"
+   "pool": "C96",
+   "exec_credit": 8.1,
+   "status": "✅ 可落",
+   "status_why": "短腿 15% 過閘；長腿（買）mid spread 39% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $8.10 對 mid $9.80（−17%）"
   },
   {
    "sym": "ISRG",
@@ -388,7 +401,7 @@
    "premium_in": 762.5,
    "margin": 3737.5,
    "cash_after": 49907.62,
-   "iv_used": 38.3,
+   "iv_used": 38.7,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "rv21_pctl": 84.0,
@@ -396,7 +409,10 @@
    "pool": "C96",
    "wr": 100,
    "wr_n": 2,
-   "wr_src": "v4g_naked"
+   "wr_src": "v4g_naked",
+   "exec_credit": 1.6,
+   "status": "⛔ 流動性閘",
+   "status_why": "短腿（賣）mid spread 72% >35%——收價 fiction，掛 mid 都收唔到（MAX_SPREAD_FRAC 0.35）"
   }
  ],
  "ownable6": [
@@ -478,7 +494,7 @@
    "ticker": "V",
    "side": "BULL_PUT_SPREAD",
    "expiry": "2026-12-18",
-   "dte": 41,
+   "dte": 40,
    "strike": 410.0,
    "long_k": 365.0,
    "contracts": 1,
@@ -494,7 +510,7 @@
    "ticker": "ZS",
    "side": "BULL_PUT_SPREAD",
    "expiry": "2026-12-18",
-   "dte": 41,
+   "dte": 40,
    "strike": 210.0,
    "long_k": 189.0,
    "contracts": 1,
@@ -517,22 +533,22 @@
  },
  "risk": {
   "obligation_usd": 0,
-  "equity_usd_live": 43088.3,
+  "equity_usd_live": 43090.3,
   "oblig_cash_ratio": 0.0,
-  "margin_used_pct": 63.6,
-  "cash_usd": 15621
+  "margin_used_pct": 1.9,
+  "cash_usd": 42039
  },
  "account": {
   "cash_hkd": 382349.0,
   "fx": 7.78,
   "nav_usd": 49145.0,
   "single_cap_usd": 2457.0,
-  "total_hkd": 336089,
-  "equity_usd": 43088.3,
-  "us_cash_power_usd": 15621,
+  "total_hkd": 336105,
+  "equity_usd": 43090.3,
+  "us_cash_power_usd": 42039,
   "long_mv_hkd": 0,
   "fund_assets_hkd": 130715,
-  "init_margin_hkd": 213641,
+  "init_margin_hkd": 6536,
   "maint_margin_hkd": 0,
   "real_cash_hkd": 205390,
   "anchor_hkd": 382349,
@@ -541,8 +557,8 @@
   "opt_legs": [],
   "unreal_stock_hkd": 0,
   "unreal_opt_hkd": 0,
-  "closed_88d_usd": -39156,
-  "closed_88d_hkd": -304634,
+  "closed_88d_usd": -39400,
+  "closed_88d_hkd": -306532,
   "closed_codes": {
    "BE": -11040,
    "NET": -10170,
@@ -555,14 +571,13 @@
    "MRNA": -720,
    "LITE": -427,
    "DRAM": -271,
-   "MSFT": -20,
    "APP": 187,
    "DLLL": 283,
    "XSP": 405,
    "CRDO": 545,
    "DELL": 645,
    "COHR": 700,
-   "DDOG": 1248,
+   "MSFT": 984,
    "ADBE": 1260
   },
   "fill_unds": [
@@ -572,7 +587,6 @@
    "BE",
    "COHR",
    "CRDO",
-   "DDOG",
    "DELL",
    "DLLL",
    "DRAM",
@@ -587,7 +601,7 @@
    "WDC",
    "XSP"
   ],
-  "ts": "2026-11-07T11:31:34"
+  "ts": "2026-11-08T01:15:43"
  },
  "config": {
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",

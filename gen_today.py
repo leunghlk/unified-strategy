@@ -629,6 +629,82 @@ for _c in candidates + c96_candidates:
     if _w:
         _c["wr"], _c["wr_n"], _c["wr_src"] = _w.get("wr"), _w.get("n"), _w.get("src")
 
+# ⭐11-08 用戶令（板面作廢事件）：候選腿三層狀態閘——①手寫判決檔 leg_verdicts.json ②live 鏈流動性閘
+#   （腿 mid spread >35%＝mid 價 fiction，MAX_SPREAD_FRAC 0.35）③可執行 credit 對比（sell@bid−buy@ask
+#   < 50% 票面 mid＝票面灌水）。教訓：V 405/360 票面 mid 5.13 係 fiction（可執行 2.90＝−43%），
+#   判決以前只喺研究報告度、板面照顯示舊票面——用戶跟板做會踩中已作廢腿。判決層由今日起直接上板。
+def _leg_verdicts_load():
+    try:
+        return json.load(open("/Users/leungkathy/quant_model/leg_verdicts.json"))
+    except Exception:
+        return {}
+
+_LEG_VERDICTS = _leg_verdicts_load()
+
+def _kfmt(_x):
+    """strike key 正規化：405.0→405，避免手寫判決檔 key 對唔上 float strike"""
+    try:
+        _f = float(_x)
+        return str(int(_f)) if _f == int(_f) else str(_f)
+    except Exception:
+        return str(_x)
+
+def _validate_legs(cands):
+    for _c in cands:
+        _key_t = "%s %s/%s" % (_c.get("sym"), _kfmt(_c.get("short_k")), _kfmt(_c.get("long_k")))
+        _v = _LEG_VERDICTS.get(_key_t) or _LEG_VERDICTS.get(str(_c.get("sym") or ""))
+        if _v and _v.get("status"):
+            _c["status"], _c["status_why"] = _v["status"], "%s（%s）" % (_v.get("reason", ""), _v.get("date", ""))
+            continue
+        _st = _why = None
+        _exec = None
+        try:
+            _bc = bridge_chain(_c.get("sym"), _c.get("expiry"))
+            if not _bc:
+                _st, _why = "⚠️ 無鏈", "bridge 攞唔到報價——fail-closed 當封，唔好落"
+            else:
+                _ls = _ll = None
+                for _r in _bc.get("puts", []):
+                    if abs(float(_r["strike"]) - float(_c["short_k"])) < 0.01:
+                        _ls = _r
+                    if abs(float(_r["strike"]) - float(_c["long_k"])) < 0.01:
+                        _ll = _r
+                def _frac(r):
+                    if not r:
+                        return None
+                    _b, _a = r.get("bid") or 0, r.get("ask") or 0
+                    _m = (_b + _a) / 2.0
+                    return (_a - _b) / _m if _m > 0 else None
+                _fs, _fl = _frac(_ls), _frac(_ll)
+                if _ls and _ll:
+                    _exec = round((_ls.get("bid") or 0) - (_ll.get("ask") or 0), 2)
+                    _c["exec_credit"] = _exec
+                if _fs is not None and _fs > 0.35:
+                    _st, _why = "⛔ 流動性閘", "短腿（賣）mid spread %.0f%% >35%%——收價 fiction，掛 mid 都收唔到（MAX_SPREAD_FRAC 0.35）" % round(_fs * 100)
+                else:
+                    _warn = ""
+                    if _fl is not None and _fl > 0.35:
+                        _warn = "；長腿（買）mid spread %.0f%% 闊——只准 combo 限價落，唔准逐腿市價" % round(_fl * 100)
+                    if _exec is not None and _exec > 0:
+                        try:
+                            _tick = float(str(_c["credit"]).replace("US$", "").replace("$", "").replace(",", ""))
+                        except Exception:
+                            _tick = None
+                        if _tick and _exec < _tick * 0.5:
+                            _st, _why = "❌ 票面灌水", "可執行 %.2f 對票面 mid %.2f（−%.0f%%）——實收腰斬，票要重生成" % (_exec, _tick, (1 - _exec / _tick) * 100)
+                        elif _tick:
+                            _st, _why = "✅ 可落", "短腿 %.0f%% 過閘%s；可執行 $%.2f 對 mid $%.2f（−%.0f%%）" % (round(_fs * 100) if _fs is not None else 0, _warn, _exec, _tick, (1 - _exec / _tick) * 100)
+                        else:
+                            _st, _why = "✅ 可落", "短腿 %.0f%% 過閘%s；可執行 $%.2f" % (round(_fs * 100) if _fs is not None else 0, _warn, _exec)
+                    else:
+                        _st, _why = "⚠️ 無報價", "鏈內搵唔到齊 bid/ask 嘅對應 strike——fail-closed 當封"
+        except Exception as _ex:
+            _st, _why = "⚠️ 複檢失敗", "%s——fail-closed 當封" % _ex.__class__.__name__
+        _c["status"], _c["status_why"] = _st, _why
+
+_validate_legs(candidates)
+_validate_legs(c96_candidates)
+
 
 # ---------- 8b. 我的倉／戶口實數／風控行（⭐11-06 round-2；round-2b 蟲修＝真數源） ----------
 # ⭐ round-2b 蟲修：options_rec portfolio／monitor history 嗰啲 equity 係「引擎模擬簿」
