@@ -988,7 +988,63 @@ try:
 except Exception:
     intraday = None
 
+# ---------- 10. ROADMAP 決策樹（⭐11-08 ROADMAP_決策路徑：A狀態閘→B結構→C篩選→D sizing→E出場→F出事） ----------
+_r_vix_ok = bool(vix) and not math.isnan(vix)
+_r_collapse = (breadth_regime == "collapse")
+_r_bear = (mkt_state != "bull")
+_r_red = (radar_level == "RED")
+_r_state, _r_txt = "🟢 正常", "全行：指數腿＋單名＋C96 照三層閘"
+if (_r_collapse) or (not _r_vix_ok) or (_r_vix_ok and vix > 32):
+    _r_state, _r_txt = "⛔ 全停", "VIX>32／廣度塌陷／數據 fail-closed——唔開新倉，現有倉入 break-glass"
+elif _r_red:
+    _r_state, _r_txt = "🟠 半停（RED）", "AI 池封＋指數腿停新開；C96 板塊頭部豁免（δ縮深0.02＋credit 下限）"
+elif _r_bear:
+    _r_state, _r_txt = "🔴 熊門（半停）", "單名全封；指數腿照行 δ 縮深＋唔加張"
+elif _r_vix_ok and vix >= 25:
+    _r_state, _r_txt = "🟡 高波動", "照行：δ縮深 0.28-0.32＋唔加張"
+_sp = None
+try:
+    _sp = json.load(open("/Users/leungkathy/quant_model/stop_protocol_state.json"))
+except Exception:
+    pass
+_roadmap = dict(
+    state=_r_state, state_txt=_r_txt,
+    steps=[
+      dict(id="A", name="①狀態閘｜今日行唔行？（由上而下，中咗就停）", checks=[
+        dict(q="VIX > 32？", v=("VIX %.1f" % vix) if _r_vix_ok else "VIX 讀唔到", hit=((not _r_vix_ok) or vix > 32), yes="⛔全停", no="→A2"),
+        dict(q="廣度塌陷（RSP 全市閘／-20pct 速度鐘）？", v="regime=%s" % breadth_regime, hit=_r_collapse, yes="⛔全停", no="→A3"),
+        dict(q="SPX < SMA200（熊門）？", v="SPX %s vs SMA200 %s＝%s" % (usd(spx), usd(spx_sma200) if not math.isnan(spx_sma200) else "?", mkt_state), hit=_r_bear, yes="🔴熊門：單名封指數照", no="→A4"),
+        dict(q="殺倉雷達 RED？", v=radar_level, hit=_r_red, yes="🟠半停：AI池封＋C96豁免", no="→A5"),
+        dict(q="VIX 帶位？", v=vix_band or "?", hit=False, yes="", no=(_r_state)),
+      ]),
+      dict(id="B", name="②結構矩陣｜行邊種？", checks=[
+        dict(q="CSP naked？", v="帳戶≈$%dk：單腿5%%NAV按金閘→0-1張位" % round(NAV_USD/1000), hit=None, yes="", no="❌ 冇得揀全部 PCS——CSP 要帳戶翻 700k 先有合法位（11-08 判決②）"),
+        dict(q="指數腿（SPX/XSP PCS）？", v="VIX %.1f＋regime %s＋RED=%s（floor20：VIX≥20 先開）" % (vix if _r_vix_ok else 0, breadth_regime, _r_red), hit=((not _r_vix_ok) or vix < 20 or _r_collapse or _r_red), yes="封（VIX<20 冇肉／塌陷／RED 停新開）", no="✅ 開（δ 錨 0.29／部署底 0.25）"),
+        dict(q="單名 AI 池？", v="regime=%s／熊門=%s／RED=%s" % (breadth_regime, _r_bear, _r_red), hit=(_r_bear or _r_red or _r_collapse), yes="封（熊門/RED/塌陷）", no="✅ screen 過閘"),
+        dict(q="C96 板塊頭部？", v="RED=%s%s" % (_r_red, "／δ縮深0.02" if _r_red else ""), hit=False, yes="", no=("✅ RED 豁免腿：δ縮深0.02＋credit 下限" if _r_red else "✅ 照篩（RED 響時做豁免腿）")),
+      ]),
+      dict(id="C", name="③揀票篩選鏈（gen_today 自動逐關斬）", checks=[
+        dict(q="池→δ→DTE 30-45→credit 下限→三層閘", v="今日 %d 候選過三層閘（AI %d＋C96 %d）" % (len(candidates)+len(c96_candidates), len(candidates), len(c96_candidates)), hit=None, yes="", no="斬條件：判決檔❌／短腿 spread>35%% ⛔／可執行<50%% 票面❌"),
+      ]),
+      dict(id="D", name="④sizing cap（防 margin call 唯一真防線）", checks=[
+        dict(q="單腿 ≤5% NAV｜cum ≤12% NAV", v="今日 cum margin=%s（cap %d%%=%s）" % (usd(cum_margin), round(CUM_CAP_FRAC*100), usd(NAV_USD*CUM_CAP_FRAC)), hit=None, yes="", no="超＝唔開（裂口日唯一防線，止蝕盤防唔到單夜×4）"),
+      ]),
+      dict(id="E", name="⑤出場尺（engine 自動盯＋🛑三次確認止蝕）", checks=[
+        dict(q="PT50 止賺", v="市價跌到 credit 一半→自動落袋", hit=None, yes="", no="✅ sealed"),
+        dict(q="輸邊硬規：spread≥2×credit／短腿觸及", v="🛑三次確認：6min連續bid穿＋3次TG＋30min無取消自動落盤；彈返即重置", hit=None, yes="", no="✅ 三次確認協議 11-08 起"),
+        dict(q="earnings／assignment 防線", v="財報前必平／DTE≤5＋S<K＋S<0.95×MA50", hit=None, yes="", no="✅ 現行"),
+        dict(q="MTM1× 指數腿＋PCS≥3×", v="拍板①未批／6樣本 paper 4週", hit=None, yes="", no="⏳ 等拍板"),
+      ]),
+      dict(id="F", name="⑥出事", checks=[
+        dict(q="熊門／塌陷鐘響→N× 硬閘武裝", v="拍板②未批；硬規嚴執行照行", hit=None, yes="", no="⏳"),
+        dict(q="break-glass", v="enabled", hit=None, yes="", no="✅"),
+      ]),
+    ],
+    stop_protocol=(dict(active=_sp.get("active"), leg=_sp.get("leg_key"), t0=_sp.get("t0"), polls=_sp.get("polls"), note="🛑 三次確認進行中") if (_sp and _sp.get("active")) else None),
+)
+
 out = dict(
+    roadmap=_roadmap,
     as_of=datetime.datetime.now().strftime("%Y-%m-%d %H:%M HKT"),
     bar_date=bar_date, data_fresh=yf_ok, intraday=intraday,
     market=dict(spx=usd(spx), spx_chg=(None if not spx_prev or math.isnan(spx_prev) else round(100 * (spx / spx_prev - 1), 2)),

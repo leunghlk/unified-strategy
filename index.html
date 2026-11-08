@@ -94,6 +94,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <span class="tab" data-t="t4" onclick="setTab('t4',this)">💰 回本路徑</span>
   <span class="tab" data-t="t5" onclick="setTab('t5',this)">🌌 宇宙 117＋C96</span>
   <span class="tab" data-t="t6" onclick="setTab('t6',this)">⚙️ Engine·TG·拍板</span>
+  <span class="tab" data-t="t7" onclick="setTab('t7',this)">🗺️ Roadmap</span>
 </div></div>
 
 <div class="wrap">
@@ -465,6 +466,23 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   </div>
 </div>
 
+<!-- ═══════════ T7 ROADMAP 決策樹 ═══════════ -->
+<div id="t7" class="tabc" style="display:none">
+  <div class="card">
+    <h3>🗺️ ROADMAP 決策樹（11-08 版）</h3>
+    <div id="rmState" class="desc">today.json 載入中……</div>
+    <div class="note" style="margin-top:6px">成個系統（板面／engine／TG alerts）跟呢棵樹行：①狀態閘（由上而下，中咗就停）→②結構矩陣→③篩選鏈→④sizing cap→⑤出場尺→⑥出事。<b>綠 NO＝過關落下一關；紅 YES＝觸發行動</b>。規則來源：ROADMAP_決策路徑_2026-11-08.md（fail-closed：數據攞唔到＝當封）。</div>
+  </div>
+  <div id="rmTree"></div>
+  <div class="card" style="margin-top:12px">
+    <h3>🛑 止蝕三次確認協議（11-08 起生效——防假跌穿）</h3>
+    <div class="note" id="rmStopProto">狀態：無進行中止蝕確認。</div>
+    <div class="note" style="margin-top:6px">流程：輸邊硬規觸發（spread≥2×credit／短腿觸及）→ <b>T0</b> 用 bid 連續 3 poll（6 分鐘）都喺位＝真穿（彈返觸發位上方即重置＋TG 報「假穿回升」）→ <b>第1響</b> TG 預警 → <b>第2響</b>（T0+10min）確認中 → <b>第3響</b>（T0+20min）最後確認「10 分鐘後自動落止蝕盤」→ <b>T0+30min</b> 無取消＝自動落盤（mid+35% cap 限價，走唔到 retry 3 次＋TG）。<b>取消方法</b>：下面「🛑 取消止蝕」掣，或者你自己喺 Futu 手動平咗（engine 落盤前會驗倉，倉已平就唔會重複落盤）。</div>
+    <button id="rmStopCancel" style="margin-top:8px;padding:8px 18px;background:#b45309;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px" onclick="stopProtocolCancel()">🛑 取消止蝕（如有進行中確認，按呢度）</button>
+    <span id="rmStopCancelMsg" class="note" style="margin-left:8px"></span>
+  </div>
+</div>
+
 </div><!-- /wrap -->
 
 <div class="foot"><span style="color:#1a73e8;font-weight:700">leungkathy</span> · All-in-One Financial Dashboard Suite — 統一策略台（四合一統一簿 · OOS 七窗 · 回本 700K）· 數據截至 <span id="footBarDate">2026-10-30</span> 收市，真倉決策以 Futu OpenD＋bridge 實時為準</div>
@@ -472,6 +490,39 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <script>
 var WORKER='https://quant-api.leunghlk.workers.dev/api/market-status';
 function setTab(id,el){document.querySelectorAll('.tabc').forEach(function(e){e.style.display='none';});document.getElementById(id).style.display='block';document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('act');});el.classList.add('act');}
+/* ═══ 🗺️ T7 ROADMAP 決策樹（11-08）═══ */
+function renderRoadmap(d){
+  var rm=d.roadmap; if(!rm)return;
+  var st=document.getElementById('rmState');
+  if(st){var _c=(rm.state||'').indexOf('⛔')===0?'r':((rm.state||'').indexOf('🟢')===0?'g':'y');
+    st.innerHTML='今日 roadmap 狀態：<span class="pill '+_c+'" style="font-size:14px">'+rm.state+'</span>　'+(rm.state_txt||'')+'　<span style="color:#94a3b8;font-size:11px">（asof '+ (d.as_of||'') +'）</span>';}
+  var h='';
+  (rm.steps||[]).forEach(function(s){
+    h+='<div class="card" style="margin-top:10px"><h3 style="margin:0 0 6px">'+s.name+'</h3><div class="table-scroll"><table style="width:100%"><tbody>';
+    (s.checks||[]).forEach(function(c,i){
+      var isY=(c.hit===true),isN=(c.hit===false),isI=(c.hit===null||c.hit===undefined);
+      var pill=isY?'<span class="pill r">YES</span>':(isN?'<span class="pill g">NO</span>':'<span class="pill n">—</span>');
+      var res=isY?c.yes:(isN?c.no:(c.no||c.yes||''));
+      h+='<tr'+(i?' style="border-top:1px solid #e2e8f0"':'')+'><td style="width:30%;padding:4px 6px">'+c.q+'</td><td style="width:30%;padding:4px 6px;color:#64748b;font-size:11.5px">'+(c.v||'')+'</td><td style="width:7%;padding:4px 6px">'+pill+'</td><td style="padding:4px 6px;font-size:12.5px">'+(res||'—')+'</td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+  });
+  var tr=document.getElementById('rmTree'); if(tr)tr.innerHTML=h||'<div class="desc">roadmap 數據未有——跑 gen_today.py 補。</div>';
+  var sp=d.stop_protocol,el=document.getElementById('rmStopProto');
+  if(el){if(sp&&sp.active){el.innerHTML='狀態：<span class="pill r">🛑 三次確認進行中</span>　倉：<b>'+(sp.leg||'?')+'</b>　T0：'+(sp.t0||'?')+'　連續確認 poll：'+(sp.polls||0)+'／3<br>要取消：按下面掣，或者你 Futu 手動平咗——engine 落盤前會驗倉，倉已平唔會重複落。';}
+  else{el.innerHTML='狀態：<span class="pill g">無進行中止蝕確認</span>。';}}
+}
+function stopProtocolCancel(){
+  var msg=document.getElementById('rmStopCancelMsg');
+  var sec=null;try{sec=localStorage.getItem('qbridge_secret');}catch(e){}
+  if(!sec){msg.textContent='⚠️ 冇 bsecret——網址加 ?bsecret=（一次）';msg.style.color='#b45309';return;}
+  msg.textContent='⏳ 寫入取消 flag…';
+  fetch('http://127.0.0.1:8765/stop_cancel?secret='+encodeURIComponent(sec),{method:'POST'})
+    .then(function(r){return r.json();}).then(function(j){
+      if(j&&j.ok){msg.textContent='✅ 已寫入取消 flag——engine 下一個 poll（≤2min）取消進行中確認，轉 alert-only。';msg.style.color='#15803d';}
+      else{msg.textContent='⚠️ '+((j&&j.error)||'失敗');msg.style.color='#b45309';}
+    }).catch(function(){msg.textContent='⚠️ bridge 唔喺度（127.0.0.1:8765）';msg.style.color='#b45309';});
+}
 function expZh(e){try{var dt=new Date(e+'T00:00:00');return (dt.getMonth()+1)+'月'+dt.getDate()+'日（週'+'日一二三四五六'[dt.getDay()]+'）';}catch(err){return '';}}
 /* ⭐ 11-06 用戶令：每個候選 spread 出情景推演；11-06(晚) 用戶令：表格難睇 → 改到期盈虧圖（綠=贏紅=輸＋hover 任何價位賺蝕） */
 var FMT2=function(v){return (Number(v)||0).toLocaleString('en-US',{maximumFractionDigits:2});};
@@ -772,6 +823,7 @@ function renderToday(d){
   var pos=d.positions||[],yt=d.ytd||{},rk=d.risk||{},acc=d.account||{};
   renderPortfolio(acc,rk);
   renderGates(d);
+  renderRoadmap(d);
   var posEl=document.getElementById('tdPos');
   if(posEl){
     var posHtml='';
