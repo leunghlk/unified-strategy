@@ -841,6 +841,9 @@ try:
 except Exception as _e:
     note("我的倉讀取失敗：%s" % _e)
 # 用戶指示 paper 簿（bridge /paper_order 落單 → user_paper_orders.json；⭐11-07 button 用）
+# ⭐ 11-08：open 單已 import 入 engine 簿（options_income import_paper_orders）→ rec positions 有該 id
+# 就唔喺度重複顯示（避免雙倉）——entry_prem 首標回寫呢個檔照舊，engine 每 pass 同步返入簿。
+_eng_ids = {(_p.get("id")) for _p in (_rec.get("positions") or [])}
 try:
     import yfinance as _yf3
     _ords = json.load(open("/Users/leungkathy/quant_model/user_paper_orders.json"))
@@ -885,6 +888,9 @@ for _o in (_ords if isinstance(_ords, list) else []):
             _d["pnl_usd"] = round((_ep - _cur) * 100 * (_o.get("contracts") or 1), 0)
     except Exception as _e4:
         note("user paper mark 失敗 %s：%s" % (_o.get("ticker"), _e4.__class__.__name__))
+    # ⭐ 11-08 已 import 入 engine 簿嘅單：mark／entry 首標回寫照行（上面），顯示跳過（engine rec 有）
+    if _o.get("id") in _eng_ids:
+        continue
     positions_paper.append(_d)
 try:
     _mon = json.load(open("/Users/leungkathy/quant_model/options_monitor.json"))
