@@ -1,5 +1,167 @@
 {
- "as_of": "2026-11-08 01:23 HKT",
+ "roadmap": {
+  "state": "🟠 半停（RED）",
+  "state_txt": "AI 池封＋指數腿停新開；C96 板塊頭部豁免（δ縮深0.02＋credit 下限）",
+  "steps": [
+   {
+    "id": "A",
+    "name": "①狀態閘｜今日行唔行？（由上而下，中咗就停）",
+    "checks": [
+     {
+      "q": "VIX > 32？",
+      "v": "VIX 25.6",
+      "hit": false,
+      "yes": "⛔全停",
+      "no": "→A2"
+     },
+     {
+      "q": "廣度塌陷（RSP 全市閘／-20pct 速度鐘）？",
+      "v": "regime=partial_kill",
+      "hit": false,
+      "yes": "⛔全停",
+      "no": "→A3"
+     },
+     {
+      "q": "SPX < SMA200（熊門）？",
+      "v": "SPX 7376.86 vs SMA200 7325.05＝bull",
+      "hit": false,
+      "yes": "🔴熊門：單名封指數照",
+      "no": "→A4"
+     },
+     {
+      "q": "殺倉雷達 RED？",
+      "v": "RED",
+      "hit": true,
+      "yes": "🟠半停：AI池封＋C96豁免",
+      "no": "→A5"
+     },
+     {
+      "q": "VIX 帶位？",
+      "v": "20-32",
+      "hit": false,
+      "yes": "",
+      "no": "🟠 半停（RED）"
+     }
+    ]
+   },
+   {
+    "id": "B",
+    "name": "②結構矩陣｜行邊種？",
+    "checks": [
+     {
+      "q": "CSP naked？",
+      "v": "帳戶≈$49k：單腿5%NAV按金閘→0-1張位",
+      "hit": null,
+      "yes": "",
+      "no": "❌ 冇得揀全部 PCS——CSP 要帳戶翻 700k 先有合法位（11-08 判決②）"
+     },
+     {
+      "q": "指數腿（SPX/XSP PCS）？",
+      "v": "VIX 25.6＋regime partial_kill＋RED=True（floor20：VIX≥20 先開）",
+      "hit": true,
+      "yes": "封（VIX<20 冇肉／塌陷／RED 停新開）",
+      "no": "✅ 開（δ 錨 0.29／部署底 0.25）"
+     },
+     {
+      "q": "單名 AI 池？",
+      "v": "regime=partial_kill／熊門=False／RED=True",
+      "hit": true,
+      "yes": "封（熊門/RED/塌陷）",
+      "no": "✅ screen 過閘"
+     },
+     {
+      "q": "C96 板塊頭部？",
+      "v": "RED=True／δ縮深0.02",
+      "hit": false,
+      "yes": "",
+      "no": "✅ RED 豁免腿：δ縮深0.02＋credit 下限"
+     }
+    ]
+   },
+   {
+    "id": "C",
+    "name": "③揀票篩選鏈（gen_today 自動逐關斬）",
+    "checks": [
+     {
+      "q": "池→δ→DTE 30-45→credit 下限→三層閘",
+      "v": "今日 6 候選過三層閘（AI 1＋C96 5）",
+      "hit": null,
+      "yes": "",
+      "no": "斬條件：判決檔❌／短腿 spread>35%% ⛔／可執行<50%% 票面❌"
+     }
+    ]
+   },
+   {
+    "id": "D",
+    "name": "④sizing cap（防 margin call 唯一真防線）",
+    "checks": [
+     {
+      "q": "單腿 ≤5% NAV｜cum ≤12% NAV",
+      "v": "今日 cum margin=3964.5（cap 12%=5897.41）",
+      "hit": null,
+      "yes": "",
+      "no": "超＝唔開（裂口日唯一防線，止蝕盤防唔到單夜×4）"
+     }
+    ]
+   },
+   {
+    "id": "E",
+    "name": "⑤出場尺（engine 自動盯＋🛑三次確認止蝕）",
+    "checks": [
+     {
+      "q": "PT50 止賺",
+      "v": "市價跌到 credit 一半→自動落袋",
+      "hit": null,
+      "yes": "",
+      "no": "✅ sealed"
+     },
+     {
+      "q": "輸邊硬規：spread≥2×credit／短腿觸及",
+      "v": "🛑三次確認：6min連續bid穿＋3次TG＋30min無取消自動落盤；彈返即重置",
+      "hit": null,
+      "yes": "",
+      "no": "✅ 三次確認協議 11-08 起"
+     },
+     {
+      "q": "earnings／assignment 防線",
+      "v": "財報前必平／DTE≤5＋S<K＋S<0.95×MA50",
+      "hit": null,
+      "yes": "",
+      "no": "✅ 現行"
+     },
+     {
+      "q": "MTM1× 指數腿＋PCS≥3×",
+      "v": "拍板①未批／6樣本 paper 4週",
+      "hit": null,
+      "yes": "",
+      "no": "⏳ 等拍板"
+     }
+    ]
+   },
+   {
+    "id": "F",
+    "name": "⑥出事",
+    "checks": [
+     {
+      "q": "熊門／塌陷鐘響→N× 硬閘武裝",
+      "v": "拍板②未批；硬規嚴執行照行",
+      "hit": null,
+      "yes": "",
+      "no": "⏳"
+     },
+     {
+      "q": "break-glass",
+      "v": "enabled",
+      "hit": null,
+      "yes": "",
+      "no": "✅"
+     }
+    ]
+   }
+  ],
+  "stop_protocol": null
+ },
+ "as_of": "2026-11-08 19:35 HKT",
  "bar_date": "2026-11-06",
  "data_fresh": true,
  "intraday": false,
@@ -19,7 +181,7 @@
   "mkt_gate_bad": false,
   "spx_sma200": 7325.05,
   "mkt_state": "bull",
-  "et_note": "ET 而家 2026-11-07 週六（休市）——最新美股交易日係 2026-11-06（週五），HKT 而家 11-08 01:23",
+  "et_note": "ET 而家 2026-11-08 週日（休市）——最新美股交易日係 2026-11-06（週五），HKT 而家 11-08 19:35",
   "bar_wd": "週五"
  },
  "radar": {
@@ -601,7 +763,7 @@
    "WDC",
    "XSP"
   ],
-  "ts": "2026-11-08T01:15:43"
+  "ts": "2026-11-08T19:35:21"
  },
  "config": {
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",
