@@ -87,6 +87,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 </div></div>
 
 <div class="tabs"><div class="tabs-in">
+  <span class="tab" data-t="t7" onclick="setTab('t7',this)">🗺️ Roadmap</span>
   <span class="tab act" data-t="t0" onclick="setTab('t0',this)">🎯 今日台</span>
   <span class="tab" data-t="t1" onclick="setTab('t1',this)">📊 總覽</span>
   <span class="tab" data-t="t2" onclick="setTab('t2',this)">🧬 統一簿規格</span>
@@ -94,7 +95,6 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <span class="tab" data-t="t4" onclick="setTab('t4',this)">💰 回本路徑</span>
   <span class="tab" data-t="t5" onclick="setTab('t5',this)">🌌 宇宙 117＋C96</span>
   <span class="tab" data-t="t6" onclick="setTab('t6',this)">⚙️ Engine·TG·拍板</span>
-  <span class="tab" data-t="t7" onclick="setTab('t7',this)">🗺️ Roadmap</span>
 </div></div>
 
 <div class="wrap">
@@ -704,7 +704,7 @@ function manualRefresh(){
 var NAV_USD=49145;
 function loadToday(){
   fetch('today.json?v='+Date.now()).then(function(r){return r.json();}).then(renderToday)
-  .catch(function(){document.getElementById('tdVerdict').innerHTML='<div class="desc">today.json 讀唔到——請跑 gen_today.py 或稍後再試。</div>';});
+  .catch(function(err){try{document.title='TODAY_ERR: '+((err&&err.stack)||err);}catch(e2){}document.getElementById('tdVerdict').innerHTML='<div class="desc">today.json 讀唔到——請跑 gen_today.py 或稍後再試。<br><span style="color:#b91c1c;font-size:11px">技術詳情：'+((err&&err.message)||err)+'</span></div>';});
   /* 帳戶卡 live（⭐11-05 用戶令）：bridge /real_funds 經 worker proxy；secret 唔入公開 repo——
      ?bsecret=xxx 或 localStorage qbridge_secret；無 secret 顯示拍板②錨值 */
   ;(function(){
@@ -814,7 +814,7 @@ function renderToday(d){
     var c96c=d.c96_candidates||[];
     cwHtml+='<div style="margin-top:12px"><b>板塊頭部 C96 screen</b> <span class="pill n">11 行業×top-8——局部殺戮時真倉建議面換呢個池（11-05 雙閘）</span></div><div class="table-scroll"><table><thead><tr><th>候選</th><th class="num">現價</th><th class="num">momentum 63td</th><th class="num">IV 分位</th><th>IV 閘</th><th>Earn</th><th>Gap</th><th>定價</th></tr></thead><tbody>'+
     c96s.map(function(x){var pr=c96c.find(function(c){return c.sym===x.sym;});
-      return '<tr><td><b>'+x.sym+'</b></td><td class="num">'+x.close+'</td><td class="num">+'+x.mom63+'%</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl:'—')+'</td><td>'+(x.iv==='死亡區'?'<span class="pill r">死亡區</span>':(x.iv==='半'?'<span class="pill y">半</span>':'<span class="pill g">全</span>'))+'</td><td>'+(x.earn==='禁'?'<span class="pill r">禁</span>':(x.earn==='ok'?'<span class="pill g">ok</span>':'—'))+'</td><td>'+(x.gap==='禁'?'<span class="pill r">禁</span>':'<span class="pill g">ok</span>')+'</td><td class="num">'+(pr?'賣<b>'+pr.short_k+'</b>P／買'+pr.long_k+'P　$'+pr.credit+'（mid）<br><span style="color:#64748b;font-size:11px">'+expZh(pr.expiry)+'到期 · '+pr.dte_td+'個交易日'+(pr.credit_worst?' · 掛價低至 $'+pr.credit_worst:'')+'</span><br><span style="color:#64748b;font-size:11px">'+pr.contracts+'張 · 最大虧損 $'+pr.max_loss+' · 共收 $'+pr.premium_in+' · δ'+pr.delta+(pr.wr!=null?'</span><br><span style="color:#64748b;font-size:11px" title="歷史勝率（同隻名同類結構）：'+pr.wr_n+' 筆樣本，'+(pr.wr_src==='spr10_2026'?'2026 spr10 實錄':'v4g naked 回測')+'">勝率 <b>'+pr.wr+'%</b>（'+pr.wr_n+'筆）':'')+'</span>':'—')+(pr.status?'<br><span class="pill '+((pr.status||'').indexOf('✅')===0?'g':((pr.status||'').indexOf('⛔')===0?'y':'r'))+'" title="'+(pr.status_why||'')+'">'+pr.status+'</span>':'')+'</td></tr>';}).join('')+
+      return '<tr><td><b>'+x.sym+'</b></td><td class="num">'+x.close+'</td><td class="num">+'+x.mom63+'%</td><td class="num">'+(x.rv21_pctl!=null?x.rv21_pctl:'—')+'</td><td>'+(x.iv==='死亡區'?'<span class="pill r">死亡區</span>':(x.iv==='半'?'<span class="pill y">半</span>':'<span class="pill g">全</span>'))+'</td><td>'+(x.earn==='禁'?'<span class="pill r">禁</span>':(x.earn==='ok'?'<span class="pill g">ok</span>':'—'))+'</td><td>'+(x.gap==='禁'?'<span class="pill r">禁</span>':'<span class="pill g">ok</span>')+'</td><td class="num">'+(pr?'賣<b>'+pr.short_k+'</b>P／買'+pr.long_k+'P　$'+pr.credit+'（mid）<br><span style="color:#64748b;font-size:11px">'+expZh(pr.expiry)+'到期 · '+pr.dte_td+'個交易日'+(pr.credit_worst?' · 掛價低至 $'+pr.credit_worst:'')+'</span><br><span style="color:#64748b;font-size:11px">'+pr.contracts+'張 · 最大虧損 $'+pr.max_loss+' · 共收 $'+pr.premium_in+' · δ'+pr.delta+(pr.wr!=null?'</span><br><span style="color:#64748b;font-size:11px" title="歷史勝率（同隻名同類結構）：'+pr.wr_n+' 筆樣本，'+(pr.wr_src==='spr10_2026'?'2026 spr10 實錄':'v4g naked 回測')+'">勝率 <b>'+pr.wr+'%</b>（'+pr.wr_n+'筆）':'')+'</span>':'—')+((pr&&pr.status)?'<br><span class="pill '+((pr.status||'').indexOf('✅')===0?'g':((pr.status||'').indexOf('⛔')===0?'y':'r'))+'" title="'+(pr.status_why||'')+'">'+pr.status+'</span>':'')+'</td></tr>';}).join('')+
     '</tbody></table></div><div class="note">C96 局部殺戮時先出定價（其餘 regime 僅參考 screen）；earn「—」＝top-8 以外冇查 calendar。<b>credit＝mid 口徑</b>（short mid−long mid）；實際可成交＝sell@bid−buy@ask，會低過 mid——落單前照 Futu 實價覆核，<b>注意到期日要揀板面嗰個月選</b>（近月週選同一組 strike credit 細好多）。張數＝單名 5% cap 內裁（地板 1 張；闊 spread 一張 max loss 可能超 5% 單名錨，靠累計 12% 閘兜底）。paper 台照 AI 池 shadow 唔混池（11-17 檢討 C96 入 paper）。</div>';
   }
   cw.innerHTML=cwHtml;
