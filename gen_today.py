@@ -873,7 +873,7 @@ try:
         _rem = (_cp / _ep) if (_ep and _cp is not None) else None
         _d = dict(
             ticker=_p.get("ticker"), side=_p.get("side"), expiry=_p.get("expiry"), dte=_p.get("dte"),
-            strike=_p.get("strike"), contracts=_p.get("contracts"),
+            strike=_p.get("strike"), long_k=_p.get("long_k"), contracts=_p.get("contracts"),
             entry_prem=_ep, cur_prem=_cp,
             pt_remaining=(int(round(_rem * 100)) if _rem is not None else None),
             margin_req=_p.get("margin_req"), pnl_usd=_p.get("pnl_usd"), spot=_p.get("spot"),
@@ -950,8 +950,11 @@ try:
 except Exception as _e:
     note("倉位 spot 併合失敗：%s" % _e)
 try:
-    # 義務＝真倉（Futu 驗證過）short strike notional
-    _oblig = sum((p.get("strike") or 0) * 100 * (p.get("contracts") or 0)
+    # 義務＝真倉（Futu 驗證過）short strike notional；⭐ 2026-11-10: spread 淨義務＝width
+    #   （接貨即刻行使長腿 590P 對沖，淨成本 7k 而唔係 66k——舊式會將 TMO 當裸 put，
+    #    義務/現金 1.53 🔴 誤報封刀）
+    _oblig = sum((((p.get("strike") or 0) - (p.get("long_k") or 0)) if p.get("long_k")
+                  else (p.get("strike") or 0)) * 100 * (p.get("contracts") or 0)
                  for p in positions_out if p.get("verified"))
     risk["obligation_usd"] = round(_oblig)
     _eq = account.get("equity_usd")
