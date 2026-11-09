@@ -9,7 +9,7 @@
     "checks": [
      {
       "q": "VIX > 32？",
-      "v": "VIX 24.1",
+      "v": "VIX 23.4",
       "hit": false,
       "yes": "⛔全停",
       "no": "→A2"
@@ -57,7 +57,7 @@
      },
      {
       "q": "指數腿（SPX/XSP PCS）？",
-      "v": "VIX 24.1＋regime partial_kill＋RED=True（floor20：VIX≥20 先開）",
+      "v": "VIX 23.4＋regime partial_kill＋RED=True（floor20：VIX≥20 先開）",
       "hit": true,
       "yes": "封（VIX<20 冇肉／塌陷／RED 停新開）",
       "no": "✅ 開（δ 錨 0.29／部署底 0.25）"
@@ -159,17 +159,23 @@
     ]
    }
   ],
-  "stop_protocol": null
+  "stop_protocol": {
+   "active": true,
+   "leg": "ZS 210.0K×1 2026-12-18",
+   "t0": "2026-11-09T21:28:42.421206+08:00",
+   "polls": 3,
+   "note": "🛑 三次確認進行中"
+  }
  },
- "as_of": "2026-11-09 17:14 HKT",
+ "as_of": "2026-11-09 21:35 HKT",
  "bar_date": "2026-11-09",
  "data_fresh": true,
  "intraday": false,
  "market": {
   "spx": 7376.86,
   "spx_chg": 0.31,
-  "vix": 24.09,
-  "vix_chg": -1.55,
+  "vix": 23.36,
+  "vix_chg": -2.28,
   "vix_band": "20-32",
   "band_action": "XSP 開倉窗",
   "breadth": 21.4,
@@ -181,7 +187,7 @@
   "mkt_gate_bad": false,
   "spx_sma200": 7325.05,
   "mkt_state": "bull",
-  "et_note": "ET 而家 2026-11-09 週一（已收市，16:00 ET）——下列＝今日（2026-11-09 週一）收市價；HKT 而家 11-09 17:14",
+  "et_note": "ET 而家 2026-11-09 週一（已收市，16:00 ET）——下列＝今日（2026-11-09 週一）收市價；HKT 而家 11-09 21:35",
   "bar_wd": "週一"
  },
  "radar": {
@@ -519,9 +525,8 @@
    "rv21_pctl": 89.0,
    "earn_td": 58,
    "pool": "C96",
-   "exec_credit": 4.35,
-   "status": "⛔ 流動性閘",
-   "status_why": "短腿（賣）mid spread 62% >35%——收價 fiction，掛 mid 都收唔到（MAX_SPREAD_FRAC 0.35）"
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
   },
   {
    "sym": "TMO",
@@ -544,9 +549,8 @@
    "rv21_pctl": 61.0,
    "earn_td": 58,
    "pool": "C96",
-   "exec_credit": 8.1,
-   "status": "✅ 可落",
-   "status_why": "短腿 15% 過閘；長腿（買）mid spread 39% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $8.10 對 mid $9.80（−17%）"
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
   },
   {
    "sym": "ISRG",
@@ -572,9 +576,8 @@
    "wr": 100,
    "wr_n": 2,
    "wr_src": "v4g_naked",
-   "exec_credit": 1.6,
-   "status": "⛔ 流動性閘",
-   "status_why": "短腿（賣）mid spread 72% >35%——收價 fiction，掛 mid 都收唔到（MAX_SPREAD_FRAC 0.35）"
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
   }
  ],
  "ownable6": [
@@ -676,11 +679,11 @@
   "unrealized_hkd": 0,
   "base_hkd": 336104.73,
   "portfolio_return_pct": -43.69,
-  "as_of": "2026-11-09T16:21:02.195005+08:00"
+  "as_of": "2026-11-09T21:34:56.931368+08:00"
  },
  "risk": {
   "obligation_usd": 0,
-  "equity_usd_live": 43107.7,
+  "equity_usd_live": 43106.6,
   "oblig_cash_ratio": 0.0,
   "margin_used_pct": 1.9,
   "cash_usd": 42044
@@ -690,14 +693,14 @@
   "fx": 7.78,
   "nav_usd": 49145.0,
   "single_cap_usd": 2457.0,
-  "total_hkd": 336240,
-  "equity_usd": 43107.7,
+  "total_hkd": 336232,
+  "equity_usd": 43106.6,
   "us_cash_power_usd": 42044,
   "long_mv_hkd": 0,
-  "fund_assets_hkd": 130789,
-  "init_margin_hkd": 6538,
+  "fund_assets_hkd": 130787,
+  "init_margin_hkd": 6539,
   "maint_margin_hkd": 0,
-  "real_cash_hkd": 205451,
+  "real_cash_hkd": 205445,
   "anchor_hkd": 382349,
   "anchor_delta_pct": -12.1,
   "legs": [],
@@ -746,7 +749,7 @@
    "WDC",
    "XSP"
   ],
-  "ts": "2026-11-09T17:12:45"
+  "ts": "2026-11-09T21:34:56"
  },
  "config": {
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",
