@@ -20,6 +20,7 @@ SINGLE_CAP_FRAC = 0.05         # D1-D8：單名 5% NAV
 CUM_CAP_FRAC = 0.12            # 累計 12% NAV
 LIVE_DELTA = 0.30              # 基座（拍板④ 真倉口徑）
 PAPER_DELTA = 0.28             # 📒 Paper 台 winner 口徑（PT60+δ0.28，雷達唔縮深）
+SAT_DELTA = 0.30               # 🛰️ 衛星台（10td+PT50+δ0.30，2026-11-10 三路研究拍板 11-10 verdict）
 WIDTH = 0.10                   # spr10
 TENOR_TD = 35                  # 35td（band 30-45）
 C96_JSON = os.path.join(HERE, "c96_universe.json")   # 板塊頭部池（11-05 拍板：局部殺戮真倉換池用；研究原裝）
@@ -238,6 +239,23 @@ def pick_exp_d(today):
         return next_fridays(today, 10)[min(5, 9)]
     return min(_exps, key=lambda d: min(abs(td_between(today, d) - 30),
                                         abs(td_between(today, d) - 45)))
+
+
+def pick_exp_d_sat(today):
+    """🛰️ 衛星台 10td 揀期（8-14td 窗，真到期日曆同規矩——11-09 聖誕五事故：假期五硬禁、
+    窗邊最近真日 fallback）。2026-11-10 短 tenor 三路研究終判：10td 係唯一有證據格。"""
+    _real = listed_expiries()
+    _exps = next_fridays(today, 10)
+    if _real is not None:
+        _exps = [d for d in _exps if d.strftime("%Y-%m-%d") in _real]
+    else:
+        _exps = [d for d in _exps if d.strftime("%m-%d") not in _HOLIDAY_FRIDAYS]
+    _tgt = [d for d in _exps if 8 <= td_between(today, d) <= 14]
+    if _tgt:
+        return _tgt[0]
+    if not _exps:
+        return next_fridays(today, 10)[min(3, 9)]
+    return min(_exps, key=lambda d: abs(td_between(today, d) - 10))
 
 
 # ---------- 1. 本地 engine 結構數據 ----------
@@ -640,6 +658,56 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
                 rv21_pctl=x["rv21_pctl"], earn_td=x.get("earn_td"), pool="C96"))
     except Exception as ex:
         note("C96 候選定價失敗：%s %s" % (ex.__class__.__name__, ex))
+
+# ---------- 🛰️ 衛星台候選（10td+PT50+δ0.30，2026-11-10 三路研究拍板）----------
+# 研究 verdict：10td 全樣本 PF 2.23／MDD −11.8%（d30 六成）／崩盤窗唯一 PF>1 短 tenor；
+# 3-5td 三線全滅（PF 1.57-1.83＋崩盤窗 0.49-0.70＋單名成本 60-100%）。
+# 池＝C96 板塊頭部（研究：短 tenor 成本要 mega-liquid——AI 池 OKTA 10td 實測 worst 33% mid 亮紅燈）。
+# 業績閘＝研究②Q4 口徑：只 skip 業績落喺窗口內（earn_td ≤ sat_td+1）——唔用 C96 21td 禁
+# （嗰個對 10td 窗過嚴會全滅）。verdict 🔴/ai_sealed 由 satellite_d10.py 照 📒 規矩處理（照開標 🧪）。
+sat_candidates = []
+if yf_ok and c96_top:
+    try:
+        _sat_exp = pick_exp_d_sat(today)
+        _sat_str = _sat_exp.strftime("%Y-%m-%d")
+        _sat_td = td_between(today, _sat_exp)
+        _sat_T = max(_sat_td, 1) / 252.0
+        _sat_cap = NAV_USD * SINGLE_CAP_FRAC
+        for x in c96_top:
+            if x["iv"] == "死亡區" or x["gap"] != "ok":
+                continue
+            s = x["sym"]
+            S = px.get(s)
+            if not S:
+                continue
+            try:
+                _etd = x.get("earn_td")
+                if _etd is not None and float(_etd) >= 0 and float(_etd) <= _sat_td + 1:
+                    continue  # 業績落喺 10td 窗口內——可避風險唔做
+            except Exception:
+                pass
+            iv_s = 0.35
+            try:
+                import numpy as _np
+                _arr = _np.asarray(series(s), dtype=float)
+                _lr = _np.diff(_np.log(_arr))
+                iv_s = float(_lr[-21:].std(ddof=1) * _np.sqrt(252.0)) * 1.10
+            except Exception:
+                pass
+            iv_s = max(min(iv_s, 1.5), 0.12)
+            Ks_s, Kl_s, credit_s, src_s, iv_s_out, cw_s = price_spread(S, _sat_T, SAT_DELTA, iv_s, _sat_str, s)
+            credit_s = max(credit_s, 0.01)
+            ml_s = (Ks_s - Kl_s) * 100 - credit_s * 100
+            n_s = max(int(_sat_cap // ml_s), 1) if ml_s > 0 else 1
+            sat_candidates.append(dict(
+                sym=s, spot=usd(S), short_k=Ks_s, long_k=Kl_s, expiry=_sat_str,
+                dte_td=_sat_td, credit=usd(credit_s), credit_worst=cw_s,
+                credit_min=usd(max((Ks_s - Kl_s) * 0.10, 1.50)),
+                contracts=int(n_s), premium_in=usd(credit_s * 100 * n_s),
+                margin=usd(ml_s * n_s), iv_used=round((iv_s_out or iv_s) * 100, 1), src=src_s,
+                delta=SAT_DELTA, pt="PT50"))
+    except Exception as ex:
+        note("衛星候選定價失敗：%s %s" % (ex.__class__.__name__, ex))
 
 # 局部殺戮換池（⭐11-05）：真倉建議面 AI→C96；paper_candidates 照 AI 池 shadow（2 週試驗唔混池，11-17 檢討）
 if breadth_regime == "partial_kill" and c96_candidates:
@@ -1120,6 +1188,7 @@ out = dict(
     funnel=funnel,
     golden=gold,
     screen=top6, candidates=candidates, paper_candidates=paper_candidates,
+    sat_candidates=sat_candidates,
     c96_screen=c96_screen[:12], c96_candidates=c96_candidates,
     ownable6=ownable6,
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),
