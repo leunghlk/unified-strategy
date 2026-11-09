@@ -531,6 +531,7 @@ if yf_ok:
             candidates.append(dict(
                 sym=s, spot=usd(S), short_k=Ks, long_k=Kl, expiry=exp_str,
                 dte_td=td_between(today, exp_d), credit=usd(credit), credit_worst=cw, width_pct=10,
+                credit_min=usd(max((Ks - Kl) * 0.10, 1.50)),
                 contracts=int(n_ct), max_loss=usd(max_loss_pc * n_ct / 100.0 * 100 / 100.0) if False else usd(max_loss_pc * n_ct),
                 premium_in=usd(credit * 100 * n_ct),
                 margin=usd(max_loss_pc * n_ct),
@@ -632,6 +633,7 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
             c96_candidates.append(dict(
                 sym=s, spot=usd(S), short_k=Ks, long_k=Kl, expiry=_exp_str,
                 dte_td=td_between(today, _exp_d), credit=usd(credit), credit_worst=cw, width_pct=10,
+                credit_min=usd(max((Ks - Kl) * 0.10, 1.50)),
                 contracts=int(n_ct), max_loss=usd(ml * n_ct), premium_in=usd(credit * 100 * n_ct),
                 margin=usd(ml * n_ct), cash_after=usd(CASH_HKD / FX_USDHKD + credit * 100 * n_ct),
                 iv_used=round((iv_out or iv) * 100, 1), src=src, delta=delta_c96,
