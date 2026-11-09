@@ -748,7 +748,7 @@ function renderToday(d){
   var brReg=m.breadth_regime,brCls=(brReg==='normal'?'g':((brReg==='partial_kill'||brReg==='caution'||brReg==='warning')?'y':'r'));
   var radCls=(rlv.indexOf('RED')>=0?'r':(rlv.indexOf('YEL')>=0?'y':'g'));
   var mgCls=((Number(cu0.frac)||0)>(Number(cu0.cap_pct)||12)?'r':'g');
-  h+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill '+(vixOk?'g':(vixHalf?'y':'r'))+'">VIX '+(m.vix_band||'?')+(vixOk?' 開倉窗':(vixHalf?' 牛·單名放行':' 封'))+'</span><span class="pill '+brCls+'">廣度 '+m.breadth+'%'+(brReg==='partial_kill'?' 局部殺戮':'')+'</span><span class="pill '+radCls+'">雷達 '+(rr0.level||'?')+'</span><span class="pill '+(m.mkt_gate_bad?'r':'g')+'">全市閘 '+(m.mkt_gate_bad?'封':'開')+'</span><span class="pill '+mgCls+'">本批按金 '+cu0.frac+'%/'+cu0.cap_pct+'%</span></div>';
+  h+='<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill '+(vixOk?(radCls==='r'?'y':'g'):(vixHalf?'y':'r'))+'">VIX '+(m.vix_band||'?')+(vixOk?(radCls==='r'?' 開倉窗×雷達RED——指數腿停新開':' 開倉窗'):(vixHalf?' 牛·單名放行':' 封'))+'</span><span class="pill '+brCls+'">廣度 '+m.breadth+'%'+(brReg==='partial_kill'?' 局部殺戮':'')+'</span><span class="pill '+radCls+'">雷達 '+(rr0.level||'?')+'</span><span class="pill '+(m.mkt_gate_bad?'r':'g')+'">全市閘 '+(m.mkt_gate_bad?'封':'開')+'</span><span class="pill '+mgCls+'">本批按金 '+cu0.frac+'%/'+cu0.cap_pct+'%</span></div>';
   var vixV=Number(m.vix)||0;
   var vixBar='<div style="margin-top:8px"><div style="display:flex;height:13px;border-radius:4px;overflow:hidden"><div style="width:35%;background:#e2e8f0" title="<14 觀望"></div><div style="width:10%;background:#e2e8f0" title="14-18"></div><div style="width:5%;background:#e2e8f0" title="18-20 毒帶"></div><div style="width:30%;background:#16a34a" title="20-32 開倉窗"></div><div style="width:20%;background:#dc2626" title=">32 全封"></div></div><div style="position:relative;height:14px;font-size:10px;color:#94a3b8"><span style="position:absolute;left:50%;transform:translateX(-50%)">20</span><span style="position:absolute;left:80%;transform:translateX(-50%)">32</span></div><div style="position:relative;height:22px"><span style="position:absolute;left:'+Math.min(98,Math.max(1,vixV/40*100))+'%;transform:translateX(-50%);font-size:12px;color:#0f172a;font-weight:700;white-space:nowrap">▲ VIX '+m.vix+'</span></div><div style="font-size:10px;color:#94a3b8">VIX 位置條（0–40）——綠＝20-32 開倉窗、紅＝&gt;32 全封</div></div>';
   var brV=Number(m.breadth)||0,br5=m.breadth_5d;
@@ -930,9 +930,9 @@ function calc(){
 }
 
 /* VIX 閘動態文案（⭐11-02 拍板熊狀態門版；11-04 掃走 10-30 hardcode，一律由 today.json 餵） */
-function bandActionTxt(m){
+function bandActionTxt(m,radarRed){
   var band=m.vix_band||'',mst=m.mkt_state||'nan';
-  if(band==='20-32') return 'XSP 開倉窗';
+  if(band==='20-32') return radarRed?'XSP 帶位開窗×雷達RED——指數腿停新開':'XSP 開倉窗';
   if(band==='<20') return mst==='bull'?'<20 牛狀態：單名🟡半開（11-02 拍板熊狀態門）、XSP 照封':(mst==='bear'?'<20 熊狀態：全封':'<20（狀態 n/a，fail-closed 封）');
   if(band==='>32') return '>32 全封＋撤';
   return band||'?';
@@ -941,15 +941,17 @@ function updateOverviewLive(){
   var d=window.__today,vc=document.getElementById('ovLiveChips');
   if(!d){ if(vc) vc.innerHTML='<span class="pill y">VIX/SPX 待 today.json 載入…</span>'; return; }
   var m=d.market||{},bd=d.bar_date||'',v=m.vix,bull=m.mkt_state==='bull';
-  var vcol=(m.vix_band==='20-32')?'b':((m.vix_band==='>32')?'r':'y');
+  var _rd=((d.radar||{}).level||'').toUpperCase().indexOf('RED')>=0;
+  var vcol=(m.vix_band==='20-32')?(_rd?'y':'b'):((m.vix_band==='>32')?'r':'y');
   var sc=document.getElementById('liveClause'),clause;
   if(v==null){
     if(vc) vc.innerHTML='<span class="pill r">VIX 數據唔到——真倉 VIX 閘 fail-closed，唔好開新倉</span>';
     if(sc) sc.innerHTML='⚠️ 真倉引擎條款：VIX[20,32] fail-closed——攞唔到 VIX 數＝fail-closed 全封，唔好開新倉。';
   } else {
-    if(vc) vc.innerHTML='<span class="pill '+vcol+'">VIX '+v+'（'+bd+' 收）·'+bandActionTxt(m)+'</span>'
+    if(vc) vc.innerHTML='<span class="pill '+vcol+'">VIX '+v+'（'+bd+' 收）·'+bandActionTxt(m,_rd)+'</span>'
       +'<span class="pill '+(bull?'n':'r')+'">SPX '+(m.spx!=null?m.spx.toLocaleString():'—')+' '+(bull?'≥':'&lt;')+' SMA200 '+(m.spx_sma200!=null?m.spx_sma200.toLocaleString():'—')+' · '+(bull?'牛':'熊')+'狀態</span>';
-    if(m.vix_band==='20-32') clause='⚠️ 真倉引擎條款：VIX[20,32] fail-closed（<20 及 >32 都封）。'+bd+' 收 VIX <b>'+v+'</b> ∈[20,32]＝指數腿（XSP）開倉窗放行；單名跟今日台當日判決。';
+    var _rd=((d.radar||{}).level||'').toUpperCase().indexOf('RED')>=0;
+    if(m.vix_band==='20-32') clause='⚠️ 真倉引擎條款：VIX[20,32] fail-closed（<20 及 >32 都封）。'+bd+' 收 VIX <b>'+v+'</b> ∈[20,32]＝指數腿（XSP）開倉窗放行'+(_rd?'——<b style="color:#b91c1c">惟殺倉雷達 RED：指數腿停新開（roadmap B2 封），C96 豁免腿照規則</b>':'')+'；單名跟今日台當日判決。';
     else if(v<20&&bull) clause='⚠️ 真倉引擎條款：VIX[20,32] fail-closed——'+bd+' 收 VIX <b>'+v+'</b>&lt;20：XSP 指數腿照封（floor20 係寶）；單名按 ⭐11-02 拍板熊狀態門＝牛狀態🟡半開放行，照今日台判決行。';
     else if(v<20) clause='⚠️ 真倉引擎條款：VIX[20,32] fail-closed——'+bd+' 收 VIX <b>'+v+'</b>&lt;20＋熊狀態/狀態唔到＝真倉全封唔開新倉；開工須 VIX≥20 或行正式改閘 SOP（改常數→probe→TG→紀錄），不准 force。';
     else clause='⚠️ VIX <b>'+v+'</b>&gt;32＝全封＋撤，fail-closed。';

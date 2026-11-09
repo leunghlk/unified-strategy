@@ -433,6 +433,9 @@ delta_note = "δ%.2f＝基座（雷達 %s 唔調整）" % (LIVE_DELTA, radar_lev
 if radar_level == "RED":
     radar_note = "🔴 RED——新倉暫停（殺倉雷達）"
     delta_note = "δ%.2f＝基座；雷達 RED 新倉暫停" % LIVE_DELTA
+    # ⭐ 11-09 用戶質問「XSP？你琴日唔係禁左咩」——band_action 冇理 RED 閘自相矛盾，補上
+    if vix_band == "20-32":
+        band_action = "XSP 帶位開窗——惟雷達 RED：指數腿停新開（roadmap B2 封）；C96 豁免腿照規則"
 elif radar_level == "YEL":
     delta_today = round(LIVE_DELTA - 0.02, 2)
     radar_note = "🟡 YEL——單名照做，δ 縮深至 %.2f（10-18 判決）" % delta_today
