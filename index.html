@@ -164,14 +164,15 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <div class="grid" style="margin-top:12px">
     <div class="card">
       <h3>開倉試算（人手輸入，即場計）</h3>
-      <div class="desc" style="display:flex;flex-direction:column;gap:6px">
-        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">Short K</span><input id="cKs" type="number" step="0.5" style="width:150px"></label>
-        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">Long K</span><input id="cKl" type="number" step="0.5" style="width:150px"></label>
-        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">Credit</span><input id="cCr" type="number" step="0.05" style="width:150px"></label>
-        <label style="display:flex;align-items:center;gap:10px"><span style="min-width:64px;font-weight:600">張數</span><input id="cN" type="number" step="1" style="width:150px"></label>
+      <div class="desc">
+        <div id="cRows" style="display:flex;flex-direction:column;gap:6px"></div>
+        <div style="margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button id="cAdd" style="font-size:12px;padding:3px 10px;border:1px solid #94a3b8;border-radius:6px;background:#fff;cursor:pointer">＋ 加多條 position</button>
+          <span style="color:#64748b;font-size:11.5px">一行＝一個 put spread——例：MA 625/560 一行、OKTA 160/145 一行，總按金加埋計</span>
+        </div>
       </div>
-      <div class="desc" id="cOut" style="margin-top:8px;font-weight:700">填入四格即計：premium／最大虧損＝按金／佔 NAV／做完後現金。</div>
-      <div class="note" style="margin-top:6px">試算口徑：put spread 按金＝最大虧損＝(Ks−Kl)×100×張數−premium；NAV 錨 US$49,145（HK$382,349÷7.78）；單名閘 5%＝US$2,457，簿計閘 12%＝US$5,897。</div>
+      <div class="desc" id="cOut" style="margin-top:8px;font-weight:700">加行填數即計：每條 premium／按金＋總共收幾多、戶口做唔做晒（單名 5%／簿計 12%）。</div>
+      <div class="note" style="margin-top:6px">試算口徑：put spread 按金＝最大虧損＝(Ks−Kl)×100×張數−premium（同 ticker 加埋計單名閘）；NAV 錨 US$49,145（HK$382,349÷7.78）；單名閘 5%＝US$2,457，簿計閘 12%＝US$5,897（總按金）。</div>
     </div>
   </div>
 
@@ -920,13 +921,37 @@ function rspGateTxt(m){
   if(m.rsp_above==null)return '<span class="pill n">數據唔到（全市閘今日停用）</span>';
   return m.mkt_gate_bad?'<span class="pill r">RSP 跌穿／近5日曾穿 SMA50 → 硬封</span>':'<span class="pill g">RSP 企穩 SMA50 ✓</span>';
 }
+function cRowHtml(){return '<div class="crow" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'+
+ '<input class="cTk" placeholder="代號" style="width:70px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:5px">'+
+ '<span style="color:#64748b">賣</span><input class="cKs" type="number" step="0.5" placeholder="Short K" style="width:80px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:5px">'+
+ '<span style="color:#64748b">／買</span><input class="cKl" type="number" step="0.5" placeholder="Long K" style="width:80px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:5px">'+
+ '<input class="cCr" type="number" step="0.05" placeholder="Credit" style="width:70px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:5px">'+
+ '<input class="cN" type="number" step="1" min="1" value="1" title="張數" style="width:46px;padding:2px 4px;border:1px solid #cbd5e1;border-radius:5px"><span style="color:#64748b">張</span>'+
+ '<button class="cDel" title="剷走呢行" style="font-size:11px;padding:1px 7px;border:1px solid #f87171;color:#b91c1c;border-radius:5px;background:#fff;cursor:pointer">✕</button></div>';}
 function calc(){
-  var ks=parseFloat(document.getElementById('cKs').value),kl=parseFloat(document.getElementById('cKl').value),
-      cr=parseFloat(document.getElementById('cCr').value),n=parseInt(document.getElementById('cN').value||'0');
   var o=document.getElementById('cOut');
-  if(!(ks>0&&kl>0&&ks>kl&&cr>0&&n>0)){o.textContent='填入四格即計：premium／最大虧損＝按金／佔 NAV／做完後現金。';return;}
-  var prem=cr*100*n,ml=(ks-kl)*100*n-prem,frac=ml/NAV_USD*100;
-  o.innerHTML='Premium 入帳 <b>$'+prem.toFixed(0)+'</b> · 按金（最大虧損）<b>$'+ml.toFixed(0)+'</b>（NAV '+frac.toFixed(1)+'%）'+(frac>5?' <span class="pill r">超單名 5% 閘</span>':' <span class="pill g">過 5% 閘</span>')+' · 做完後現金 <b>$'+(NAV_USD+prem).toFixed(0)+'</b>（按金鎖 $'+ml.toFixed(0)+'，可動用 $'+(NAV_USD+prem-ml).toFixed(0)+'）';
+  var lines=[],totPrem=0,totMl=0,perTk={},any=false;
+  document.querySelectorAll('#cRows .crow').forEach(function(r){
+    var tk=(r.querySelector('.cTk').value||'').trim().toUpperCase()||'?';
+    var ks=parseFloat(r.querySelector('.cKs').value),kl=parseFloat(r.querySelector('.cKl').value),
+        cr=parseFloat(r.querySelector('.cCr').value),n=parseInt(r.querySelector('.cN').value||'0');
+    if(!(ks>0&&kl>0&&ks>kl&&cr>0&&n>0)){lines.push('<div style="color:#94a3b8">'+tk+'——填齊先計（Short K&gt;Long K、Credit&gt;0、張&gt;0）</div>');return;}
+    any=true;
+    var prem=cr*100*n,ml=(ks-kl)*100*n-prem;
+    totPrem+=prem;totMl+=ml;perTk[tk]=(perTk[tk]||0)+ml;
+    lines.push('<div>'+tk+' 賣'+ks+'／買'+kl+' ×'+n+'張 → 收 <b>$'+prem.toFixed(0)+'</b> · 按金 $'+ml.toFixed(0)+'</div>');
+  });
+  if(!any){o.textContent='加行填數即計：每條 premium／按金＋總共收幾多、戶口做唔做晒（單名 5%／簿計 12%）。';return;}
+  var totFrac=totMl/NAV_USD*100;
+  var gate='<div style="margin-top:4px">總共收 <b>$'+totPrem.toFixed(0)+'</b> · 總按金 <b>$'+totMl.toFixed(0)+'</b>（NAV '+totFrac.toFixed(1)+'%）'+
+    (totFrac>12?' <span class="pill r">超簿計 12% 閘</span>':' <span class="pill g">過簿計 12% 閘</span>')+
+    ' · 做完後可動用 <b>$'+(NAV_USD+totPrem-totMl).toFixed(0)+'</b>（總按金鎖 $'+totMl.toFixed(0)+'）</div>';
+  var tks=Object.keys(perTk);
+  if(tks.length){gate+='<div>';
+    tks.forEach(function(t){var f=perTk[t]/NAV_USD*100;
+      gate+=t+' $'+perTk[t].toFixed(0)+'（'+f.toFixed(1)+'%）'+(f>5?' <span class="pill r">超單名5%</span>':' <span class="pill g">過5%</span>')+'　';});
+    gate+='</div>';}
+  o.innerHTML=lines.join('')+gate;
 }
 
 /* VIX 閘動態文案（⭐11-02 拍板熊狀態門版；11-04 掃走 10-30 hardcode，一律由 today.json 餵） */
@@ -1099,7 +1124,14 @@ function drawProg(){
   document.getElementById('progTxt').innerHTML='累計注資 HK$'+done.toLocaleString()+'（'+pct.toFixed(1)+'%）· 缺口 HK$'+(total-done).toLocaleString();
 }
 function saveProg(v){try{localStorage.setItem(PROG_KEY,String(v||0));}catch(e){}drawProg();}
-['cKs','cKl','cCr','cN'].forEach(function(id){document.getElementById(id).addEventListener('input',calc);});
+/* ⭐ 11-10 多行試算：一行一個 spread，總按金加埋計（用戶令：一次過做幾張/幾條都要 check 到） */
+(function(){
+  var rows=document.getElementById('cRows');
+  rows.innerHTML=cRowHtml();
+  document.getElementById('cAdd').addEventListener('click',function(){rows.insertAdjacentHTML('beforeend',cRowHtml());calc();});
+  rows.addEventListener('click',function(e){var b=e.target.closest('.cDel');if(b&&rows.querySelectorAll('.crow').length>1){b.closest('.crow').remove();calc();}});
+  rows.addEventListener('input',calc);
+})();
 loadMarket();loadToday();countdown();drawProg();setInterval(loadMarket,120000);setInterval(loadToday,300000);
 </script>
 </body>
