@@ -192,6 +192,54 @@ def next_fridays(d0, k=8):
     return out
 
 
+# ⭐11-09 聖誕五事故：30-45td 窗撞 2026-12-25（假期五，冇期權）→ bridge/yf 兩層都搵唔到 12-25 鏈
+# → 全部候選跌 BS＋蓋「⚠️ 無鏈」，OpenD 開市都唔會自癒。揀期必須對真到期日曆。
+_HOLIDAY_FRIDAYS = {"12-25", "01-01"}  # 固定日期假期五（探唔到曆嘅最後防線）
+_EXP_CAL = [None]
+
+
+def listed_expiries():
+    """SPY 真到期日曆：yf options API（收市都有全曆，34 個）→ bridge 鏈兜底 → None。
+    有 cache（一次 run 只探一次）。"""
+    if _EXP_CAL[0] is not None:
+        return _EXP_CAL[0]
+    _out = None
+    try:
+        import yfinance as _yf
+        _out = set(_yf.Ticker("SPY").options)
+    except Exception:
+        pass
+    if not _out:
+        try:
+            import urllib.request as _ur
+            _d = json.loads(_ur.urlopen("http://127.0.0.1:8765/options/chain?code=US.SPY&secret=%s"
+                                        % BRIDGE_SECRET, timeout=25).read().decode("utf-8", "replace"))
+            if _d.get("ok") and (_d.get("expiries") or []):
+                _out = {e.get("expiry") for e in _d["expiries"] if e.get("expiry")}
+        except Exception:
+            pass
+    _EXP_CAL[0] = _out
+    return _out
+
+
+def pick_exp_d(today):
+    """tenor 30-45td 揀期，但必須係真到期日；窗內冇真日 → 揀距窗口邊最近嘅真日
+    （11-09：12-18=29td 差一日出窗，12-25=34td 係聖誕五——29td 真鏈好過假期五永遠無鏈）。"""
+    _real = listed_expiries()
+    _exps = next_fridays(today, 10)
+    if _real is not None:
+        _exps = [d for d in _exps if d.strftime("%Y-%m-%d") in _real]
+    else:
+        _exps = [d for d in _exps if d.strftime("%m-%d") not in _HOLIDAY_FRIDAYS]
+    _tgt = [d for d in _exps if 30 <= td_between(today, d) <= 45]
+    if _tgt:
+        return _tgt[0]
+    if not _exps:
+        return next_fridays(today, 10)[min(5, 9)]
+    return min(_exps, key=lambda d: min(abs(td_between(today, d) - 30),
+                                        abs(td_between(today, d) - 45)))
+
+
 # ---------- 1. 本地 engine 結構數據 ----------
 rows = list(csv.DictReader(open(DAILY_CSV)))
 loc_dates = [r["date"] for r in rows]
@@ -445,9 +493,7 @@ candidates = []
 paper_candidates = []
 if yf_ok:
     try:
-        exps = next_fridays(today, 10)
-        tgt = [d for d in exps if 30 <= td_between(today, d) <= 45]
-        exp_d = tgt[0] if tgt else exps[min(5, len(exps) - 1)]
+        exp_d = pick_exp_d(today)
         exp_str = exp_d.strftime("%Y-%m-%d")
         T = max(td_between(today, exp_d), 1) / 252.0
         for x in tradeable[:5]:
@@ -557,9 +603,7 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
         note("雷達 RED 但 C96 腿豁免封（11-05 拍板 b）——C96 候選 δ 縮深至 %.2f" % delta_c96)
     c96_ok = [x for x in c96_top if x["iv"] != "死亡區" and x["gap"] == "ok" and x["earn"] != "禁"]
     try:
-        _exps = next_fridays(today, 10)
-        _tgt = [d for d in _exps if 30 <= td_between(today, d) <= 45]
-        _exp_d = _tgt[0] if _tgt else _exps[min(5, len(_exps) - 1)]
+        _exp_d = pick_exp_d(today)
         _exp_str = _exp_d.strftime("%Y-%m-%d")
         _T = max(td_between(today, _exp_d), 1) / 252.0
         _cap = NAV_USD * SINGLE_CAP_FRAC
