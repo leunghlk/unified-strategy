@@ -93,7 +93,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <span class="tab" data-t="t2" onclick="setTab('t2',this)">🧬 統一簿規格</span>
   <span class="tab" data-t="t3" onclick="setTab('t3',this)">🔬 OOS 七窗</span>
   <span class="tab" data-t="t4" onclick="setTab('t4',this)">💰 回本路徑</span>
-  <span class="tab" data-t="t5" onclick="setTab('t5',this)">🌌 宇宙 117＋C96</span>
+  <span class="tab" data-t="t5" onclick="setTab('t5',this)">🌌 宇宙 119＋C96（去重 189）</span>
   <span class="tab" data-t="t6" onclick="setTab('t6',this)">⚙️ Engine·TG·拍板</span>
 </div></div>
 
@@ -117,8 +117,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <thead><tr><th>Screen top-6（mom63）</th><th class="num">收市</th><th class="num">IV 分位</th><th>業績閘</th><th>裂口閘</th></tr></thead>
         <tbody id="tdScreen"><tr><td colspan="5">—</td></tr></tbody>
       </table></div>
-      <div class="note" style="margin-top:6px">篩選方法：<b>pool117 全池</b>（ownable45＋fleet72，avoid23 唔入池）內計 <b>mom63</b>（過去 63 個交易日回報），&gt;0 先合格，排前 6；再逐隻過閘——IV 分位（&lt;25% 死亡區硬禁／25–50 半倉）、業績（前 21td 禁＋後 5td 冷靜）、裂口（chg1d&gt;8% 禁）、殺倉雷達 veto、廣度凍結梯、VIX band、按金閘。表內只顯示業績／裂口兩欄，其餘閘係簿級，封刀時全簿唔開。</div>
-      <div class="note">同「🌌 宇宙 117＋C96」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池 live 榜</b>（today.json ownable6，11-05 起同呢邊一份數據）；呢邊係 <b>pool117 全池＋最新價（開市時＝現價）</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；ownable45 榜留做正選池參考。</div>
+      <div class="note" style="margin-top:6px">篩選方法：<b>pool117 全池</b>（ownable45＋fleet72，avoid23 唔入池）內計 <b>mom63</b>（過去 63 個交易日回報），&gt;0 先合格，排前 6；再逐隻過閘——IV 分位（&lt;25% 死亡區硬禁／25–50 半倉）、業績（前 10td 禁＋後 5td 冷靜，⭐11-11 拍板 21→10）、裂口（chg1d&gt;8% 禁）、殺倉雷達 veto、廣度凍結梯、VIX band、按金閘。表內只顯示業績／裂口兩欄，其餘閘係簿級，封刀時全簿唔開。</div>
+      <div class="note">同「🌌 宇宙 119＋C96」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池 live 榜</b>（today.json ownable6，11-05 起同呢邊一份數據）；呢邊係 <b>pool117 全池＋最新價（開市時＝現價）</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；ownable45 榜留做正選池參考。</div>
       <div style="margin-top:10px" id="tdCandWrap"></div>
     </div>
   </div>
@@ -270,7 +270,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
       <div class="gate"><div class="no">1</div><div><b>動量選股</b>：mom63 前 6 名才可入——放寬＝W2020 MDD −28%→−58.2%</div></div>
       <div class="gate"><div class="no">2</div><div><b>廣度凍結梯</b>：廣度崩離分級順延入場（80→50/5 日是唯一捉到兩次殺戳窗的鐘）</div></div>
       <div class="gate"><div class="no">3</div><div><b>IV 分位</b>：&lt;25% 死亡區硬禁（WDC 唯二死亡區 entry＝唯二爆的兩筆）；25–50 半倉；≥50 全倉</div></div>
-      <div class="gate"><div class="no">4</div><div><b>業績 21td 禁</b>：業績前 21 個交易日不開該名＋業績後 5td 冷靜（拍板⑥）</div></div>
+      <div class="gate"><div class="no">4</div><div><b>業績 10td 禁（⭐11-11 拍板 21→10）</b>：業績前 10 個交易日不開該名＋業績後 5td 冷靜（拍板⑥）——pre10+p5 數據最優（PF2.45 vs pre21 2.21）</div></div>
       <div class="gate"><div class="no">5</div><div><b>殺倉雷達 veto</b>：β63&gt;2.5 ∨ vol63&gt;0.8 ∨ (close&lt;SMA50 ∧ mom63&lt;0)——爆前共通訊號</div></div>
       <div class="gate"><div class="no">6</div><div><b>裂口閘</b>：chg1d&gt;8% 或 BE&gt;昨收 → 不開</div></div>
       <div class="gate"><div class="no">7</div><div><b>義務閘（D2 🔴必入）</b>：單名義務 ≤5% NAV、累積 ≤12%、全簿 ≤100%；義務/現金 ≤1（10-08 實測峰值 2.99×）</div></div>
@@ -393,8 +393,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <!-- ═══════════ T5 宇宙 117 ═══════════ -->
 <div id="t5" class="tabc" style="display:none">
   <div class="card">
-    <h3>🌌 pool117＝ownable45＋fleet72（avoid tier 不入池）</h3>
-    <div class="desc">avoid tier（23 隻）全年 0 直接成交，但 rank 擠位會害人——已整池剔除。ownable45＋fleet72＝117（fleet 表 73 行內的 ATKR 因 6.8 年歷史／f_score 4/9 數據不足剔除，唔入交易池）。<b>點下面展開睇全名單</b>；來源檔 universe/universe_117.md（recovery_proposal_20261031）。</div>
+    <h3>🌌 pool117→119＝ownable45＋fleet72＋SPCX/AMKR（avoid tier 不入池）</h3>
+    <div class="desc">avoid tier（23 隻）全年 0 直接成交，但 rank 擠位會害人——已整池剔除。ownable45＋fleet72＝117＋⭐11-11 用戶令加返 SPCX（SpaceX）／AMKR（Amkor）＝119（fleet 表 73 行內的 ATKR 因 6.8 年歷史／f_score 4/9 數據不足剔除，唔入交易池）。<b>點下面展開睇全名單</b>；來源檔 universe/universe_117.md（recovery_proposal_20261031）。</div>
     <details style="margin-top:8px">
       <summary style="cursor:pointer;font-weight:700;color:#1a73e8">▾ 展開：pool117 全名單＋avoid23（click）</summary>
       <div class="desc" style="margin-top:10px">
@@ -410,12 +410,12 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
   <div class="card" style="margin-top:12px">
     <h3>⭐ TOP6 動量榜（mom63・ownable45 正選池 · live）＋業績窗（11-02→12-02 共 33 隻）</h3>
     <div class="table-scroll"><table>
-      <thead><tr><th>#</th><th>名字</th><th class="num">mom63</th><th>業績窗 21td</th><th>可入性</th></tr></thead>
+      <thead><tr><th>#</th><th>名字</th><th class="num">mom63</th><th>業績窗 10td</th><th>可入性</th></tr></thead>
       <tbody id="ownTop6">
         <tr><td colspan="5" style="color:#94a3b8">10-30 快照 fallback：MRVL +37.3% 撞窗 · DELL +22.2% 撞窗 · AMD +19.2% 撞窗 · MU +12.4% 清窗 · NVDA +10.6% 撞窗 · ANET +9.2% 撞窗——今日台 today.json 讀到會自動覆寫成 live 榜</td></tr>
       </tbody>
     </table></div>
-    <div class="desc">業績窗資料：earnings_21td.json（33 隻，11-02→12-02）。規則：業績前 21td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。<b>⭐11-05 起呢個榜轉 live</b>（today.json ownable6——同一份 gen_today 數據，重跑即更）；灰字係 10-30 舊快照 fallback（today.json 讀唔到先見）。回測引擎正選係 pool117 全池 rank≤6（fleet 都入圍，如 RPD/TEM/ZS），落單跟「🎯 今日台」全池口徑。</div>
+    <div class="desc">規則（⭐11-11 拍板）：業績前 10td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。資料＝today.json ownable6 live；earnings_21td.json（33 隻，11-02→12-02）係 10-31 舊快照僅歷史參考。<b>⭐11-05 起呢個榜轉 live</b>（today.json ownable6——同一份 gen_today 數據，重跑即更）；灰字係 10-30 舊快照 fallback（today.json 讀唔到先見）。回測引擎正選係 pool117 全池 rank≤6（fleet 都入圍，如 RPD/TEM/ZS），落單跟「🎯 今日台」全池口徑。</div>
     <div class="note" style="margin-top:6px">C96＝板塊頭部池（96 名）——<b>唔做廣度閘</b>（實證 16 假響輸 118池 7/8），做局部殺戮時嘅可做池：AI 單名封咗，醫療/能源/工業/公用等板塊頭部照 screen 過閘（今日台自動出候選）。來源：breadth_design_research_20261105 原裝設計＋c96_universe.json。</div>
     <div id="c96Names" class="desc" style="margin-top:8px"><span style="color:#94a3b8">c96_universe.json 讀取中…</span></div>
   </div>
@@ -462,7 +462,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
           <tr><td>開倉候選</td><td>八閘全過嘅正選（每日 pre-open 1 條）</td><td>1 條/日</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td>閘紅燈</td><td>八閘任何一閘由綠轉紅（複合觸發必列明邊條中）</td><td>即時，每閘每日 1 次</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td>按金警告</td><td>usage &gt;65%</td><td>即時</td><td><span class="pill y">待過目</span></td></tr>
-          <tr><td>業績窗週提醒</td><td>持倉/候選名進入 21td 窗</td><td>週一 1 次</td><td><span class="pill y">待過目</span></td></tr>
+          <tr><td>業績窗週提醒</td><td>持倉/候選名進入 10td 窗</td><td>週一 1 次</td><td><span class="pill y">待過目</span></td></tr>
           <tr><td>回本週報</td><td>進度＋注資＋HAIR 累計</td><td>週日 1 次</td><td><span class="pill y">待過目</span></td></tr>
         </tbody>
       </table></div>
@@ -1138,7 +1138,7 @@ function renderWinRates(){
     ['自動止蝕閘','backtest','毒——alert-only','10-30 三度強化；唯一例外自身 IV 分位<25%'],
     ['IV 死亡區閘','rv21 分位 <25%','死亡區硬禁','10-30 六路判決：IV rank=folklore，σ距先係真'],
     ['Gap guard','chg1d>8% 或 BE 破','禁開','09-15 判決'],
-    ['業績窗閘','業績 21td 內','禁開','10-16 判決：pre-earnings=最差格'],
+    ['業績窗閘','業績 10td 內','禁開','⭐11-11 拍板 21→10（pre10+p5）；10-16 判決：pre-earnings=最差格'],
     ['累積按金閘','12% NAV cap','硬閘','參數錨 mu25 月錨＋MARGIN_HARD_CAP（10-02 拍板）'],
     ['VIX fail-closed','[20,32] 外全封','硬閘','參數錨（10-02 拍板）']
   ];

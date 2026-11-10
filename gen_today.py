@@ -533,7 +533,7 @@ for s in names:
     # ⭐11-11 根修（agent C 實錘 UI 假禁）：CSV 投影話禁（−5..21）嘅先做 fresh yf 覆核——UI 11-06 已出、
     # CSV 投影 11-18 → 假禁 3-5td（同 rv21 假死亡區同根：凍結錨）。已出≤5td→禁（冷靜）；>5td→ok 放行；
     # fresh fail→照 CSV 判決（唔信邪亦唔錯放）。只覆核禁區名，配額友好。
-    if yf_ok and ed is not None and ed == ed and -5 <= ed <= 21:
+    if yf_ok and ed is not None and ed == ed and -5 <= ed <= 10:  # ⭐11-11 拍板：前禁 21→10td（pre10+p5 數據最優）
         try:
             _cal = yf.Ticker(s).calendar
             _eds = (_cal or {}).get("Earnings Date")
@@ -556,7 +556,7 @@ for s in names:
     r1d = (px.get(s, loc[s]["close"]) / prev_close.get(s, loc[s]["close"]) - 1.0) if s in px and s in prev_close else float("nan")
     gates = dict(
         iv=("死亡區" if (rv_p is not None and not math.isnan(rv_p) and rv_p < 25) else ("半" if (rv_p is not None and not math.isnan(rv_p) and rv_p < 50) else "全")),
-        earn=("禁" if (ed is not None and not math.isnan(ed) and -5 <= ed <= 21) else "ok"),  # ⭐11-10 前21td禁＋⭐11-11 後5td冷靜補齊（拍板⑥字面：−5..0=已出5td內）
+        earn=("禁" if (ed is not None and not math.isnan(ed) and -5 <= ed <= 10) else "ok"),  # ⭐11-11 拍板：前10td禁（21→10，pre10+p5）＋後5td冷靜（拍板⑥：−5..0=已出5td內）
         gap=("禁" if (not math.isnan(r1d) and r1d > 0.08) else "ok"),
     )
     screen.append(dict(sym=s, mom63=round(100 * m63, 1), close=usd(px.get(s, loc[s]["close"])),
@@ -572,7 +572,7 @@ tradeable = [x for x in top6 if x["iv"] != "死亡區" and x["earn"] == "ok" and
 OWNABLE45 = ["APP","TSM","ADI","ASML","AVGO","CCJ","INTU","LRCX","MRVL","STX","ADBE","AMD","CDNS","CSCO","FFIV","GFS","GLW","KLAC","MU","OKTA","PLTR","QLYS","SNDK","VICR","WDAY","AMAT","AMZN","APH","ARM","CRDO","DELL","DLR","FTNT","GEV","GOOGL","MSFT","NVT","QCOM","RBLX","STM","TSEM","TTD","UBER","WDC","IRM"]
 own_scr = [x for x in screen if x["sym"] in OWNABLE45][:6]
 ownable6 = [dict(sym=x["sym"], mom63=x["mom63"], close=x["close"], earn_td=x["earn_td"],
-                 earn_window=("撞窗" if x["earn_td"] is not None and -5 <= x["earn_td"] <= 21  # ⭐11-11 補下限：已出（負數）唔係撞未來窗（agent C 實錘顯示蟲）
+                 earn_window=("撞窗" if x["earn_td"] is not None and -5 <= x["earn_td"] <= 10  # ⭐11-11 拍板 21→10td＋補下限：已出（負數）唔係撞未來窗（agent C 實錘顯示蟲）
                               else ("清窗" if x["earn_td"] is not None else "?"))) for x in own_scr]
 
 # ---------- 7. 候選倉：δ_today put spread spr10，tenor 30-45td（真鏈價優先，BS 兜底） ----------
@@ -656,7 +656,7 @@ for s in C96:
 c96_screen.sort(key=lambda x: -x["mom63"])
 c96_top = c96_screen[:8]
 if yf_ok and c96_top:
-    # earn 閘：只為 top-8 拉 earnings calendar（≤21td 禁）
+    # earn 閘：只為 top-8 拉 earnings calendar（≤10td 禁，⭐11-11 拍板 21→10）
     for x in c96_top:
         try:
             _cal = yf.Ticker(x["sym"]).calendar
@@ -675,7 +675,7 @@ if yf_ok and c96_top:
                 x["earn"], x["earn_td"] = ("禁" if _gap <= 5 else "ok"), None
                 continue
             ed = td_between(today, _d0)
-            x["earn"] = "禁" if ed <= 21 else "ok"
+            x["earn"] = "禁" if ed <= 10 else "ok"  # ⭐11-11 拍板 21→10td（前禁；後5td 冷靜已喺上面 past 分支）
             x["earn_td"] = ed
         except Exception:
             pass
@@ -727,7 +727,7 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
 # 研究 verdict：10td 全樣本 PF 2.23／MDD −11.8%（d30 六成）／崩盤窗唯一 PF>1 短 tenor；
 # 3-5td 三線全滅（PF 1.57-1.83＋崩盤窗 0.49-0.70＋單名成本 60-100%）。
 # 池＝C96 板塊頭部（研究：短 tenor 成本要 mega-liquid——AI 池 OKTA 10td 實測 worst 33% mid 亮紅燈）。
-# 業績閘＝研究②Q4 口徑：只 skip 業績落喺窗口內（earn_td ≤ sat_td+1）——唔用 C96 21td 禁
+# 業績閘＝研究②Q4 口徑：只 skip 業績落喺窗口內（earn_td ≤ sat_td+1）——唔用 C96 前10td 禁（⭐11-11 拍板 21→10）
 # （嗰個對 10td 窗過嚴會全滅）。verdict 🔴/ai_sealed 由 satellite_d10.py 照 📒 規矩處理（照開標 🧪）。
 sat_candidates = []
 sat_skips = []  # ⭐11-10 剷走留痕——逐個 skip 原因入 today.json（審計＋「點解某股唔見咗」有得答）
