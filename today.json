@@ -1,7 +1,7 @@
 {
  "roadmap": {
-  "state": "🟢 正常",
-  "state_txt": "全行：指數腿＋單名＋C96 照三層閘",
+  "state": "🟠 半停（RED）",
+  "state_txt": "AI 池封＋指數腿停新開；C96 板塊頭部豁免（δ縮深0.02＋credit 下限）",
   "steps": [
    {
     "id": "A",
@@ -9,7 +9,7 @@
     "checks": [
      {
       "q": "VIX > 32？",
-      "v": "VIX 20.8",
+      "v": "VIX 20.7",
       "hit": false,
       "yes": "⛔全停",
       "no": "→A2"
@@ -23,15 +23,15 @@
      },
      {
       "q": "SPX < SMA200（熊門）？",
-      "v": "SPX 7498.47 vs SMA200 7330.97＝bull",
+      "v": "SPX 7475.55 vs SMA200 7330.85＝bull",
       "hit": false,
       "yes": "🔴熊門：單名封指數照",
       "no": "→A4"
      },
      {
       "q": "殺倉雷達 RED？",
-      "v": "YEL",
-      "hit": false,
+      "v": "RED",
+      "hit": true,
       "yes": "🟠半停：AI池封＋C96豁免",
       "no": "→A5"
      },
@@ -40,7 +40,7 @@
       "v": "20-32",
       "hit": false,
       "yes": "",
-      "no": "🟢 正常"
+      "no": "🟠 半停（RED）"
      }
     ]
    },
@@ -57,24 +57,24 @@
      },
      {
       "q": "指數腿（SPX/XSP PCS）？",
-      "v": "VIX 20.8＋regime partial_kill＋RED=False（floor20：VIX≥20 先開）",
-      "hit": false,
+      "v": "VIX 20.7＋regime partial_kill＋RED=True（floor20：VIX≥20 先開）",
+      "hit": true,
       "yes": "封（VIX<20 冇肉／塌陷／RED 停新開）",
       "no": "✅ 開（δ 錨 0.29／部署底 0.25）"
      },
      {
       "q": "單名 AI 池？",
-      "v": "regime=partial_kill／熊門=False／RED=False",
-      "hit": false,
+      "v": "regime=partial_kill／熊門=False／RED=True",
+      "hit": true,
       "yes": "封（熊門/RED/塌陷）",
       "no": "✅ screen 過閘"
      },
      {
       "q": "C96 板塊頭部？",
-      "v": "RED=False",
+      "v": "RED=True／δ縮深0.02",
       "hit": false,
       "yes": "",
-      "no": "✅ 照篩（RED 響時做豁免腿）"
+      "no": "✅ RED 豁免腿：δ縮深0.02＋credit 下限"
      }
     ]
    },
@@ -84,7 +84,7 @@
     "checks": [
      {
       "q": "池→δ→DTE 30-45→credit 下限→三層閘",
-      "v": "今日 6 候選過三層閘（AI 1＋C96 5）",
+      "v": "今日 7 候選過三層閘（AI 2＋C96 5）",
       "hit": null,
       "yes": "",
       "no": "斬條件：判決檔❌／短腿 spread>35%% ⛔／可執行<50%% 票面❌"
@@ -97,7 +97,7 @@
     "checks": [
      {
       "q": "單腿 ≤5% NAV｜cum ≤12% NAV",
-      "v": "今日 cum margin=5660.0（cap 12%=5897.41）",
+      "v": "今日 cum margin=4545.0（cap 12%=5897.41）",
       "hit": null,
       "yes": "",
       "no": "超＝唔開（裂口日唯一防線，止蝕盤防唔到單夜×4）"
@@ -161,54 +161,54 @@
   ],
   "stop_protocol": null
  },
- "as_of": "2026-11-11 01:21 HKT",
+ "as_of": "2026-11-11 01:41 HKT",
  "bar_date": "2026-11-10",
  "data_fresh": true,
  "intraday": true,
  "market": {
-  "spx": 7498.47,
-  "spx_chg": -0.68,
-  "vix": 20.84,
-  "vix_chg": 0.92,
+  "spx": 7475.55,
+  "spx_chg": -0.99,
+  "vix": 20.71,
+  "vix_chg": 0.79,
   "vix_band": "20-32",
-  "band_action": "XSP 開倉窗",
-  "breadth": 26.1,
+  "band_action": "XSP 帶位開窗——惟雷達 RED：指數腿停新開（roadmap B2 封）；C96 豁免腿照規則",
+  "breadth": 25.2,
   "breadth_regime": "partial_kill",
   "breadth_5d": 25.2,
   "speed_bell": false,
   "rsp_above": true,
   "rsp_below_recent5": false,
   "mkt_gate_bad": false,
-  "spx_sma200": 7330.97,
+  "spx_sma200": 7330.85,
   "mkt_state": "bull",
   "et_note": "ET 而家 2026-11-10 週二——開市中，下列價＝現價（延遲約 0–15 分）",
   "bar_wd": "週二"
  },
  "radar": {
-  "level": "YEL",
+  "level": "RED",
   "reasons": [
-   "單名血 3 隻 chg1d≤−6%（worst AAOI -9.9%）",
-   "10y 5.01 水平閘 Y",
+   "單名血 7 隻 chg1d≤−6%（worst AAOI -10.5%）",
+   "10y 5.02 水平閘 Y",
    "HY OAS 3.34（5日 -0.09）"
   ],
-  "note": "🟡 YEL——單名照做，δ 縮深至 0.28（10-18 判決）"
+  "note": "🔴 RED——新倉暫停（殺倉雷達）"
  },
  "verdict": {
   "level": "🟡 半開（局部殺戮）",
-  "txt": "AI 池廣度 26.1<50（5日前 25.2）但全市閘企穩（RSP ≥ SMA50）→ AI 單名封（10月段結構）；真倉建議面轉板塊頭部 C96（5 隻過閘）照 δ0.28、spread 闊度 10%（賣 put 買低 10% 嘅 put，收 credit）；指數腿（XSP）照 VIX floor 規則開；現有腿照 PT50/roll",
-  "delta_single": 0.28,
-  "delta_note": "δ0.28＝基座 0.30 −0.02（雷達 YEL 縮深，唔係 winner）",
+  "txt": "AI 池廣度 25.2<50（5日前 25.2）但全市閘企穩（RSP ≥ SMA50）→ AI 單名封（10月段結構）；真倉建議面轉板塊頭部 C96（5 隻過閘）照 δ0.30、spread 闊度 10%（賣 put 買低 10% 嘅 put，收 credit）；指數腿（XSP）照 VIX floor 規則開；現有腿照 PT50/roll",
+  "delta_single": 0.3,
+  "delta_note": "δ0.30＝基座；雷達 RED 新倉暫停",
   "ai_sealed": true,
   "credit_glass": false
  },
  "funnel": {
   "pool": 119,
-  "mom_pos": 36,
+  "mom_pos": 35,
   "top6": 6,
   "iv_ok": 6,
   "earn_ok": 4,
   "gap_ok": 6,
-  "final": 1,
+  "final": 2,
   "verdict": "🟡 半開（局部殺戮）"
  },
  "golden": {
@@ -219,66 +219,66 @@
  "screen": [
   {
    "sym": "TEM",
-   "mom63": 47.5,
-   "close": 80.57,
-   "rv21_pctl": 66.0,
+   "mom63": 45.7,
+   "close": 79.59,
+   "rv21_pctl": 68.0,
    "earn_td": -9,
-   "chg1d": -4.58,
+   "chg1d": -5.74,
    "iv": "全",
    "earn": "ok",
    "gap": "ok"
   },
   {
    "sym": "RBLX",
-   "mom63": 42.7,
-   "close": 50.71,
+   "mom63": 41.2,
+   "close": 50.2,
    "rv21_pctl": 92.0,
    "earn_td": -9,
-   "chg1d": -1.72,
+   "chg1d": -2.71,
    "iv": "全",
    "earn": "ok",
    "gap": "ok"
   },
   {
    "sym": "APP",
-   "mom63": 27.6,
-   "close": 387.7,
+   "mom63": 27.1,
+   "close": 386.16,
    "rv21_pctl": 90.0,
    "earn_td": 0,
-   "chg1d": -5.44,
+   "chg1d": -5.81,
    "iv": "全",
    "earn": "禁",
    "gap": "ok"
   },
   {
    "sym": "OKTA",
-   "mom63": 20.5,
-   "close": 177.48,
+   "mom63": 18.8,
+   "close": 175.03,
    "rv21_pctl": 87.0,
    "earn_td": 15,
-   "chg1d": -0.05,
+   "chg1d": -1.43,
    "iv": "全",
    "earn": "ok",
    "gap": "ok"
   },
   {
    "sym": "UI",
-   "mom63": 18.2,
-   "close": 683.02,
+   "mom63": 17.6,
+   "close": 679.23,
    "rv21_pctl": 95.0,
    "earn_td": 62,
-   "chg1d": -0.39,
+   "chg1d": -0.94,
    "iv": "全",
    "earn": "ok",
    "gap": "ok"
   },
   {
    "sym": "DUOL",
-   "mom63": 15.6,
-   "close": 155.6,
+   "mom63": 15.0,
+   "close": 154.81,
    "rv21_pctl": 95.0,
    "earn_td": 0,
-   "chg1d": 0.88,
+   "chg1d": 0.36,
    "iv": "全",
    "earn": "禁",
    "gap": "ok"
@@ -286,96 +286,126 @@
  ],
  "candidates": [
   {
-   "sym": "TMO",
-   "spot": 717.03,
-   "short_k": 670.0,
-   "long_k": 600.0,
+   "sym": "MO",
+   "spot": 76.64,
+   "short_k": 72.5,
+   "long_k": 65.0,
    "expiry": "2027-01-15",
    "dte_td": 47,
-   "credit": 13.4,
-   "credit_worst": 9.9,
+   "credit": 1.14,
+   "credit_worst": 1.03,
    "width_pct": 10,
-   "credit_min": 7.0,
-   "contracts": 1,
-   "max_loss": 5660.0,
-   "premium_in": 1340.0,
-   "margin": 5660.0,
-   "cash_after": 50485.12,
-   "iv_used": 35.7,
-   "src": "鏈 mid（延遲價）",
+   "credit_min": 1.5,
+   "contracts": 3,
+   "max_loss": 1908.0,
+   "premium_in": 342.0,
+   "margin": 1908.0,
+   "cash_after": 49487.12,
+   "iv_used": 25.8,
+   "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
-   "rv21_pctl": 65.0,
+   "rv21_pctl": 81.0,
    "earn_td": 56,
    "pool": "C96",
-   "exec_credit": 9.9,
-   "status": "✅ 可落",
-   "status_why": "短腿 21% 過閘；長腿（買）mid spread 51% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $9.90 對 mid $13.40（−26%）"
+   "wr": 100,
+   "wr_n": 1,
+   "wr_src": "v4g_naked",
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
+  },
+  {
+   "sym": "ABBV",
+   "spot": 294.27,
+   "short_k": 270.0,
+   "long_k": 240.0,
+   "expiry": "2027-01-15",
+   "dte_td": 47,
+   "credit": 3.63,
+   "credit_worst": 3.27,
+   "width_pct": 10,
+   "credit_min": 3.0,
+   "contracts": 1,
+   "max_loss": 2637.0,
+   "premium_in": 363.0,
+   "margin": 2637.0,
+   "cash_after": 49508.12,
+   "iv_used": 29.6,
+   "src": "鏈 mid（Futu OpenD）",
+   "delta": 0.28,
+   "rv21_pctl": 55.0,
+   "earn_td": null,
+   "pool": "C96",
+   "wr": 100,
+   "wr_n": 5,
+   "wr_src": "v4g_naked",
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
   }
  ],
  "paper_candidates": [
   {
    "sym": "TEM",
-   "spot": 80.57,
-   "short_k": 70.0,
-   "long_k": 60.0,
+   "spot": 79.59,
+   "short_k": 65.0,
+   "long_k": 55.0,
    "expiry": "2027-01-15",
    "dte_td": 47,
-   "credit": 3.08,
-   "credit_worst": 2.78,
+   "credit": 2.33,
+   "credit_worst": 2.0,
    "contracts": 3,
-   "premium_in": 925.5,
-   "margin": 2074.5,
-   "iv_used": 99.7,
-   "src": "鏈 mid（延遲價）",
+   "premium_in": 699.0,
+   "margin": 2301.0,
+   "iv_used": 80.3,
+   "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "pt": "PT60"
   },
   {
    "sym": "RBLX",
-   "spot": 50.71,
+   "spot": 50.2,
    "short_k": 45.0,
    "long_k": 40.0,
    "expiry": "2027-01-15",
    "dte_td": 47,
-   "credit": 1.31,
-   "credit_worst": 1.11,
+   "credit": 1.37,
+   "credit_worst": 1.17,
    "contracts": 6,
-   "premium_in": 789.0,
-   "margin": 2211.0,
-   "iv_used": 48.8,
-   "src": "鏈 mid（延遲價）",
+   "premium_in": 822.0,
+   "margin": 2178.0,
+   "iv_used": 59.7,
+   "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "pt": "PT60"
   },
   {
    "sym": "OKTA",
-   "spot": 177.48,
-   "short_k": 155.0,
-   "long_k": 140.0,
+   "spot": 175.03,
+   "short_k": 150.0,
+   "long_k": 135.0,
    "expiry": "2027-01-15",
    "dte_td": 47,
-   "credit": 5.02,
-   "credit_worst": 4.0,
+   "credit": 4.43,
+   "credit_worst": 3.2,
    "contracts": 2,
-   "premium_in": 1005.0,
-   "margin": 1995.0,
-   "iv_used": 71.4,
-   "src": "鏈 mid（延遲價）",
+   "premium_in": 885.0,
+   "margin": 2115.0,
+   "iv_used": 79.3,
+   "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "pt": "PT60"
   },
   {
    "sym": "UI",
-   "spot": 683.02,
-   "short_k": 622.0,
-   "long_k": 560.0,
+   "spot": 679.23,
+   "short_k": 618.0,
+   "long_k": 556.0,
    "expiry": "2027-01-15",
    "dte_td": 47,
-   "credit": 16.13,
+   "credit": 16.01,
    "credit_worst": null,
    "contracts": 1,
-   "premium_in": 1613.11,
-   "margin": 4586.89,
+   "premium_in": 1601.42,
+   "margin": 4598.58,
    "iv_used": 47.6,
    "src": "BS(RV21×1.10)",
    "delta": 0.28,
@@ -385,18 +415,18 @@
  "sat_candidates": [
   {
    "sym": "UI",
-   "spot": 683.02,
-   "short_k": 625.0,
-   "long_k": 562.0,
+   "spot": 679.23,
+   "short_k": 621.0,
+   "long_k": 559.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 17.88,
+   "credit": 17.57,
    "credit_worst": null,
-   "credit_min": 6.3,
+   "credit_min": 6.2,
    "contracts": 1,
-   "premium_in": 1787.51,
-   "margin": 4512.49,
-   "iv_used": 96.2,
+   "premium_in": 1757.16,
+   "margin": 4442.84,
+   "iv_used": 96.3,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
    "pt": "PT50",
@@ -404,17 +434,17 @@
   },
   {
    "sym": "LLY",
-   "spot": 1419.8,
-   "short_k": 1355.0,
+   "spot": 1421.85,
+   "short_k": 1360.0,
    "long_k": 1220.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 12.54,
-   "credit_worst": 11.58,
-   "credit_min": 13.5,
+   "credit": 13.62,
+   "credit_worst": 12.79,
+   "credit_min": 14.0,
    "contracts": 1,
-   "premium_in": 1253.5,
-   "margin": 12246.5,
+   "premium_in": 1362.5,
+   "margin": 12637.5,
    "iv_used": 43.7,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -423,17 +453,17 @@
   },
   {
    "sym": "BLK",
-   "spot": 1216.03,
+   "spot": 1214.35,
    "short_k": 1170.0,
    "long_k": 1050.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 9.25,
-   "credit_worst": 6.0,
+   "credit": 8.7,
+   "credit_worst": 5.5,
    "credit_min": 12.0,
    "contracts": 1,
-   "premium_in": 925.0,
-   "margin": 11075.0,
+   "premium_in": 870.0,
+   "margin": 11130.0,
    "iv_used": 38.9,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -442,17 +472,17 @@
   },
   {
    "sym": "META",
-   "spot": 640.45,
+   "spot": 639.21,
    "short_k": 610.0,
-   "long_k": 545.0,
+   "long_k": 550.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 8.57,
-   "credit_worst": 8.22,
-   "credit_min": 6.5,
+   "credit": 8.16,
+   "credit_worst": 7.77,
+   "credit_min": 6.0,
    "contracts": 1,
-   "premium_in": 857.5,
-   "margin": 5642.5,
+   "premium_in": 816.0,
+   "margin": 5184.0,
    "iv_used": 46.7,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -460,95 +490,57 @@
    "pool": "C96+117"
   },
   {
-   "sym": "AMD",
-   "spot": 510.49,
-   "short_k": 460.0,
-   "long_k": 415.0,
+   "sym": "COST",
+   "spot": 1067.94,
+   "short_k": 1035.0,
+   "long_k": 930.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 7.28,
-   "credit_worst": 6.75,
+   "credit": 6.93,
+   "credit_worst": 5.55,
+   "credit_min": 10.5,
+   "contracts": 1,
+   "premium_in": 692.5,
+   "margin": 9807.5,
+   "iv_used": 25.5,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96"
+  },
+  {
+   "sym": "AMD",
+   "spot": 502.07,
+   "short_k": 450.0,
+   "long_k": 405.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 6.2,
+   "credit_worst": 5.45,
    "credit_min": 4.5,
    "contracts": 1,
-   "premium_in": 727.5,
-   "margin": 3772.5,
-   "iv_used": 125.8,
+   "premium_in": 620.0,
+   "margin": 3880.0,
+   "iv_used": 125.7,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "C96+117"
   },
   {
-   "sym": "COST",
-   "spot": 1064.25,
-   "short_k": 1030.0,
-   "long_k": 930.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 6.05,
-   "credit_worst": 4.9,
-   "credit_min": 10.0,
-   "contracts": 1,
-   "premium_in": 605.0,
-   "margin": 9395.0,
-   "iv_used": 25.6,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96"
-  },
-  {
    "sym": "TMO",
-   "spot": 717.03,
+   "spot": 717.19,
    "short_k": 690.0,
    "long_k": 620.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 5.55,
-   "credit_worst": 1.6,
+   "credit": 6.2,
+   "credit_worst": 1.7,
    "credit_min": 7.0,
    "contracts": 1,
-   "premium_in": 555.0,
-   "margin": 6445.0,
-   "iv_used": 35.7,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96"
-  },
-  {
-   "sym": "CRWD",
-   "spot": 223.26,
-   "short_k": 210.0,
-   "long_k": 185.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 4.87,
-   "credit_worst": 4.42,
-   "credit_min": 2.5,
-   "contracts": 1,
-   "premium_in": 487.0,
-   "margin": 2013.0,
-   "iv_used": 72.4,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "117"
-  },
-  {
-   "sym": "ISRG",
-   "spot": 447.64,
-   "short_k": 425.0,
-   "long_k": 380.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 4.38,
-   "credit_worst": 3.35,
-   "credit_min": 4.5,
-   "contracts": 1,
-   "premium_in": 437.5,
-   "margin": 4062.5,
-   "iv_used": 49.4,
+   "premium_in": 620.0,
+   "margin": 6380.0,
+   "iv_used": 35.6,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -556,18 +548,18 @@
   },
   {
    "sym": "VMC",
-   "spot": 287.15,
-   "short_k": 274.0,
-   "long_k": 247.0,
+   "spot": 287.71,
+   "short_k": 276.0,
+   "long_k": 248.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 4.25,
+   "credit": 4.68,
    "credit_worst": null,
-   "credit_min": 2.7,
+   "credit_min": 2.8,
    "contracts": 1,
-   "premium_in": 424.84,
-   "margin": 2275.16,
-   "iv_used": 41.5,
+   "premium_in": 468.37,
+   "margin": 2331.63,
+   "iv_used": 41.4,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
    "pt": "PT50",
@@ -575,18 +567,18 @@
   },
   {
    "sym": "TSLA",
-   "spot": 376.24,
+   "spot": 375.13,
    "short_k": 350.0,
    "long_k": 315.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 4.12,
-   "credit_worst": 3.93,
+   "credit": 4.08,
+   "credit_worst": 3.88,
    "credit_min": 3.5,
    "contracts": 1,
-   "premium_in": 411.5,
-   "margin": 3088.5,
-   "iv_used": 65.6,
+   "premium_in": 408.5,
+   "margin": 3091.5,
+   "iv_used": 65.7,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -594,17 +586,17 @@
   },
   {
    "sym": "LIN",
-   "spot": 522.17,
-   "short_k": 512.0,
-   "long_k": 461.0,
+   "spot": 523.3,
+   "short_k": 513.0,
+   "long_k": 462.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 4.07,
+   "credit": 4.05,
    "credit_worst": null,
    "credit_min": 5.1,
    "contracts": 1,
-   "premium_in": 406.98,
-   "margin": 4693.02,
+   "premium_in": 405.41,
+   "margin": 4694.59,
    "iv_used": 19.0,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
@@ -612,37 +604,37 @@
    "pool": "C96"
   },
   {
-   "sym": "MSFT",
-   "spot": 543.66,
-   "short_k": 520.0,
-   "long_k": 470.0,
+   "sym": "ISRG",
+   "spot": 447.02,
+   "short_k": 425.0,
+   "long_k": 380.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 3.93,
-   "credit_worst": 3.67,
-   "credit_min": 5.0,
+   "credit": 3.98,
+   "credit_worst": 2.95,
+   "credit_min": 4.5,
    "contracts": 1,
-   "premium_in": 393.0,
-   "margin": 4607.0,
-   "iv_used": 38.8,
+   "premium_in": 397.5,
+   "margin": 4102.5,
+   "iv_used": 49.5,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
-   "pool": "C96+117"
+   "pool": "C96"
   },
   {
    "sym": "TEL",
-   "spot": 217.08,
-   "short_k": 206.0,
-   "long_k": 185.0,
+   "spot": 217.27,
+   "short_k": 207.0,
+   "long_k": 186.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 3.75,
+   "credit": 3.95,
    "credit_worst": null,
    "credit_min": 2.1,
    "contracts": 1,
-   "premium_in": 374.51,
-   "margin": 1725.49,
+   "premium_in": 395.46,
+   "margin": 1704.54,
    "iv_used": 48.5,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
@@ -650,113 +642,132 @@
    "pool": "117"
   },
   {
-   "sym": "ZS",
-   "spot": 193.55,
-   "short_k": 180.0,
-   "long_k": 160.0,
+   "sym": "MSFT",
+   "spot": 531.8,
+   "short_k": 510.0,
+   "long_k": 460.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 3.74,
-   "credit_worst": 3.26,
-   "credit_min": 2.0,
+   "credit": 3.67,
+   "credit_worst": 3.05,
+   "credit_min": 5.0,
    "contracts": 1,
-   "premium_in": 374.0,
-   "margin": 1626.0,
-   "iv_used": 72.3,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "117"
-  },
-  {
-   "sym": "CRM",
-   "spot": 212.26,
-   "short_k": 205.0,
-   "long_k": 185.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 3.66,
-   "credit_worst": 3.25,
-   "credit_min": 2.0,
-   "contracts": 1,
-   "premium_in": 366.0,
-   "margin": 1634.0,
-   "iv_used": 39.4,
+   "premium_in": 367.0,
+   "margin": 4633.0,
+   "iv_used": 39.9,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "C96+117"
   },
   {
-   "sym": "PSA",
-   "spot": 334.61,
-   "short_k": 325.0,
-   "long_k": 292.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 3.55,
-   "credit_worst": null,
-   "credit_min": 3.3,
-   "contracts": 1,
-   "premium_in": 354.96,
-   "margin": 2945.04,
-   "iv_used": 26.8,
-   "src": "BS(RV21×1.10)",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96"
-  },
-  {
    "sym": "CDNS",
-   "spot": 329.12,
+   "spot": 326.91,
    "short_k": 310.0,
    "long_k": 280.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 3.55,
+   "credit": 3.6,
    "credit_worst": 0.6,
    "credit_min": 3.0,
    "contracts": 1,
-   "premium_in": 355.0,
-   "margin": 2645.0,
-   "iv_used": 55.7,
+   "premium_in": 360.0,
+   "margin": 2640.0,
+   "iv_used": 56.1,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "117"
   },
   {
-   "sym": "AAPL",
-   "spot": 348.08,
-   "short_k": 340.0,
-   "long_k": 305.0,
+   "sym": "ECL",
+   "spot": 308.08,
+   "short_k": 300.0,
+   "long_k": 270.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 3.28,
-   "credit_worst": 3.11,
-   "credit_min": 3.5,
+   "credit": 3.42,
+   "credit_worst": null,
+   "credit_min": 3.0,
    "contracts": 1,
-   "premium_in": 327.5,
-   "margin": 3172.5,
-   "iv_used": 28.7,
+   "premium_in": 341.75,
+   "margin": 2658.25,
+   "iv_used": 26.4,
+   "src": "BS(RV21×1.10)",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96"
+  },
+  {
+   "sym": "PSA",
+   "spot": 335.49,
+   "short_k": 325.0,
+   "long_k": 292.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 3.25,
+   "credit_worst": null,
+   "credit_min": 3.3,
+   "contracts": 1,
+   "premium_in": 325.35,
+   "margin": 2974.65,
+   "iv_used": 26.5,
+   "src": "BS(RV21×1.10)",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96"
+  },
+  {
+   "sym": "CVX",
+   "spot": 210.38,
+   "short_k": 205.0,
+   "long_k": 185.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 3.19,
+   "credit_worst": 2.79,
+   "credit_min": 2.0,
+   "contracts": 1,
+   "premium_in": 319.0,
+   "margin": 1681.0,
+   "iv_used": 30.2,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "C96"
   },
   {
+   "sym": "IBM",
+   "spot": 243.16,
+   "short_k": 235.0,
+   "long_k": 210.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 3.12,
+   "credit_worst": 2.73,
+   "credit_min": 2.5,
+   "contracts": 1,
+   "premium_in": 311.5,
+   "margin": 2188.5,
+   "iv_used": 30.2,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "117"
+  },
+  {
    "sym": "WELL",
-   "spot": 248.21,
+   "spot": 248.55,
    "short_k": 240.0,
    "long_k": 216.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 3.15,
+   "credit": 3.06,
    "credit_worst": null,
    "credit_min": 2.4,
    "contracts": 1,
-   "premium_in": 315.18,
-   "margin": 2084.82,
+   "premium_in": 306.08,
+   "margin": 2093.92,
    "iv_used": 31.8,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
@@ -765,17 +776,17 @@
   },
   {
    "sym": "QCOM",
-   "spot": 169.85,
+   "spot": 169.77,
    "short_k": 160.0,
    "long_k": 140.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 3.15,
-   "credit_worst": 2.89,
+   "credit": 2.93,
+   "credit_worst": 2.67,
    "credit_min": 2.0,
    "contracts": 1,
-   "premium_in": 315.0,
-   "margin": 1685.0,
+   "premium_in": 293.0,
+   "margin": 1707.0,
    "iv_used": 75.4,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -783,37 +794,18 @@
    "pool": "117"
   },
   {
-   "sym": "CVX",
-   "spot": 210.43,
-   "short_k": 205.0,
-   "long_k": 185.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 3.12,
-   "credit_worst": 2.74,
-   "credit_min": 2.0,
-   "contracts": 1,
-   "premium_in": 311.5,
-   "margin": 1688.5,
-   "iv_used": 30.2,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96"
-  },
-  {
    "sym": "ABBV",
-   "spot": 293.24,
+   "spot": 294.27,
    "short_k": 285.0,
    "long_k": 255.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.99,
-   "credit_worst": 2.52,
+   "credit": 2.89,
+   "credit_worst": 2.42,
    "credit_min": 3.0,
    "contracts": 1,
-   "premium_in": 299.0,
-   "margin": 2701.0,
+   "premium_in": 289.0,
+   "margin": 2711.0,
    "iv_used": 27.8,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -821,46 +813,8 @@
    "pool": "C96"
   },
   {
-   "sym": "ECL",
-   "spot": 307.55,
-   "short_k": 298.0,
-   "long_k": 268.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 2.97,
-   "credit_worst": null,
-   "credit_min": 3.0,
-   "contracts": 1,
-   "premium_in": 297.43,
-   "margin": 2702.57,
-   "iv_used": 26.4,
-   "src": "BS(RV21×1.10)",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96"
-  },
-  {
-   "sym": "IBM",
-   "spot": 244.31,
-   "short_k": 235.0,
-   "long_k": 215.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 2.85,
-   "credit_worst": 2.57,
-   "credit_min": 2.0,
-   "contracts": 1,
-   "premium_in": 285.0,
-   "margin": 1715.0,
-   "iv_used": 29.9,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "117"
-  },
-  {
    "sym": "MA",
-   "spot": 660.15,
+   "spot": 661.08,
    "short_k": 640.0,
    "long_k": 575.0,
    "expiry": "2026-11-27",
@@ -878,19 +832,38 @@
    "pool": "C96"
   },
   {
+   "sym": "CRM",
+   "spot": 209.6,
+   "short_k": 200.0,
+   "long_k": 180.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 2.76,
+   "credit_worst": 2.25,
+   "credit_min": 2.0,
+   "contracts": 1,
+   "premium_in": 275.5,
+   "margin": 1724.5,
+   "iv_used": 40.0,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96+117"
+  },
+  {
    "sym": "PSX",
-   "spot": 249.63,
+   "spot": 249.29,
    "short_k": 235.0,
    "long_k": 210.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.8,
-   "credit_worst": 1.15,
+   "credit": 2.75,
+   "credit_worst": 0.95,
    "credit_min": 2.5,
    "contracts": 1,
-   "premium_in": 280.0,
-   "margin": 2220.0,
-   "iv_used": 49.8,
+   "premium_in": 275.0,
+   "margin": 2225.0,
+   "iv_used": 49.9,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -898,17 +871,17 @@
   },
   {
    "sym": "APD",
-   "spot": 312.7,
+   "spot": 312.99,
    "short_k": 305.0,
    "long_k": 274.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.76,
+   "credit": 2.68,
    "credit_worst": null,
    "credit_min": 3.1,
    "contracts": 1,
-   "premium_in": 275.74,
-   "margin": 2824.26,
+   "premium_in": 267.72,
+   "margin": 2832.28,
    "iv_used": 22.5,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
@@ -916,18 +889,37 @@
    "pool": "C96"
   },
   {
+   "sym": "ZS",
+   "spot": 190.58,
+   "short_k": 175.0,
+   "long_k": 160.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 2.67,
+   "credit_worst": 2.01,
+   "credit_min": 1.5,
+   "contracts": 1,
+   "premium_in": 267.0,
+   "margin": 1233.0,
+   "iv_used": 73.2,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "117"
+  },
+  {
    "sym": "V",
-   "spot": 423.45,
+   "spot": 423.83,
    "short_k": 410.0,
    "long_k": 370.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.68,
+   "credit": 2.65,
    "credit_worst": 2.4,
    "credit_min": 4.0,
    "contracts": 1,
-   "premium_in": 268.0,
-   "margin": 3732.0,
+   "premium_in": 265.5,
+   "margin": 3734.5,
    "iv_used": 28.7,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -935,27 +927,8 @@
    "pool": "C96"
   },
   {
-   "sym": "CHKP",
-   "spot": 143.01,
-   "short_k": 136.0,
-   "long_k": 122.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 2.52,
-   "credit_worst": null,
-   "credit_min": 1.5,
-   "contracts": 2,
-   "premium_in": 503.97,
-   "margin": 2296.03,
-   "iv_used": 48.1,
-   "src": "BS(RV21×1.10)",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "117"
-  },
-  {
    "sym": "XOM",
-   "spot": 164.16,
+   "spot": 164.29,
    "short_k": 160.0,
    "long_k": 140.0,
    "expiry": "2026-11-27",
@@ -964,8 +937,8 @@
    "credit_worst": 2.28,
    "credit_min": 2.0,
    "contracts": 1,
-   "premium_in": 244.5,
-   "margin": 1755.5,
+   "premium_in": 245.0,
+   "margin": 1755.0,
    "iv_used": 34.7,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -974,17 +947,17 @@
   },
   {
    "sym": "AMT",
-   "spot": 189.18,
-   "short_k": 182.0,
-   "long_k": 164.0,
+   "spot": 189.89,
+   "short_k": 183.0,
+   "long_k": 165.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.32,
+   "credit": 2.42,
    "credit_worst": null,
    "credit_min": 1.8,
    "contracts": 1,
-   "premium_in": 231.85,
-   "margin": 1568.15,
+   "premium_in": 241.56,
+   "margin": 1558.44,
    "iv_used": 33.4,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
@@ -992,18 +965,75 @@
    "pool": "C96"
   },
   {
+   "sym": "CHKP",
+   "spot": 142.31,
+   "short_k": 135.0,
+   "long_k": 122.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 2.37,
+   "credit_worst": null,
+   "credit_min": 1.5,
+   "contracts": 2,
+   "premium_in": 474.02,
+   "margin": 2125.98,
+   "iv_used": 48.3,
+   "src": "BS(RV21×1.10)",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "117"
+  },
+  {
+   "sym": "OKTA",
+   "spot": 175.03,
+   "short_k": 160.0,
+   "long_k": 145.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 2.34,
+   "credit_worst": 1.13,
+   "credit_min": 1.5,
+   "contracts": 1,
+   "premium_in": 234.0,
+   "margin": 1266.0,
+   "iv_used": 95.2,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "117"
+  },
+  {
+   "sym": "SPG",
+   "spot": 233.54,
+   "short_k": 228.0,
+   "long_k": 205.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 2.33,
+   "credit_worst": null,
+   "credit_min": 2.3,
+   "contracts": 1,
+   "premium_in": 232.87,
+   "margin": 2067.13,
+   "iv_used": 23.7,
+   "src": "BS(RV21×1.10)",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96"
+  },
+  {
    "sym": "AMZN",
-   "spot": 269.02,
+   "spot": 267.94,
    "short_k": 255.0,
    "long_k": 230.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.28,
-   "credit_worst": 2.19,
+   "credit": 2.26,
+   "credit_worst": 2.18,
    "credit_min": 2.5,
    "contracts": 1,
-   "premium_in": 228.0,
-   "margin": 2272.0,
+   "premium_in": 226.5,
+   "margin": 2273.5,
    "iv_used": 45.3,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -1011,38 +1041,19 @@
    "pool": "C96+117"
   },
   {
-   "sym": "OKTA",
-   "spot": 177.48,
-   "short_k": 160.0,
-   "long_k": 145.0,
+   "sym": "AAPL",
+   "spot": 347.77,
+   "short_k": 335.0,
+   "long_k": 305.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.21,
-   "credit_worst": 1.13,
-   "credit_min": 1.5,
+   "credit": 2.07,
+   "credit_worst": 1.96,
+   "credit_min": 3.0,
    "contracts": 1,
-   "premium_in": 221.5,
-   "margin": 1278.5,
-   "iv_used": 95.4,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "117"
-  },
-  {
-   "sym": "UNP",
-   "spot": 299.76,
-   "short_k": 290.0,
-   "long_k": 265.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 2.15,
-   "credit_worst": -0.5,
-   "credit_min": 2.5,
-   "contracts": 1,
-   "premium_in": 215.0,
-   "margin": 2285.0,
-   "iv_used": 28.4,
+   "premium_in": 206.5,
+   "margin": 2793.5,
+   "iv_used": 28.7,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -1050,17 +1061,17 @@
   },
   {
    "sym": "JNJ",
-   "spot": 281.52,
+   "spot": 281.92,
    "short_k": 270.0,
    "long_k": 245.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.13,
-   "credit_worst": 1.81,
+   "credit": 2.06,
+   "credit_worst": 1.73,
    "credit_min": 2.5,
    "contracts": 1,
-   "premium_in": 213.5,
-   "margin": 2286.5,
+   "premium_in": 206.0,
+   "margin": 2294.0,
    "iv_used": 37.3,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -1068,38 +1079,38 @@
    "pool": "C96"
   },
   {
-   "sym": "SPG",
-   "spot": 233.28,
-   "short_k": 227.0,
-   "long_k": 204.0,
+   "sym": "PM",
+   "spot": 195.09,
+   "short_k": 190.0,
+   "long_k": 170.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 2.11,
-   "credit_worst": null,
-   "credit_min": 2.3,
+   "credit": 2.03,
+   "credit_worst": 1.7,
+   "credit_min": 2.0,
    "contracts": 1,
-   "premium_in": 210.74,
-   "margin": 2089.26,
-   "iv_used": 23.8,
-   "src": "BS(RV21×1.10)",
+   "premium_in": 202.5,
+   "margin": 1797.5,
+   "iv_used": 35.4,
+   "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "C96"
   },
   {
-   "sym": "PM",
-   "spot": 195.24,
-   "short_k": 190.0,
-   "long_k": 170.0,
+   "sym": "UNP",
+   "spot": 300.46,
+   "short_k": 290.0,
+   "long_k": 265.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 1.95,
-   "credit_worst": 1.6,
-   "credit_min": 2.0,
+   "credit": 1.5,
+   "credit_worst": -1.1,
+   "credit_min": 2.5,
    "contracts": 1,
-   "premium_in": 195.0,
-   "margin": 1805.0,
-   "iv_used": 35.5,
+   "premium_in": 150.0,
+   "margin": 2350.0,
+   "iv_used": 28.5,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -1107,17 +1118,17 @@
   },
   {
    "sym": "COP",
-   "spot": 135.43,
+   "spot": 135.37,
    "short_k": 130.0,
    "long_k": 117.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 1.57,
-   "credit_worst": 1.02,
+   "credit": 1.5,
+   "credit_worst": 0.97,
    "credit_min": 1.5,
    "contracts": 2,
-   "premium_in": 313.0,
-   "margin": 2287.0,
+   "premium_in": 301.0,
+   "margin": 2299.0,
    "iv_used": 39.4,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -1125,19 +1136,38 @@
    "pool": "C96"
   },
   {
-   "sym": "TEM",
-   "spot": 80.57,
-   "short_k": 73.0,
-   "long_k": 66.0,
+   "sym": "MRK",
+   "spot": 146.88,
+   "short_k": 141.0,
+   "long_k": 125.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 1.57,
-   "credit_worst": 1.25,
+   "credit": 1.49,
+   "credit_worst": 1.2,
+   "credit_min": 1.6,
+   "contracts": 1,
+   "premium_in": 148.5,
+   "margin": 1451.5,
+   "iv_used": 39.5,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96"
+  },
+  {
+   "sym": "TEM",
+   "spot": 79.59,
+   "short_k": 72.0,
+   "long_k": 65.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 1.41,
+   "credit_worst": 1.08,
    "credit_min": 1.5,
    "contracts": 4,
-   "premium_in": 628.0,
-   "margin": 2172.0,
-   "iv_used": 99.0,
+   "premium_in": 564.0,
+   "margin": 2236.0,
+   "iv_used": 100.1,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -1145,56 +1175,18 @@
   },
   {
    "sym": "NEM",
-   "spot": 119.49,
+   "spot": 119.25,
    "short_k": 112.0,
    "long_k": 101.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 1.38,
-   "credit_worst": 0.98,
+   "credit": 1.3,
+   "credit_worst": 0.88,
    "credit_min": 1.5,
    "contracts": 2,
-   "premium_in": 276.0,
-   "margin": 1924.0,
-   "iv_used": 59.3,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96"
-  },
-  {
-   "sym": "MRK",
-   "spot": 146.48,
-   "short_k": 140.0,
-   "long_k": 125.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 1.3,
-   "credit_worst": 1.09,
-   "credit_min": 1.5,
-   "contracts": 1,
-   "premium_in": 130.0,
-   "margin": 1370.0,
-   "iv_used": 39.6,
-   "src": "鏈 mid（延遲價）",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96"
-  },
-  {
-   "sym": "PG",
-   "spot": 169.65,
-   "short_k": 165.0,
-   "long_k": 148.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 1.12,
-   "credit_worst": 0.94,
-   "credit_min": 1.7,
-   "contracts": 1,
-   "premium_in": 112.5,
-   "margin": 1587.5,
-   "iv_used": 31.5,
+   "premium_in": 260.0,
+   "margin": 1940.0,
+   "iv_used": 59.5,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -1202,75 +1194,75 @@
   },
   {
    "sym": "AEP",
-   "spot": 127.31,
-   "short_k": 124.0,
+   "spot": 127.9,
+   "short_k": 125.0,
    "long_k": 112.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 1.11,
+   "credit": 1.22,
    "credit_worst": null,
    "credit_min": 1.5,
    "contracts": 2,
-   "premium_in": 221.26,
-   "margin": 2178.74,
-   "iv_used": 22.9,
+   "premium_in": 244.3,
+   "margin": 2355.7,
+   "iv_used": 22.7,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "C96+117"
   },
   {
-   "sym": "TENB",
-   "spot": 41.68,
-   "short_k": 38.0,
-   "long_k": 34.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 0.93,
-   "credit_worst": null,
-   "credit_min": 1.5,
-   "contracts": 8,
-   "premium_in": 745.07,
-   "margin": 2454.93,
-   "iv_used": 82.4,
-   "src": "BS(RV21×1.10)",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "117"
-  },
-  {
    "sym": "PEP",
-   "spot": 143.06,
-   "short_k": 138.0,
-   "long_k": 124.0,
+   "spot": 143.68,
+   "short_k": 139.0,
+   "long_k": 125.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.91,
-   "credit_worst": 0.77,
+   "credit": 1.14,
+   "credit_worst": 0.99,
    "credit_min": 1.5,
    "contracts": 1,
-   "premium_in": 90.5,
-   "margin": 1309.5,
-   "iv_used": 28.8,
+   "premium_in": 114.0,
+   "margin": 1286.0,
+   "iv_used": 28.9,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "C96"
   },
   {
-   "sym": "ETR",
-   "spot": 111.33,
-   "short_k": 109.0,
-   "long_k": 98.0,
+   "sym": "PG",
+   "spot": 169.69,
+   "short_k": 165.0,
+   "long_k": 148.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.87,
+   "credit": 1.07,
+   "credit_worst": 0.95,
+   "credit_min": 1.7,
+   "contracts": 1,
+   "premium_in": 107.0,
+   "margin": 1593.0,
+   "iv_used": 31.5,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96"
+  },
+  {
+   "sym": "TENB",
+   "spot": 41.25,
+   "short_k": 38.0,
+   "long_k": 34.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 1.01,
    "credit_worst": null,
    "credit_min": 1.5,
-   "contracts": 2,
-   "premium_in": 174.33,
-   "margin": 2025.67,
-   "iv_used": 19.6,
+   "contracts": 8,
+   "premium_in": 811.91,
+   "margin": 2388.09,
+   "iv_used": 83.4,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
    "pt": "PT50",
@@ -1278,17 +1270,17 @@
   },
   {
    "sym": "D",
-   "spot": 68.27,
+   "spot": 68.37,
    "short_k": 66.0,
    "long_k": 59.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.84,
+   "credit": 0.81,
    "credit_worst": null,
    "credit_min": 1.5,
    "contracts": 3,
-   "premium_in": 252.11,
-   "margin": 1847.89,
+   "premium_in": 243.7,
+   "margin": 1856.3,
    "iv_used": 31.1,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
@@ -1296,38 +1288,38 @@
    "pool": "C96+117"
   },
   {
-   "sym": "RBLX",
-   "spot": 50.71,
-   "short_k": 46.0,
-   "long_k": 41.0,
+   "sym": "NEE",
+   "spot": 86.72,
+   "short_k": 84.0,
+   "long_k": 76.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.7,
-   "credit_worst": 0.56,
+   "credit": 0.77,
+   "credit_worst": 0.69,
    "credit_min": 1.5,
-   "contracts": 5,
-   "premium_in": 347.5,
-   "margin": 2152.5,
-   "iv_used": 100.6,
+   "contracts": 3,
+   "premium_in": 232.5,
+   "margin": 2167.5,
+   "iv_used": 30.2,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
-   "pool": "117"
+   "pool": "C96+117"
   },
   {
-   "sym": "XEL",
-   "spot": 80.2,
-   "short_k": 78.0,
-   "long_k": 70.0,
+   "sym": "ETR",
+   "spot": 111.67,
+   "short_k": 109.0,
+   "long_k": 98.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.61,
+   "credit": 0.77,
    "credit_worst": null,
    "credit_min": 1.5,
-   "contracts": 3,
-   "premium_in": 181.94,
-   "margin": 2218.06,
-   "iv_used": 21.8,
+   "contracts": 2,
+   "premium_in": 153.51,
+   "margin": 2046.49,
+   "iv_used": 19.5,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
    "pt": "PT50",
@@ -1335,17 +1327,17 @@
   },
   {
    "sym": "KO",
-   "spot": 96.83,
+   "spot": 96.89,
    "short_k": 94.0,
    "long_k": 85.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.55,
-   "credit_worst": 0.45,
+   "credit": 0.56,
+   "credit_worst": 0.47,
    "credit_min": 1.5,
    "contracts": 2,
-   "premium_in": 111.0,
-   "margin": 1689.0,
+   "premium_in": 113.0,
+   "margin": 1687.0,
    "iv_used": 23.0,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -1353,38 +1345,57 @@
    "pool": "C96"
   },
   {
-   "sym": "NEE",
-   "spot": 86.53,
-   "short_k": 83.0,
-   "long_k": 75.0,
+   "sym": "RBLX",
+   "spot": 50.2,
+   "short_k": 45.0,
+   "long_k": 40.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.51,
-   "credit_worst": 0.41,
+   "credit": 0.56,
+   "credit_worst": 0.51,
    "credit_min": 1.5,
-   "contracts": 3,
-   "premium_in": 153.0,
-   "margin": 2247.0,
-   "iv_used": 30.3,
+   "contracts": 5,
+   "premium_in": 282.5,
+   "margin": 2217.5,
+   "iv_used": 101.0,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
-   "pool": "C96+117"
+   "pool": "117"
+  },
+  {
+   "sym": "XEL",
+   "spot": 80.51,
+   "short_k": 78.0,
+   "long_k": 70.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 0.53,
+   "credit_worst": null,
+   "credit_min": 1.5,
+   "contracts": 3,
+   "premium_in": 158.32,
+   "margin": 2241.68,
+   "iv_used": 21.8,
+   "src": "BS(RV21×1.10)",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "117"
   },
   {
    "sym": "MO",
-   "spot": 76.45,
+   "spot": 76.64,
    "short_k": 74.0,
    "long_k": 67.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.49,
-   "credit_worst": 0.42,
+   "credit": 0.51,
+   "credit_worst": 0.44,
    "credit_min": 1.5,
    "contracts": 3,
-   "premium_in": 147.0,
-   "margin": 1953.0,
-   "iv_used": 30.7,
+   "premium_in": 151.5,
+   "margin": 1948.5,
+   "iv_used": 30.8,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -1392,55 +1403,36 @@
   },
   {
    "sym": "GEN",
-   "spot": 29.7,
+   "spot": 29.62,
    "short_k": 27.0,
    "long_k": 24.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.48,
+   "credit": 0.5,
    "credit_worst": null,
    "credit_min": 1.5,
    "contracts": 9,
-   "premium_in": 434.75,
-   "margin": 2265.25,
-   "iv_used": 65.3,
+   "premium_in": 448.1,
+   "margin": 2251.9,
+   "iv_used": 65.4,
    "src": "BS(RV21×1.10)",
    "delta": 0.3,
    "pt": "PT50",
    "pool": "117"
   },
   {
-   "sym": "EXC",
-   "spot": 45.72,
-   "short_k": 44.0,
-   "long_k": 40.0,
-   "expiry": "2026-11-27",
-   "dte_td": 12,
-   "credit": 0.38,
-   "credit_worst": null,
-   "credit_min": 1.5,
-   "contracts": 6,
-   "premium_in": 225.49,
-   "margin": 2174.51,
-   "iv_used": 27.0,
-   "src": "BS(RV21×1.10)",
-   "delta": 0.3,
-   "pt": "PT50",
-   "pool": "C96+117"
-  },
-  {
    "sym": "MDLZ",
-   "spot": 66.41,
+   "spot": 66.53,
    "short_k": 65.0,
    "long_k": 58.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.35,
-   "credit_worst": -0.15,
+   "credit": 0.38,
+   "credit_worst": -0.1,
    "credit_min": 1.5,
    "contracts": 3,
-   "premium_in": 105.0,
-   "margin": 1995.0,
+   "premium_in": 112.5,
+   "margin": 1987.5,
    "iv_used": 32.6,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
@@ -1448,19 +1440,38 @@
    "pool": "C96"
   },
   {
+   "sym": "EXC",
+   "spot": 45.9,
+   "short_k": 44.0,
+   "long_k": 40.0,
+   "expiry": "2026-11-27",
+   "dte_td": 12,
+   "credit": 0.34,
+   "credit_worst": null,
+   "credit_min": 1.5,
+   "contracts": 6,
+   "premium_in": 201.84,
+   "margin": 2198.16,
+   "iv_used": 27.0,
+   "src": "BS(RV21×1.10)",
+   "delta": 0.3,
+   "pt": "PT50",
+   "pool": "C96+117"
+  },
+  {
    "sym": "S",
-   "spot": 23.19,
+   "spot": 22.93,
    "short_k": 21.0,
    "long_k": 19.0,
    "expiry": "2026-11-27",
    "dte_td": 12,
-   "credit": 0.1,
-   "credit_worst": -0.2,
+   "credit": 0.23,
+   "credit_worst": -0.05,
    "credit_min": 1.5,
-   "contracts": 12,
-   "premium_in": 120.0,
-   "margin": 2280.0,
-   "iv_used": 83.2,
+   "contracts": 13,
+   "premium_in": 292.5,
+   "margin": 2307.5,
+   "iv_used": 83.5,
    "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "pt": "PT50",
@@ -1472,37 +1483,37 @@
    "sym": "NVDA",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -25.2%"
+   "note": "mom63 -25.7%"
   },
   {
    "sym": "AVGO",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -21.6%"
+   "note": "mom63 -22.0%"
   },
   {
    "sym": "ORCL",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -23.2%"
+   "note": "mom63 -24.5%"
   },
   {
    "sym": "ADBE",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -9.5%"
+   "note": "mom63 -10.0%"
   },
   {
    "sym": "GOOGL",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -16.4%"
+   "note": "mom63 -16.8%"
   },
   {
    "sym": "NFLX",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -15.2%"
+   "note": "mom63 -15.6%"
   },
   {
    "sym": "DIS",
@@ -1514,25 +1525,25 @@
    "sym": "CMCSA",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -2.5%"
+   "note": "mom63 -2.1%"
   },
   {
    "sym": "T",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -9.8%"
+   "note": "mom63 -9.7%"
   },
   {
    "sym": "VZ",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -1.6%"
+   "note": "mom63 -1.4%"
   },
   {
    "sym": "TMUS",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -5.4%"
+   "note": "mom63 -5.0%"
   },
   {
    "sym": "AMZN",
@@ -1568,13 +1579,13 @@
    "sym": "TJX",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -10.2%"
+   "note": "mom63 -10.0%"
   },
   {
    "sym": "NKE",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -3.9%"
+   "note": "mom63 -3.8%"
   },
   {
    "sym": "BRK-B",
@@ -1592,25 +1603,25 @@
    "sym": "GS",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -12.8%"
+   "note": "mom63 -13.0%"
   },
   {
    "sym": "MS",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -14.3%"
+   "note": "mom63 -14.2%"
   },
   {
    "sym": "AXP",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -5.8%"
+   "note": "mom63 -5.6%"
   },
   {
    "sym": "UNH",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -1.0%"
+   "note": "mom63 -1.1%"
   },
   {
    "sym": "LLY",
@@ -1634,19 +1645,19 @@
    "sym": "ABT",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -0.9%"
+   "note": "mom63 -0.7%"
   },
   {
    "sym": "GE",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -8.6%"
+   "note": "mom63 -8.5%"
   },
   {
    "sym": "RTX",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -10.2%"
+   "note": "mom63 -9.9%"
   },
   {
    "sym": "CAT",
@@ -1658,7 +1669,7 @@
    "sym": "UBER",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -7.5%"
+   "note": "mom63 -7.7%"
   },
   {
    "sym": "BA",
@@ -1670,13 +1681,13 @@
    "sym": "HON",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -3.1%"
+   "note": "mom63 -3.0%"
   },
   {
    "sym": "ETN",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -23.7%"
+   "note": "mom63 -23.9%"
   },
   {
    "sym": "SO",
@@ -1700,7 +1711,7 @@
    "sym": "CEG",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -4.7%"
+   "note": "mom63 -5.2%"
   },
   {
    "sym": "AEP",
@@ -1718,13 +1729,13 @@
    "sym": "SRE",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -8.8%"
+   "note": "mom63 -8.6%"
   },
   {
    "sym": "WMB",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -8.3%"
+   "note": "mom63 -8.4%"
   },
   {
    "sym": "EOG",
@@ -1742,7 +1753,7 @@
    "sym": "SLB",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -4.8%"
+   "note": "mom63 -4.7%"
   },
   {
    "sym": "PSX",
@@ -1760,7 +1771,7 @@
    "sym": "SHW",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -1.3%"
+   "note": "mom63 -1.2%"
   },
   {
    "sym": "ECL",
@@ -1772,7 +1783,7 @@
    "sym": "FCX",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -13.0%"
+   "note": "mom63 -13.5%"
   },
   {
    "sym": "NEM",
@@ -1784,7 +1795,7 @@
    "sym": "NUE",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -5.5%"
+   "note": "mom63 -5.6%"
   },
   {
    "sym": "VMC",
@@ -1796,7 +1807,7 @@
    "sym": "PLD",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -7.9%"
+   "note": "mom63 -7.8%"
   },
   {
    "sym": "AMT",
@@ -1826,13 +1837,13 @@
    "sym": "O",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -4.9%"
+   "note": "mom63 -4.7%"
   },
   {
    "sym": "DLR",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -8.2%"
+   "note": "mom63 -8.5%"
   },
   {
    "sym": "WMT",
@@ -1868,25 +1879,25 @@
    "sym": "TSM",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -9.2%"
+   "note": "mom63 -9.6%"
   },
   {
    "sym": "ASML",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -17.2%"
+   "note": "mom63 -17.5%"
   },
   {
    "sym": "ARM",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -34.6%"
+   "note": "mom63 -35.2%"
   },
   {
    "sym": "NOW",
    "pool": "C96+117",
    "reason": "mom",
-   "note": "mom63 -20.6%"
+   "note": "mom63 -21.7%"
   },
   {
    "sym": "INTU",
@@ -1904,19 +1915,19 @@
    "sym": "ENPH",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -33.7%"
+   "note": "mom63 -33.5%"
   },
   {
    "sym": "FSLR",
    "pool": "C96",
    "reason": "mom",
-   "note": "mom63 -20.8%"
+   "note": "mom63 -21.1%"
   },
   {
    "sym": "AAOI",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -65.8%"
+   "note": "mom63 -66.3%"
   },
   {
    "sym": "ABNB",
@@ -1934,43 +1945,43 @@
    "sym": "ALAB",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -33.2%"
+   "note": "mom63 -33.8%"
   },
   {
    "sym": "AMAT",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -33.1%"
+   "note": "mom63 -33.3%"
   },
   {
    "sym": "AMBA",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -29.2%"
+   "note": "mom63 -29.7%"
   },
   {
    "sym": "AMKR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -38.3%"
+   "note": "mom63 -38.7%"
   },
   {
    "sym": "ANET",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -12.1%"
+   "note": "mom63 -13.1%"
   },
   {
    "sym": "APH",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -6.9%"
+   "note": "mom63 -7.2%"
   },
   {
    "sym": "APLD",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -47.5%"
+   "note": "mom63 -48.3%"
   },
   {
    "sym": "APP",
@@ -1982,19 +1993,19 @@
    "sym": "BBAI",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -29.3%"
+   "note": "mom63 -30.1%"
   },
   {
    "sym": "BE",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -22.8%"
+   "note": "mom63 -23.4%"
   },
   {
    "sym": "CCJ",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -26.6%"
+   "note": "mom63 -27.0%"
   },
   {
    "sym": "CDNS",
@@ -2012,55 +2023,61 @@
    "sym": "CIEN",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -38.2%"
+   "note": "mom63 -38.7%"
   },
   {
    "sym": "CIFR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -64.1%"
+   "note": "mom63 -64.6%"
   },
   {
    "sym": "COHR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -40.3%"
+   "note": "mom63 -41.6%"
   },
   {
    "sym": "CORZ",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -39.6%"
+   "note": "mom63 -40.0%"
   },
   {
    "sym": "CRDO",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -51.8%"
+   "note": "mom63 -52.5%"
+  },
+  {
+   "sym": "CRWD",
+   "pool": "117",
+   "reason": "mom",
+   "note": "mom63 -0.7%"
   },
   {
    "sym": "CSCO",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -21.3%"
+   "note": "mom63 -21.7%"
   },
   {
    "sym": "DASH",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -17.7%"
+   "note": "mom63 -18.0%"
   },
   {
    "sym": "DDOG",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -26.4%"
+   "note": "mom63 -27.4%"
   },
   {
    "sym": "DELL",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -32.5%"
+   "note": "mom63 -33.5%"
   },
   {
    "sym": "DUOL",
@@ -2072,7 +2089,7 @@
    "sym": "ENTG",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -15.6%"
+   "note": "mom63 -16.3%"
   },
   {
    "sym": "ETR",
@@ -2084,19 +2101,19 @@
    "sym": "FFIV",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -25.1%"
+   "note": "mom63 -25.4%"
   },
   {
    "sym": "FN",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -40.6%"
+   "note": "mom63 -41.9%"
   },
   {
    "sym": "FTNT",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -23.3%"
+   "note": "mom63 -23.7%"
   },
   {
    "sym": "GEN",
@@ -2108,25 +2125,25 @@
    "sym": "GEV",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -26.0%"
+   "note": "mom63 -26.4%"
   },
   {
    "sym": "GFS",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -23.9%"
+   "note": "mom63 -24.4%"
   },
   {
    "sym": "GLW",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -33.8%"
+   "note": "mom63 -34.1%"
   },
   {
    "sym": "HPE",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -20.9%"
+   "note": "mom63 -21.6%"
   },
   {
    "sym": "HUBB",
@@ -2138,55 +2155,55 @@
    "sym": "INTC",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -43.1%"
+   "note": "mom63 -43.6%"
   },
   {
    "sym": "IONQ",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -23.3%"
+   "note": "mom63 -24.1%"
   },
   {
    "sym": "IRM",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -11.4%"
+   "note": "mom63 -11.5%"
   },
   {
    "sym": "KLAC",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -27.6%"
+   "note": "mom63 -27.8%"
   },
   {
    "sym": "LEU",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -41.0%"
+   "note": "mom63 -41.4%"
   },
   {
    "sym": "LITE",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -37.7%"
+   "note": "mom63 -38.5%"
   },
   {
    "sym": "LRCX",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -32.5%"
+   "note": "mom63 -32.7%"
   },
   {
    "sym": "MBLY",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -36.2%"
+   "note": "mom63 -36.8%"
   },
   {
    "sym": "MELI",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -18.2%"
+   "note": "mom63 -18.6%"
   },
   {
    "sym": "MOD",
@@ -2198,85 +2215,85 @@
    "sym": "MPWR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -8.4%"
+   "note": "mom63 -9.3%"
   },
   {
    "sym": "MRVL",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -30.1%"
+   "note": "mom63 -30.9%"
   },
   {
    "sym": "MU",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -22.2%"
+   "note": "mom63 -23.0%"
   },
   {
    "sym": "NBIS",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -48.4%"
+   "note": "mom63 -49.2%"
   },
   {
    "sym": "NET",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -3.9%"
+   "note": "mom63 -4.8%"
   },
   {
    "sym": "NTGR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -19.5%"
+   "note": "mom63 -19.9%"
   },
   {
    "sym": "NVT",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -34.9%"
+   "note": "mom63 -35.2%"
   },
   {
    "sym": "ONTO",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -42.5%"
+   "note": "mom63 -42.7%"
   },
   {
    "sym": "PANW",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -16.6%"
+   "note": "mom63 -17.3%"
   },
   {
    "sym": "PLTR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -2.9%"
+   "note": "mom63 -3.8%"
   },
   {
    "sym": "PONY",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -44.5%"
+   "note": "mom63 -44.8%"
   },
   {
    "sym": "POWL",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -33.8%"
+   "note": "mom63 -34.3%"
   },
   {
    "sym": "PWR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -14.9%"
+   "note": "mom63 -15.2%"
   },
   {
    "sym": "QLYS",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -4.8%"
+   "note": "mom63 -5.1%"
   },
   {
    "sym": "RBLX",
@@ -2294,49 +2311,49 @@
    "sym": "SHOP",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -3.7%"
+   "note": "mom63 -5.1%"
   },
   {
    "sym": "SITM",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -36.0%"
+   "note": "mom63 -36.7%"
   },
   {
    "sym": "SNDK",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -37.5%"
+   "note": "mom63 -38.3%"
   },
   {
    "sym": "SNOW",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -12.2%"
+   "note": "mom63 -13.3%"
   },
   {
    "sym": "SOUN",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -48.8%"
+   "note": "mom63 -49.6%"
   },
   {
    "sym": "SPCX",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -3.1%"
+   "note": "mom63 -3.5%"
   },
   {
    "sym": "STM",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -18.3%"
+   "note": "mom63 -18.8%"
   },
   {
    "sym": "STX",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -44.7%"
+   "note": "mom63 -45.0%"
   },
   {
    "sym": "TEM",
@@ -2354,19 +2371,19 @@
    "sym": "TER",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -40.0%"
+   "note": "mom63 -40.1%"
   },
   {
    "sym": "TLN",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -2.3%"
+   "note": "mom63 -2.5%"
   },
   {
    "sym": "TSEM",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -43.9%"
+   "note": "mom63 -44.3%"
   },
   {
    "sym": "TTD",
@@ -2384,37 +2401,37 @@
    "sym": "UCTT",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -49.6%"
+   "note": "mom63 -50.1%"
   },
   {
    "sym": "UMC",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -23.0%"
+   "note": "mom63 -23.5%"
   },
   {
    "sym": "VICR",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -30.1%"
+   "note": "mom63 -30.5%"
   },
   {
    "sym": "VRT",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -34.2%"
+   "note": "mom63 -34.5%"
   },
   {
    "sym": "VST",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -11.4%"
+   "note": "mom63 -11.7%"
   },
   {
    "sym": "WDC",
    "pool": "117",
    "reason": "mom",
-   "note": "mom63 -38.4%"
+   "note": "mom63 -39.0%"
   },
   {
    "sym": "XEL",
@@ -2427,33 +2444,22 @@
  "csv_ed_drift": 10,
  "c96_screen": [
   {
+   "sym": "MO",
+   "mom63": 19.1,
+   "close": 76.64,
+   "rv21_pctl": 81.0,
+   "chg1d": 1.1,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "ok",
+   "earn_td": 56
+  },
+  {
    "sym": "TMO",
    "mom63": 18.9,
-   "close": 717.03,
+   "close": 717.19,
    "rv21_pctl": 65.0,
-   "chg1d": -0.64,
-   "iv": "全",
-   "gap": "ok",
-   "earn": "ok",
-   "earn_td": 56
-  },
-  {
-   "sym": "MO",
-   "mom63": 18.7,
-   "close": 76.45,
-   "rv21_pctl": 81.0,
-   "chg1d": 0.84,
-   "iv": "全",
-   "gap": "ok",
-   "earn": "ok",
-   "earn_td": 56
-  },
-  {
-   "sym": "MA",
-   "mom63": 17.9,
-   "close": 660.15,
-   "rv21_pctl": 88.0,
-   "chg1d": 0.66,
+   "chg1d": -0.62,
    "iv": "全",
    "gap": "ok",
    "earn": "ok",
@@ -2461,21 +2467,32 @@
   },
   {
    "sym": "ABBV",
-   "mom63": 17.9,
-   "close": 293.24,
+   "mom63": 18.3,
+   "close": 294.27,
    "rv21_pctl": 55.0,
-   "chg1d": -0.02,
+   "chg1d": 0.33,
    "iv": "全",
    "gap": "ok",
    "earn": "ok",
    "earn_td": null
   },
   {
+   "sym": "MA",
+   "mom63": 18.1,
+   "close": 661.08,
+   "rv21_pctl": 88.0,
+   "chg1d": 0.8,
+   "iv": "全",
+   "gap": "ok",
+   "earn": "ok",
+   "earn_td": 56
+  },
+  {
    "sym": "V",
-   "mom63": 17.8,
-   "close": 423.45,
+   "mom63": 17.9,
+   "close": 423.83,
    "rv21_pctl": 83.0,
-   "chg1d": 0.31,
+   "chg1d": 0.4,
    "iv": "全",
    "gap": "ok",
    "earn": "ok",
@@ -2483,10 +2500,10 @@
   },
   {
    "sym": "PG",
-   "mom63": 17.7,
-   "close": 169.65,
+   "mom63": 17.8,
+   "close": 169.69,
    "rv21_pctl": 97.0,
-   "chg1d": 0.79,
+   "chg1d": 0.81,
    "iv": "全",
    "gap": "ok",
    "earn": "ok",
@@ -2494,10 +2511,10 @@
   },
   {
    "sym": "LLY",
-   "mom63": 16.4,
-   "close": 1419.8,
+   "mom63": 16.5,
+   "close": 1421.85,
    "rv21_pctl": 77.0,
-   "chg1d": 0.56,
+   "chg1d": 0.7,
    "iv": "全",
    "gap": "ok",
    "earn": "ok",
@@ -2505,10 +2522,10 @@
   },
   {
    "sym": "AAPL",
-   "mom63": 15.2,
-   "close": 348.08,
+   "mom63": 15.1,
+   "close": 347.77,
    "rv21_pctl": 61.0,
-   "chg1d": -0.74,
+   "chg1d": -0.83,
    "iv": "全",
    "gap": "ok",
    "earn": "ok",
@@ -2517,39 +2534,39 @@
   {
    "sym": "DIS",
    "mom63": 15.1,
-   "close": 118.82,
+   "close": 118.76,
    "rv21_pctl": 51.0,
-   "chg1d": -0.25,
+   "chg1d": -0.3,
    "iv": "全",
    "gap": "ok",
    "earn": "?"
   },
   {
    "sym": "TSLA",
-   "mom63": 14.9,
-   "close": 376.24,
+   "mom63": 14.5,
+   "close": 375.13,
    "rv21_pctl": 75.0,
-   "chg1d": -0.48,
+   "chg1d": -0.77,
    "iv": "全",
    "gap": "ok",
    "earn": "?"
   },
   {
    "sym": "BRK-B",
-   "mom63": 14.1,
-   "close": 582.15,
-   "rv21_pctl": 82.0,
-   "chg1d": 1.2,
+   "mom63": 14.3,
+   "close": 583.18,
+   "rv21_pctl": 83.0,
+   "chg1d": 1.38,
    "iv": "全",
    "gap": "ok",
    "earn": "?"
   },
   {
    "sym": "COST",
-   "mom63": 12.1,
-   "close": 1064.25,
+   "mom63": 12.5,
+   "close": 1067.94,
    "rv21_pctl": 81.0,
-   "chg1d": -0.18,
+   "chg1d": 0.17,
    "iv": "全",
    "gap": "ok",
    "earn": "?"
@@ -2557,8 +2574,36 @@
  ],
  "c96_candidates": [
   {
+   "sym": "MO",
+   "spot": 76.64,
+   "short_k": 72.5,
+   "long_k": 65.0,
+   "expiry": "2027-01-15",
+   "dte_td": 47,
+   "credit": 1.14,
+   "credit_worst": 1.03,
+   "width_pct": 10,
+   "credit_min": 1.5,
+   "contracts": 3,
+   "max_loss": 1908.0,
+   "premium_in": 342.0,
+   "margin": 1908.0,
+   "cash_after": 49487.12,
+   "iv_used": 25.8,
+   "src": "鏈 mid（Futu OpenD）",
+   "delta": 0.28,
+   "rv21_pctl": 81.0,
+   "earn_td": 56,
+   "pool": "C96",
+   "wr": 100,
+   "wr_n": 1,
+   "wr_src": "v4g_naked",
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
+  },
+  {
    "sym": "TMO",
-   "spot": 717.03,
+   "spot": 717.19,
    "short_k": 670.0,
    "long_k": 600.0,
    "expiry": "2027-01-15",
@@ -2572,80 +2617,24 @@
    "premium_in": 1340.0,
    "margin": 5660.0,
    "cash_after": 50485.12,
-   "iv_used": 35.7,
+   "iv_used": 35.6,
    "src": "鏈 mid（延遲價）",
    "delta": 0.28,
    "rv21_pctl": 65.0,
    "earn_td": 56,
    "pool": "C96",
-   "exec_credit": 9.9,
-   "status": "✅ 可落",
-   "status_why": "短腿 21% 過閘；長腿（買）mid spread 51% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $9.90 對 mid $13.40（−26%）"
-  },
-  {
-   "sym": "MO",
-   "spot": 76.45,
-   "short_k": 72.5,
-   "long_k": 65.0,
-   "expiry": "2027-01-15",
-   "dte_td": 47,
-   "credit": 1.19,
-   "credit_worst": 1.09,
-   "width_pct": 10,
-   "credit_min": 1.5,
-   "contracts": 3,
-   "max_loss": 1894.5,
-   "premium_in": 355.5,
-   "margin": 1894.5,
-   "cash_after": 49500.62,
-   "iv_used": 25.6,
-   "src": "鏈 mid（Futu OpenD）",
-   "delta": 0.28,
-   "rv21_pctl": 81.0,
-   "earn_td": 56,
-   "pool": "C96",
-   "wr": 100,
-   "wr_n": 1,
-   "wr_src": "v4g_naked",
-   "exec_credit": 1.1,
-   "status": "✅ 可落",
-   "status_why": "短腿 3% 過閘；長腿（買）mid spread 52% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $1.10 對 mid $1.19（−8%）"
-  },
-  {
-   "sym": "MA",
-   "spot": 660.15,
-   "short_k": 630.0,
-   "long_k": 565.0,
-   "expiry": "2027-01-15",
-   "dte_td": 47,
-   "credit": 8.98,
-   "credit_worst": 7.9,
-   "width_pct": 10,
-   "credit_min": 6.5,
-   "contracts": 1,
-   "max_loss": 5602.5,
-   "premium_in": 897.5,
-   "margin": 5602.5,
-   "cash_after": 50042.62,
-   "iv_used": 23.6,
-   "src": "鏈 mid（Futu OpenD）",
-   "delta": 0.28,
-   "rv21_pctl": 88.0,
-   "earn_td": 56,
-   "pool": "C96",
-   "exec_credit": 7.9,
-   "status": "✅ 可落",
-   "status_why": "短腿 7% 過閘；長腿（買）mid spread 46% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $7.90 對 mid $8.98（−12%）"
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
   },
   {
    "sym": "ABBV",
-   "spot": 293.24,
+   "spot": 294.27,
    "short_k": 270.0,
    "long_k": 240.0,
    "expiry": "2027-01-15",
    "dte_td": 47,
    "credit": 3.63,
-   "credit_worst": 3.32,
+   "credit_worst": 3.27,
    "width_pct": 10,
    "credit_min": 3.0,
    "contracts": 1,
@@ -2653,7 +2642,7 @@
    "premium_in": 363.0,
    "margin": 2637.0,
    "cash_after": 49508.12,
-   "iv_used": 29.0,
+   "iv_used": 29.6,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "rv21_pctl": 55.0,
@@ -2662,13 +2651,37 @@
    "wr": 100,
    "wr_n": 5,
    "wr_src": "v4g_naked",
-   "exec_credit": 3.32,
-   "status": "✅ 可落",
-   "status_why": "短腿 5% 過閘；長腿（買）mid spread 35% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $3.32 對 mid $3.63（−9%）"
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
+  },
+  {
+   "sym": "MA",
+   "spot": 661.08,
+   "short_k": 620.0,
+   "long_k": 560.0,
+   "expiry": "2027-01-15",
+   "dte_td": 47,
+   "credit": 7.12,
+   "credit_worst": 6.45,
+   "width_pct": 10,
+   "credit_min": 6.0,
+   "contracts": 1,
+   "max_loss": 5287.5,
+   "premium_in": 712.5,
+   "margin": 5287.5,
+   "cash_after": 49857.62,
+   "iv_used": 30.8,
+   "src": "鏈 mid（延遲價）",
+   "delta": 0.28,
+   "rv21_pctl": 88.0,
+   "earn_td": 56,
+   "pool": "C96",
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
   },
   {
    "sym": "V",
-   "spot": 423.45,
+   "spot": 423.83,
    "short_k": 400.0,
    "long_k": 360.0,
    "expiry": "2027-01-15",
@@ -2682,8 +2695,8 @@
    "premium_in": 514.5,
    "margin": 3485.5,
    "cash_after": 49659.62,
-   "iv_used": 24.4,
-   "src": "鏈 mid（Futu OpenD）",
+   "iv_used": 28.7,
+   "src": "鏈 mid（延遲價）",
    "delta": 0.28,
    "rv21_pctl": 83.0,
    "earn_td": 55,
@@ -2691,64 +2704,62 @@
    "wr": 50,
    "wr_n": 2,
    "wr_src": "v4g_naked",
-   "exec_credit": 4.78,
-   "status": "✅ 可落",
-   "status_why": "短腿 4% 過閘；可執行 $4.78 對 mid $5.14（−7%）"
+   "status": "⚠️ 無鏈",
+   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
   }
  ],
  "ownable6": [
   {
    "sym": "RBLX",
-   "mom63": 42.7,
-   "close": 50.71,
+   "mom63": 41.2,
+   "close": 50.2,
    "earn_td": -9,
    "earn_window": "清窗"
   },
   {
    "sym": "APP",
-   "mom63": 27.6,
-   "close": 387.7,
+   "mom63": 27.1,
+   "close": 386.16,
    "earn_td": 0,
    "earn_window": "撞窗"
   },
   {
    "sym": "OKTA",
-   "mom63": 20.5,
-   "close": 177.48,
+   "mom63": 18.8,
+   "close": 175.03,
    "earn_td": 15,
    "earn_window": "清窗"
   },
   {
    "sym": "TTD",
-   "mom63": 14.2,
-   "close": 15.41,
+   "mom63": 13.7,
+   "close": 15.33,
    "earn_td": 0,
    "earn_window": "撞窗"
   },
   {
    "sym": "MSFT",
-   "mom63": 10.4,
-   "close": 543.66,
+   "mom63": 8.0,
+   "close": 531.8,
    "earn_td": -10,
    "earn_window": "清窗"
   },
   {
    "sym": "WDAY",
-   "mom63": 8.4,
-   "close": 189.96,
+   "mom63": 7.4,
+   "close": 188.33,
    "earn_td": 10,
    "earn_window": "撞窗"
   }
  ],
  "cum": {
-  "margin": 5660.0,
-  "frac": 11.5,
+  "margin": 4545.0,
+  "frac": 9.2,
   "cap_pct": 12.0,
-  "cash_after": 43485.12,
+  "cash_after": 44600.12,
   "dropped": [
-   "MO",
+   "TMO",
    "MA",
-   "ABBV",
    "V"
   ]
  },
@@ -2762,11 +2773,11 @@
    "long_k": 590.0,
    "contracts": 1,
    "entry_prem": 9.03,
-   "cur_prem": 7.7,
-   "pt_remaining": 85,
+   "cur_prem": 7.43,
+   "pt_remaining": 82,
    "margin_req": 6097.0,
-   "pnl_usd": 133.0,
-   "spot": 717.125,
+   "pnl_usd": 160.0,
+   "spot": 717.175,
    "pt_zone": "未到",
    "id": "p17942424387353",
    "verified": true
@@ -2782,10 +2793,10 @@
    "long_k": 365.0,
    "contracts": 1,
    "entry_prem": 6.39,
-   "cur_prem": 5.62,
-   "pt_remaining": 88,
+   "cur_prem": 5.45,
+   "pt_remaining": 85,
    "margin_req": 0.0,
-   "pnl_usd": 77.0,
+   "pnl_usd": 94.0,
    "spot": null,
    "pt_zone": "未到",
    "id": "u1793987500",
@@ -2795,16 +2806,16 @@
  "ytd": {
   "real_realized_hkd": -55247.0,
   "paper_realized_hkd": -100321.0,
-  "unrealized_hkd": 1037.0,
+  "unrealized_hkd": 1248.0,
   "base_hkd": 338124.228,
-  "portfolio_return_pct": -45.52,
-  "as_of": "2026-11-11T01:19:12.676272+08:00"
+  "portfolio_return_pct": -45.42,
+  "as_of": "2026-11-11T01:40:18.317363+08:00"
  },
  "risk": {
   "obligation_usd": 7000,
-  "equity_usd_live": 43258.1,
+  "equity_usd_live": 43293.2,
   "oblig_cash_ratio": 0.16,
-  "margin_used_pct": 21.3,
+  "margin_used_pct": 21.2,
   "cash_usd": 34634
  },
  "account": {
@@ -2812,16 +2823,16 @@
   "fx": 7.78,
   "nav_usd": 49145.0,
   "single_cap_usd": 2457.0,
-  "total_hkd": 337413,
-  "equity_usd": 43258.1,
+  "total_hkd": 337687,
+  "equity_usd": 43293.2,
   "us_cash_power_usd": 34634,
   "long_mv_hkd": 1177,
   "fund_assets_hkd": 336409,
   "init_margin_hkd": 71738,
   "maint_margin_hkd": 54918,
-  "real_cash_hkd": 212589,
+  "real_cash_hkd": 212588,
   "anchor_hkd": 382349,
-  "anchor_delta_pct": -11.8,
+  "anchor_delta_pct": -11.7,
   "legs": [],
   "opt_legs": [
    {
@@ -2829,12 +2840,12 @@
     "code": "US.TMO261218P660000",
     "shares": 0.0,
     "strike": 12.91,
-    "pnl_hkd": 1043,
+    "pnl_hkd": 1200,
     "expiry": "P6"
    }
   ],
   "unreal_stock_hkd": 0,
-  "unreal_opt_hkd": 1043,
+  "unreal_opt_hkd": 1200,
   "closed_88d_usd": -38531,
   "closed_88d_hkd": -299771,
   "closed_codes": {
@@ -2879,7 +2890,7 @@
    "WDC",
    "XSP"
   ],
-  "ts": "2026-11-11T01:19:01"
+  "ts": "2026-11-11T01:33:25"
  },
  "config": {
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",
@@ -2887,8 +2898,9 @@
  },
  "notes": [
   "⚠️ 引擎 CSV 錨日 2026-10-28 已 10td 舊——earnings_days 已 rebase、rv21_pctl 已轉新鮮 yf 現算（11-10 根修）",
-  "bridge 鏈價 ok=False（get_option_chain: 獲取期權鏈頻率太高，請求失敗，每30秒最多10次。）——候選定價跌落 yf 鏈 mid/BS 層",
+  "bridge 鏈價 ok=False（get_option_chain: Empty DataFrame\nColumns: [code, name, lot_）——候選定價跌落 yf 鏈 mid/BS 層",
+  "雷達 RED 但 C96 腿豁免封（11-05 拍板 b）——C96 候選 δ 縮深至 0.28",
   "局部殺戮——真倉候選由 AI 池（4 隻）轉板塊頭部 C96（5 隻）；paper 台照 AI 池 shadow 唔混池",
-  "累計 12% NAV 閘裁走 4 個候選（MO、MA、ABBV、V；12% 上限=5897 美元）"
+  "累計 12% NAV 閘裁走 3 個候選（TMO、MA、V；12% 上限=5897 美元）"
  ]
 }
