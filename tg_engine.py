@@ -127,7 +127,7 @@ def daily_text(td, tag=""):
         banned = [("%s（%std）" % (r["sym"], r["earn_td"])) for r in (td.get("screen") or [])
                   if r.get("earn") == "禁" and r.get("earn_td") is not None]
         if banned:
-            extra = "\n業績禁（5td 冷靜期）：\n· " + "\n· ".join(banned[:8])
+            extra = "\n業績禁（前21td禁＋後5td冷靜）：\n· " + "\n· ".join(banned[:8])  # ⭐11-11 名實對齊（舊標籤「5td 冷靜期」列嘅係 21td 前禁名）
     return head + body + extra
 
 

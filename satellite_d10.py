@@ -220,6 +220,31 @@ def _run(mode):
             if float(c.get("short_k") or 0) - float(c.get("long_k") or 0) < 15:
                 _skip_w += 1
                 continue
+            # ⭐11-10 防線②（INTU 漏閘事故）：開倉前 yf live 再驗業績窗——gen screen 食過凍結 CSV 話 ed=18，
+            # 真實 INTU 11-20＝到期日。呢道閘用新鮮日曆，唔信 gen 個 gate
+            try:
+                import yfinance as _yf
+                _cal2 = _yf.Ticker(c["sym"]).calendar
+                _eds2 = (_cal2 or {}).get("Earnings Date")
+                _d02 = _eds2[0] if isinstance(_eds2, (list, tuple)) and len(_eds2) else _eds2
+                if isinstance(_d02, str):
+                    _d02 = datetime.date.fromisoformat(str(_d02)[:10])
+                elif _d02 is not None and hasattr(_d02, "date"):
+                    _d02 = _d02.date()
+                # ⭐11-11 蟲修（agent C 實錘：td_between past→0＋`0<=0`＝已出＝無限期禁）＋拍板⑥補齊：
+                # 已出≤5td→禁（冷靜）；>5td→放行（下季未公佈＝唔知窗，同 gen earn_passed 口徑）
+                if _d02 and _d02 < date.today():
+                    _g2 = td_between(_d02, date.today())
+                    if _g2 <= 5:
+                        acts.append("跳過 %s 業績 %s 剛出 %std——後 5td 冷靜（拍板⑥，二重閘）" % (c["sym"], _d02, _g2))
+                        continue
+                else:
+                    _ed2 = td_between(date.today(), _d02) if _d02 else None
+                    if _ed2 is not None and _ed2 <= int(c.get("dte_td") or 10) + 1:
+                        acts.append("跳過 %s 業績 %std 落喺窗口（引擎二重閘，11-10 INTU 根修）" % (c["sym"], _ed2))
+                        continue
+            except Exception:
+                pass
             # ⭐11-10 擴池配套：每晚 ≤5 倉＋總按金 ≤40% NAV（池 11→185 名後唔 cap 會一晚爆十幾倉；
             #    gen 已 credit 大排先，行到呢度就係最肥先開）
             if _n_tonight >= MAX_NIGHTLY:

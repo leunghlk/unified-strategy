@@ -113,13 +113,15 @@ def bridge_chain(s, exp_str):
     return None
 
 
-def price_spread(S, T, delta_tgt, iv, exp_str, sym=None):
+def price_spread(S, T, delta_tgt, iv, exp_str, sym=None, use_bridge=True):
     """短 put spread 定價三層：①bridge 真鏈（真 bid/ask mid、真 δ、全部 listed strikes）
     → ②yf 鏈 mid（延遲價，BS 行 K 貼最近 listed）→ ③BS 兜底。
     → (Ks, Kl, credit, src, iv_out, credit_worst)；credit=mid 口徑（收掛 mid 嘅理想值），
     credit_worst=sell@bid−buy@ask（市價單立即成交嘅最差可收值，⭐11-06 用戶令顯示）；
     iv_out=鏈價時用該腿真鏈 IV（None=用輸入 iv）。三層同一 δ 語意（行落 OTM 第一隻 |δ|≤delta_tgt）。"""
-    if sym:
+    if sym and use_bridge:
+        # ⭐11-10：use_bridge=False 俾衛星台 185 名掃描用——OpenD 30s/10 限額，全掃逐名打真鏈會燒光配額，
+        # 令之後真倉 validation 全 403 假「無鏈」（實錘）。screening 用 yf/BS 夠；真鏈覆核係 satellite_d10.py 責任
         _bc = bridge_chain(sym, exp_str)
         if _bc:
             try:
@@ -269,7 +271,7 @@ def loc_col(c):
     for r in rows:
         try:
             out.append(float(r[c]))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, KeyError):  # ⭐11-11 KeyError 補：新入池名（SPCX/AMKR）引擎 CSV 未有欄→NaN，yf 新鮮價兜
             out.append(float("nan"))
     return out
 
@@ -279,7 +281,8 @@ mkt_vix = loc_col("vix")
 mkt_breadth = loc_col("breadth_pct12")
 last_loc = loc_dates[-1]
 import numpy as np
-names = ["NVDA","AMD","AVGO","MRVL","ARM","QCOM","ADI","MPWR","VICR","AMBA","SITM","TSM","INTC","GFS","UMC","TSEM","STM","AMAT","LRCX","KLAC","ASML","TER","ONTO","ENTG","UCTT","CDNS","MU","SNDK","WDC","STX","FN","COHR","LITE","CIEN","AAOI","ALAB","CRDO","ANET","CSCO","NTGR","FFIV","HPE","GLW","APH","TEL","UI","VST","CEG","TLN","GEV","ETN","PWR","HUBB","NVT","POWL","BE","LEU","CCJ","NEE","SO","DUK","D","AEP","EXC","XEL","ETR","VRT","DELL","MOD","DLR","EQIX","IRM","MSFT","GOOGL","AMZN","META","IBM","NOW","CRM","ADBE","INTU","WDAY","SHOP","DDOG","SNOW","NET","PLTR","APP","TTD","U","RBLX","DUOL","UBER","DASH","ABNB","MELI","CRWD","PANW","ZS","S","FTNT","OKTA","TENB","QLYS","GEN","RPD","CHKP","NBIS","CIFR","CORZ","APLD","TEM","SOUN","BBAI","IONQ","MBLY","PONY"]
+# ⭐11-11 用戶令：+SPCX（SpaceX 2026-06-12 上市）/+AMKR（Amkor OSAT）——標準程序全面同步
+names = ["NVDA","AMD","AVGO","MRVL","ARM","QCOM","ADI","MPWR","VICR","AMBA","SITM","TSM","INTC","GFS","UMC","TSEM","STM","AMAT","LRCX","KLAC","ASML","TER","ONTO","ENTG","UCTT","CDNS","MU","SNDK","WDC","STX","FN","COHR","LITE","CIEN","AAOI","ALAB","CRDO","ANET","CSCO","NTGR","FFIV","HPE","GLW","APH","TEL","UI","VST","CEG","TLN","GEV","ETN","PWR","HUBB","NVT","POWL","BE","LEU","CCJ","NEE","SO","DUK","D","AEP","EXC","XEL","ETR","VRT","DELL","MOD","DLR","EQIX","IRM","MSFT","GOOGL","AMZN","META","IBM","NOW","CRM","ADBE","INTU","WDAY","SHOP","DDOG","SNOW","NET","PLTR","APP","TTD","U","RBLX","DUOL","UBER","DASH","ABNB","MELI","CRWD","PANW","ZS","S","FTNT","OKTA","TENB","QLYS","GEN","RPD","CHKP","NBIS","CIFR","CORZ","APLD","TEM","SOUN","BBAI","IONQ","MBLY","PONY","SPCX","AMKR"]
 
 # 板塊頭部 C96（11 行業 × top-8 ＋ 8 隻半導體/軟件補充——breadth_design_research_20261105 原裝池）
 # 用途唔係廣度閘（實證 16 假響輸 A117 7/8），係局部殺戮時嘅可做池：AI 封咗都有醫療/能源/工業/公用好做。
@@ -488,17 +491,72 @@ except Exception:
 
 # ---------- 6. 今日 screen：mom63 top-6＋閘 ----------
 today = datetime.date.today()
+# ⭐11-10 根修：10-28 凍結 CSV 錨日 rebase——earnings_days 係「錨日至下季業績 td」快照，食舊數會假禁
+# （TEM ed=1 真實已出；INTU ed=18 真實 8td＝衛星 11-20 到期日穿 print 事故）。rv21 分位同步轉 yf 新鮮現算
+# （RBLX 13.5→92.3／APP 9.5→89.6 假死亡區同根）。
+try:
+    _csv_ed_drift = td_between(datetime.date.fromisoformat(str(last_loc)[:10]), today)
+except Exception:
+    _csv_ed_drift = 0
+if _csv_ed_drift >= 5:
+    note("⚠️ 引擎 CSV 錨日 %s 已 %dtd 舊——earnings_days 已 rebase、rv21_pctl 已轉新鮮 yf 現算（11-10 根修）" % (last_loc, _csv_ed_drift))
+
+
+def rv21_pctl_ser(sub):
+    """rv21 分位＝2y 日收對數差 21 日窗滾動 σ 對自身歷史百分位（11-10 由 7b 移上嚟——screen 閘都食新鮮值）。"""
+    import numpy as _np
+    arr = _np.asarray(sub, dtype=float)
+    if len(arr) < 80:
+        return None
+    lr = _np.diff(_np.log(arr))
+    rvs = [float(lr[i - 21:i].std(ddof=1) * _np.sqrt(252.0)) for i in range(21, len(lr) + 1)]
+    if not rvs:
+        return None
+    return 100.0 * sum(1 for v in rvs if v <= rvs[-1]) / len(rvs)
+
+
 screen = []
 for s in names:
     m63 = mom.get(s, loc[s]["mom63"])
     if not m63 or (isinstance(m63, float) and math.isnan(m63)) or m63 <= 0:
         continue
-    rv_p = loc[s]["rv21_pctl"]
+    try:
+        _sub_s = series(s)
+        rv_p = rv21_pctl_ser(_sub_s) if (yf_ok and _sub_s is not None) else None
+    except Exception:
+        rv_p = None
+    if rv_p is None or rv_p != rv_p:
+        rv_p = loc[s]["rv21_pctl"]
     ed = loc[s]["earnings_days"]
+    if ed is not None and ed == ed:
+        ed = ed - _csv_ed_drift
+    # ⭐11-11 根修（agent C 實錘 UI 假禁）：CSV 投影話禁（−5..21）嘅先做 fresh yf 覆核——UI 11-06 已出、
+    # CSV 投影 11-18 → 假禁 3-5td（同 rv21 假死亡區同根：凍結錨）。已出≤5td→禁（冷靜）；>5td→ok 放行；
+    # fresh fail→照 CSV 判決（唔信邪亦唔錯放）。只覆核禁區名，配額友好。
+    if yf_ok and ed is not None and ed == ed and -5 <= ed <= 21:
+        try:
+            _cal = yf.Ticker(s).calendar
+            _eds = (_cal or {}).get("Earnings Date")
+            _d0 = _eds[0] if isinstance(_eds, (list, tuple)) and len(_eds) else _eds
+            if isinstance(_d0, str):
+                _d0 = datetime.date.fromisoformat(str(_d0)[:10])
+            elif hasattr(_d0, "date"):
+                _d0 = _d0.date()
+            if _d0 is not None:
+                if _d0 >= today:
+                    _fetd = td_between(today, _d0)
+                    if _fetd is not None:
+                        ed = _fetd  # 真未來日——可能比 CSV 投影更近（假放）或更遠（假禁），一律用真日
+                else:
+                    _fgap = td_between(_d0, today)
+                    if _fgap is not None:
+                        ed = 0 if _fgap <= 5 else None  # ≤5td 冷靜禁；>5td 放行（下季未公佈＝唔知窗）
+        except Exception:
+            pass
     r1d = (px.get(s, loc[s]["close"]) / prev_close.get(s, loc[s]["close"]) - 1.0) if s in px and s in prev_close else float("nan")
     gates = dict(
         iv=("死亡區" if (rv_p is not None and not math.isnan(rv_p) and rv_p < 25) else ("半" if (rv_p is not None and not math.isnan(rv_p) and rv_p < 50) else "全")),
-        earn=("禁" if (ed is not None and not math.isnan(ed) and ed <= 21) else "ok"),
+        earn=("禁" if (ed is not None and not math.isnan(ed) and -5 <= ed <= 21) else "ok"),  # ⭐11-10 前21td禁＋⭐11-11 後5td冷靜補齊（拍板⑥字面：−5..0=已出5td內）
         gap=("禁" if (not math.isnan(r1d) and r1d > 0.08) else "ok"),
     )
     screen.append(dict(sym=s, mom63=round(100 * m63, 1), close=usd(px.get(s, loc[s]["close"])),
@@ -514,7 +572,7 @@ tradeable = [x for x in top6 if x["iv"] != "死亡區" and x["earn"] == "ok" and
 OWNABLE45 = ["APP","TSM","ADI","ASML","AVGO","CCJ","INTU","LRCX","MRVL","STX","ADBE","AMD","CDNS","CSCO","FFIV","GFS","GLW","KLAC","MU","OKTA","PLTR","QLYS","SNDK","VICR","WDAY","AMAT","AMZN","APH","ARM","CRDO","DELL","DLR","FTNT","GEV","GOOGL","MSFT","NVT","QCOM","RBLX","STM","TSEM","TTD","UBER","WDC","IRM"]
 own_scr = [x for x in screen if x["sym"] in OWNABLE45][:6]
 ownable6 = [dict(sym=x["sym"], mom63=x["mom63"], close=x["close"], earn_td=x["earn_td"],
-                 earn_window=("撞窗" if x["earn_td"] is not None and x["earn_td"] <= 21
+                 earn_window=("撞窗" if x["earn_td"] is not None and -5 <= x["earn_td"] <= 21  # ⭐11-11 補下限：已出（負數）唔係撞未來窗（agent C 實錘顯示蟲）
                               else ("清窗" if x["earn_td"] is not None else "?"))) for x in own_scr]
 
 # ---------- 7. 候選倉：δ_today put spread spr10，tenor 30-45td（真鏈價優先，BS 兜底） ----------
@@ -571,17 +629,7 @@ else:
     note("無新鮮鏈價——候選倉只出 screen 唔出定價")
 
 # ---------- 7b. 板塊頭部 C96 screen＋局部殺戮換池定價（⭐11-05 用戶令：廣度封 AI 後都要有嘢好做） ----------
-# rv21 分位由 yf 2y 序列自身重算（C96 唔喺本地 engine CSV）；earn 閘只查 top-8（慳 calendar calls）。
-def rv21_pctl_ser(sub):
-    import numpy as _np
-    arr = _np.asarray(sub, dtype=float)
-    if len(arr) < 80:
-        return None
-    lr = _np.diff(_np.log(arr))
-    rvs = [float(lr[i - 21:i].std(ddof=1) * _np.sqrt(252.0)) for i in range(21, len(lr) + 1)]
-    if not rvs:
-        return None
-    return 100.0 * sum(1 for v in rvs if v <= rvs[-1]) / len(rvs)
+# （rv21_pctl_ser 已移上去 section 6 前面——11-10 根修，screen 閘都食新鮮 yf 現算；earn 閘只查 top-8 慳 calls）
 
 
 c96_screen = []
@@ -619,6 +667,12 @@ if yf_ok and c96_top:
             elif hasattr(_d0, "date"):
                 _d0 = _d0.date()
             if _d0 is None:
+                continue
+            if _d0 < today:
+                # ⭐11-10：yf 會回上一季已出日子（ABBV 10-30/LLY 10-29）——唔好 clamp 0 當禁；
+                # ⭐11-11 拍板⑥補齊：剛出 ≤5td＝後冷靜禁；>5td＝放行
+                _gap = td_between(_d0, today)
+                x["earn"], x["earn_td"] = ("禁" if _gap <= 5 else "ok"), None
                 continue
             ed = td_between(today, _d0)
             x["earn"] = "禁" if ed <= 21 else "ok"
@@ -676,7 +730,8 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
 # 業績閘＝研究②Q4 口徑：只 skip 業績落喺窗口內（earn_td ≤ sat_td+1）——唔用 C96 21td 禁
 # （嗰個對 10td 窗過嚴會全滅）。verdict 🔴/ai_sealed 由 satellite_d10.py 照 📒 規矩處理（照開標 🧪）。
 sat_candidates = []
-# ⭐11-10 擴池（用戶令「117+c96 都入晒衛星台」）：C96 全池＋pool117 欽定池去重統一掃描（≈185 名），
+sat_skips = []  # ⭐11-10 剷走留痕——逐個 skip 原因入 today.json（審計＋「點解某股唔見咗」有得答）
+# ⭐11-10 擴池（用戶令「117+c96 都入晒衛星台」）：C96 全池＋pool117 欽定池去重統一掃描（⭐11-11 實數 189 名：pool117 119＋C96 96−overlap 26），
 # shadow 池剷除（BE/ALAB/CRDO 本來就喺 pool117 入面，唔再需要獨立觀察組）。定價照 price_spread
 # 三層——第一層已經係 bridge 真鏈（Futu OpenD 真 bid/ask，測得 0.2s/名、185 名 ≈ 40s）。
 # 閘不挑池：mom63>0／死亡區 rv<25／gap chg1d>8%／業績 ≤sat_td+1 禁
@@ -704,33 +759,62 @@ if yf_ok:
                 S = px.get(s) or float(sub.iloc[-1])
                 m63 = float(sub.iloc[-1]) / float(sub.iloc[-64]) - 1.0 if len(sub) > 64 else None
                 if not m63 or m63 <= 0:
+                    sat_skips.append(dict(sym=s, pool=_pool, reason="mom", note="mom63 %.1f%%" % (100 * m63)))
                     continue  # mom63>0（同 c96_screen 口徑）
-                rv_p = loc.get(s, {}).get("rv21_pctl") if s in loc else None
+                rv_p = rv21_pctl_ser(sub)  # ⭐11-10 新鮮 yf 現算先——凍結 CSV 令 RBLX/APP/MSFT 假死亡區
                 if rv_p is None or rv_p != rv_p:
-                    rv_p = rv21_pctl_ser(sub)
+                    rv_p = loc.get(s, {}).get("rv21_pctl")
                 if rv_p is not None and rv_p < 25:
+                    sat_skips.append(dict(sym=s, pool=_pool, reason="iv_death", note="rv21分位 %.0f" % rv_p))
                     continue  # 死亡區
                 r1d = (px.get(s, S) / prev_close.get(s, S) - 1.0) if s in px and s in prev_close else float("nan")
                 if not math.isnan(r1d) and r1d > 0.08:
+                    sat_skips.append(dict(sym=s, pool=_pool, reason="gap", note="chg1d %.1f%%" % (100 * r1d)))
                     continue  # gap 禁
-                _etd = loc.get(s, {}).get("earnings_days") if s in loc else None
-                if _etd is None or _etd != _etd:
-                    try:
-                        _cal = yf.Ticker(s).calendar
-                        _eds = (_cal or {}).get("Earnings Date")
-                        _d0 = _eds[0] if isinstance(_eds, (list, tuple)) and len(_eds) else _eds
-                        if isinstance(_d0, str):
-                            _d0 = datetime.date.fromisoformat(str(_d0)[:10])
-                        elif hasattr(_d0, "date"):
-                            _d0 = _d0.date()
-                        _etd = td_between(today, _d0) if _d0 else None
-                    except Exception:
-                        _etd = None
+                # ⭐11-10 根修（INTU 漏閘事故）：業績日 yf live 先、凍結 CSV 只做 rebase 後備；
+                # 兩邊都唔明＝fail-closed 唔做（寧願無單，唔准穿 print）；
+                # ⭐11-11 拍板⑥補齊：calendar 回舊季日＝已出——後 5td 冷靜禁、>5td 放行（唔再誤當 unknown fail-closed）
+                _etd = None
+                _earn_past_ok = False
                 try:
-                    if _etd is not None and not math.isnan(float(_etd)) and float(_etd) >= 0 and float(_etd) <= _sat_td + 1:
-                        continue  # 業績落喺 10td 窗口內——可避風險唔做
+                    _cal = yf.Ticker(s).calendar
+                    _eds = (_cal or {}).get("Earnings Date")
+                    _d0 = _eds[0] if isinstance(_eds, (list, tuple)) and len(_eds) else _eds
+                    if isinstance(_d0, str):
+                        _d0 = datetime.date.fromisoformat(str(_d0)[:10])
+                    elif hasattr(_d0, "date"):
+                        _d0 = _d0.date()
+                    if _d0 is not None:
+                        if _d0 >= today:
+                            _etd = td_between(today, _d0)
+                        else:
+                            _gap = td_between(_d0, today)
+                            if _gap <= 5:
+                                sat_skips.append(dict(sym=s, pool=_pool, reason="earn_cooloff",
+                                                      note="業績 %s 剛出 %std——後 5td 冷靜（拍板⑥）" % (_d0, _gap)))
+                                continue
+                            _earn_past_ok = True
+                            sat_skips.append(dict(sym=s, pool=_pool, reason="earn_passed",
+                                                  note="業績已出 %std（%s）、下季未公佈——放行" % (_gap, _d0)))
                 except Exception:
-                    pass
+                    _etd = None
+                if _etd is None and not _earn_past_ok:
+                    _edc = loc.get(s, {}).get("earnings_days")
+                    if _edc is not None and _edc == _edc:
+                        _edr = int(_edc) - _csv_ed_drift
+                        if _edr > 0:
+                            _etd = _edr
+                # ⭐11-11 修蟲：呢度原本係 `if _etd is None:`——earn_passed 放行嗰批（_etd=None＋_earn_past_ok=True）
+                # 跌落嚟再被 earnings_unknown 殺（27 名 earn_passed＋earnings_unknown 雙旗全滅＝run4 sat_cand 空嘅真兇）
+                if _etd is None and not _earn_past_ok:
+                    sat_skips.append(dict(sym=s, pool=_pool, reason="earnings_unknown",
+                                          note="業績日唔明（yf fail＋CSV 錨已過）——fail-closed"))
+                    continue
+                # ⭐11-11 修蟲：已出>5td 放行時 _etd=None，float(None) 原本會 TypeError 俾 per-name except 靜默食掉
+                if _etd is not None and float(_etd) <= _sat_td + 1:
+                    sat_skips.append(dict(sym=s, pool=_pool, reason="earnings",
+                                          note="業績 %dtd 落喺 %dtd 窗口" % (int(_etd), int(_sat_td))))
+                    continue
                 iv_s = 0.35
                 try:
                     import numpy as _np
@@ -740,7 +824,7 @@ if yf_ok:
                 except Exception:
                     pass
                 iv_s = max(min(iv_s, 1.5), 0.12)
-                Ks_s, Kl_s, credit_s, src_s, iv_s_out, cw_s = price_spread(S, _sat_T, SAT_DELTA, iv_s, _sat_str, s)
+                Ks_s, Kl_s, credit_s, src_s, iv_s_out, cw_s = price_spread(S, _sat_T, SAT_DELTA, iv_s, _sat_str, s, use_bridge=False)
                 credit_s = max(credit_s, 0.01)
                 ml_s = (Ks_s - Kl_s) * 100 - credit_s * 100
                 n_s = max(int(_sat_cap // ml_s), 1) if ml_s > 0 else 1
@@ -1238,6 +1322,7 @@ out = dict(
     golden=gold,
     screen=top6, candidates=candidates, paper_candidates=paper_candidates,
     sat_candidates=sat_candidates,
+    sat_skips=sat_skips[:300], csv_asof=str(last_loc), csv_ed_drift=_csv_ed_drift,
     c96_screen=c96_screen[:12], c96_candidates=c96_candidates,
     ownable6=ownable6,
     cum=dict(margin=usd(cum_margin), frac=(round(cum_frac * 100, 1) if cum_frac else None),
