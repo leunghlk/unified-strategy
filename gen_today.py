@@ -120,7 +120,7 @@ def price_spread(S, T, delta_tgt, iv, exp_str, sym=None, use_bridge=True):
     credit_worst=sell@bid−buy@ask（市價單立即成交嘅最差可收值，⭐11-06 用戶令顯示）；
     iv_out=鏈價時用該腿真鏈 IV（None=用輸入 iv）。三層同一 δ 語意（行落 OTM 第一隻 |δ|≤delta_tgt）。"""
     if sym and use_bridge:
-        # ⭐11-10：use_bridge=False 俾衛星台 185 名掃描用——OpenD 30s/10 限額，全掃逐名打真鏈會燒光配額，
+        # ⭐11-10：use_bridge=False 俾衛星台 189 名掃描用（⭐11-11 +SPCX/AMKR）——OpenD 30s/10 限額，全掃逐名打真鏈會燒光配額，
         # 令之後真倉 validation 全 403 假「無鏈」（實錘）。screening 用 yf/BS 夠；真鏈覆核係 satellite_d10.py 責任
         _bc = bridge_chain(sym, exp_str)
         if _bc:
@@ -733,7 +733,7 @@ sat_candidates = []
 sat_skips = []  # ⭐11-10 剷走留痕——逐個 skip 原因入 today.json（審計＋「點解某股唔見咗」有得答）
 # ⭐11-10 擴池（用戶令「117+c96 都入晒衛星台」）：C96 全池＋pool117 欽定池去重統一掃描（⭐11-11 實數 189 名：pool117 119＋C96 96−overlap 26），
 # shadow 池剷除（BE/ALAB/CRDO 本來就喺 pool117 入面，唔再需要獨立觀察組）。定價照 price_spread
-# 三層——第一層已經係 bridge 真鏈（Futu OpenD 真 bid/ask，測得 0.2s/名、185 名 ≈ 40s）。
+# 三層——第一層已經係 bridge 真鏈（Futu OpenD 真 bid/ask，測得 0.2s/名、189 名 ≈ 45s）。
 # 閘不挑池：mom63>0／死亡區 rv<25／gap chg1d>8%／業績 ≤sat_td+1 禁
 # （pool117 用本地 earnings_days，C96-only 用 yf calendar 現拉）。
 if yf_ok:
