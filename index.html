@@ -117,8 +117,8 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <thead><tr><th>Screen top-6（mom63）</th><th class="num">收市</th><th class="num">IV 分位</th><th>業績閘</th><th>裂口閘</th></tr></thead>
         <tbody id="tdScreen"><tr><td colspan="5">—</td></tr></tbody>
       </table></div>
-      <div class="note" style="margin-top:6px">篩選方法：<b>pool117（⭐11-11 加 SPCX/AMKR 後＝119）全池</b>（ownable45＋fleet72＋SPCX/AMKR，avoid23 唔入池）內計 <b>mom63</b>（過去 63 個交易日回報），&gt;0 先合格，排前 6；再逐隻過閘——IV 分位（&lt;25% 死亡區硬禁／25–50 半倉）、業績（前 10td 禁＋後 5td 冷靜，⭐11-11 拍板 21→10）、裂口（chg1d&gt;8% 禁）、殺倉雷達 veto、廣度凍結梯、VIX band、按金閘。表內只顯示業績／裂口兩欄，其餘閘係簿級，封刀時全簿唔開。</div>
-      <div class="note">同「🌌 宇宙 119＋C96」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池 live 榜</b>（today.json ownable6，11-05 起同呢邊一份數據）；呢邊係 <b>pool117 全池＋最新價（開市時＝現價）</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；ownable45 榜留做正選池參考。</div>
+      <div class="note" style="margin-top:6px">篩選方法：<b>pool119 全池</b>（ownable45＋fleet72＋SPCX/AMKR＝119，avoid23 唔入池；原稱 pool117）內計 <b>mom63</b>（過去 63 個交易日回報），&gt;0 先合格，排前 6；再逐隻過閘——IV 分位（&lt;25% 死亡區硬禁／25–50 半倉）、業績（前 10td 禁＋後 5td 冷靜，⭐11-11 拍板 21→10）、裂口（chg1d&gt;8% 禁）、殺倉雷達 veto、廣度凍結梯、VIX band、按金閘。表內只顯示業績／裂口兩欄，其餘閘係簿級，封刀時全簿唔開。</div>
+      <div class="note">同「🌌 宇宙 119＋C96」TOP6 動量榜嘅分別：<b>兩個口徑</b>——嗰邊係 <b>ownable45 正選池 live 榜</b>（today.json ownable6，11-05 起同呢邊一份數據）；呢邊係 <b>pool119 全池＋最新價（開市時＝現價）</b>，同回測引擎 mom63_rank 同一口徑（engine 正選＝全池 rank≤6），每次重跑即場重計。跟引擎落單＝跟呢邊；ownable45 榜留做正選池參考。</div>
       <div style="margin-top:10px" id="tdCandWrap"></div>
     </div>
   </div>
@@ -150,7 +150,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
           <tr id="vixRow_gt32"><td><b>&gt;32</b></td><td><span class="pill r">真倉 fail-closed</span></td><td>—</td><td>全封＋撤；現有腿照 PT50／roll，掛 mid 等反彈唔市價斬</td></tr>
         </tbody>
       </table></div>
-      <div class="note">⚠️ <b>真倉 VIX 閘凌駕本表。</b>研究實數＝OOS 七窗口徑（pool117〔今 119〕＋winner config，2020–2026）。⭐11-02 拍板熊狀態門（單名腿）：VIX&lt;20 且<b>熊狀態</b>（SPX 收市 &lt; 200 日平均線，或攞唔到數）先封；<b>牛狀態</b>（SPX ≥ SMA200）放行。每日收市計一次。XSP 指數腿照封 VIX&lt;20 唔郁（floor20 實錘係寶）。<span id="oosMktNow">現況 10-30：SPX 7580 &gt; SMA200 7310＝牛狀態</span>。spike 部署窗＝VIX spike 後 3–10td。</div>
+      <div class="note">⚠️ <b>真倉 VIX 閘凌駕本表。</b>研究實數＝OOS 七窗口徑（研究 vintage：pool117＝今日 pool119 前身＋winner config，2020–2026）。⭐11-02 拍板熊狀態門（單名腿）：VIX&lt;20 且<b>熊狀態</b>（SPX 收市 &lt; 200 日平均線，或攞唔到數）先封；<b>牛狀態</b>（SPX ≥ SMA200）放行。每日收市計一次。XSP 指數腿照封 VIX&lt;20 唔郁（floor20 實錘係寶）。<span id="oosMktNow">現況 10-30：SPX 7580 &gt; SMA200 7310＝牛狀態</span>。spike 部署窗＝VIX spike 後 3–10td。</div>
     </div>
   </div>
 
@@ -415,7 +415,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
         <tr><td colspan="5" style="color:#94a3b8">10-30 快照 fallback：MRVL +37.3% 撞窗 · DELL +22.2% 撞窗 · AMD +19.2% 撞窗 · MU +12.4% 清窗 · NVDA +10.6% 撞窗 · ANET +9.2% 撞窗——今日台 today.json 讀到會自動覆寫成 live 榜</td></tr>
       </tbody>
     </table></div>
-    <div class="desc">規則（⭐11-11 拍板）：業績前 10td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。資料＝today.json ownable6 live；earnings_21td.json（33 隻，11-02→12-02）係 10-31 舊快照僅歷史參考。<b>⭐11-05 起呢個榜轉 live</b>（today.json ownable6——同一份 gen_today 數據，重跑即更）；灰字係 10-30 舊快照 fallback（today.json 讀唔到先見）。回測引擎正選係 pool117（今 119）全池 rank≤6（fleet 都入圍，如 RPD/TEM/ZS），落單跟「🎯 今日台」全池口徑。</div>
+    <div class="desc">規則（⭐11-11 拍板）：業績前 10td 禁＋業績後 5td 冷靜（拍板⑥：5td 已確認 11-02，自動跟業績日）。資料＝today.json ownable6 live；earnings_21td.json（33 隻，11-02→12-02）係 10-31 舊快照僅歷史參考。<b>⭐11-05 起呢個榜轉 live</b>（today.json ownable6——同一份 gen_today 數據，重跑即更）；灰字係 10-30 舊快照 fallback（today.json 讀唔到先見）。回測引擎正選係 pool119 全池 rank≤6（fleet 都入圍，如 RPD/TEM/ZS），落單跟「🎯 今日台」全池口徑。</div>
     <div class="note" style="margin-top:6px">C96＝板塊頭部池（96 名）——<b>唔做廣度閘</b>（實證 16 假響輸 118池 7/8），做局部殺戮時嘅可做池：AI 單名封咗，醫療/能源/工業/公用等板塊頭部照 screen 過閘（今日台自動出候選）。來源：breadth_design_research_20261105 原裝設計＋c96_universe.json。</div>
     <div id="c96Names" class="desc" style="margin-top:8px"><span style="color:#94a3b8">c96_universe.json 讀取中…</span></div>
   </div>
@@ -931,7 +931,7 @@ function renderToday(d){
       op.map(function(e){var rem=(e.credit>0&&e.mark!=null)?Math.round(100*e.mark/e.credit)+'%':'—';
         return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+(e.dte_td!=null?e.dte_td:'—')+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+(e.mark_src==='BS'?'（BS）':'')+'</td><td class="num">'+rem+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open 衛星倉——候選須連過三閘（最低 credit 線／寬度≥15／dte≤3 硬平倉線）才開倉。</div>';
     var sct=cl.length?'<div class="note">已平倉：'+cl.map(function(e){return e.sym+' '+(e.realized>=0?'+':'')+'$'+e.realized.toFixed(0)+'（'+(e.exit_reason||'').split('（')[0]+'）';}).join('、')+'</div>':'';
-    document.getElementById('tdSat').innerHTML='<div class="desc">2026-11-10 起 · <b>'+(b.config||'')+'</b> · realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · 衛星 NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'；shadow 🧪 '+(s.shadow_n||0)+'）'+sct+sot+sct2+'<div class="note" style="margin-top:6px">口徑：候選源＝pool117 欽定池＋C96 板塊頭部池全掃（⭐11-10 擴池＋⭐11-11 +SPCX/AMKR：189 名去重，shadow 觀察組剷除；定價三層——第一層已是 Futu OpenD 真鏈 bid/ask）（8–14td 真到期日曆、δ0.30、業績窗避閘、IV＝rv21×1.10）；紀律三閘：①最低 credit 線 max(10%×寬度,$1.50) 未過不開（寧缺勿濫）②寬度≥15 ③dte≤3 硬平倉（wheel320 dte=1 兩單災難教訓，不抱到期尾）；開倉上限：每晚 ≤5 倉＋總按金 ≤40% 衛星 NAV；平倉規則 PT50（mark≤50%×credit 提前平倉收差價）；mark＝Futu 真鏈 mid（取不到才 BS 兜底）；$1.2/張來回費、零滑價。每日 21:50 開倉判定，ET 開市每 5 分鐘 mark。</div></div>';
+    document.getElementById('tdSat').innerHTML='<div class="desc">2026-11-10 起 · <b>'+(b.config||'')+'</b> · realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · 衛星 NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'；shadow 🧪 '+(s.shadow_n||0)+'）'+sct+sot+sct2+'<div class="note" style="margin-top:6px">口徑：候選源＝pool119 欽定池（原 pool117，⭐11-10 擴池＋11-11 +SPCX/AMKR＝119）＋C96 板塊頭部池全掃（189 名去重，shadow 觀察組剷除；定價三層——第一層已是 Futu OpenD 真鏈 bid/ask）（8–14td 真到期日曆、δ0.30、業績窗避閘、IV＝rv21×1.10）；紀律三閘：①最低 credit 線 max(10%×寬度,$1.50) 未過不開（寧缺勿濫）②寬度≥15 ③dte≤3 硬平倉（wheel320 dte=1 兩單災難教訓，不抱到期尾）；開倉上限：每晚 ≤5 倉＋總按金 ≤40% 衛星 NAV；平倉規則 PT50（mark≤50%×credit 提前平倉收差價）；mark＝Futu 真鏈 mid（取不到才 BS 兜底）；$1.2/張來回費、零滑價。每日 21:50 開倉判定，ET 開市每 5 分鐘 mark。</div></div>';
   }).catch(function(){document.getElementById('tdSat').textContent='paper_satellite_d10.json／today.json 讀取失敗。';});
   fetch('c96_universe.json?v='+Date.now()).then(function(r){return r.json();}).then(function(u){
     var h='',secs=u.sectors||{};
