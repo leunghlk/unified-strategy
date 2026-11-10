@@ -24,6 +24,7 @@ SAT_DELTA = 0.30               # 🛰️ 衛星台（10td+PT50+δ0.30，2026-11-
 WIDTH = 0.10                   # spr10
 TENOR_TD = 35                  # 35td（band 30-45）
 C96_JSON = os.path.join(HERE, "c96_universe.json")   # 板塊頭部池（11-05 拍板：局部殺戮真倉換池用；研究原裝）
+POOL117_JSON = os.path.join(HERE, "universe_pool117.json")   # ⭐11-10 欽定池（ownable45+fleet73−ATKR；用戶令 117+C96 都入衛星台）
 notes = []
 
 
@@ -287,6 +288,14 @@ try:
 except Exception as ex:
     C96 = []
     note("c96_universe.json 讀唔到（%s）——板塊頭部池停用" % ex.__class__.__name__)
+
+# ⭐11-10 欽定池 pool117（ownable45+fleet73−ATKR）——衛星台同 C96 全掃（用戶令「117+c96 都入晒」）
+try:
+    POOL117 = sorted(json.load(open(POOL117_JSON))["names_meta"].keys())
+except Exception as ex:
+    POOL117 = []
+    note("universe_pool117.json 讀唔到（%s）——衛星台只掃 C96" % ex.__class__.__name__)
+_C96SET, _P117SET = set(C96), set(POOL117)
 
 # 每名最新本地 mom63/rv21_pctl（新鮮度由 yf 覆寫價重算 mom63；rv21_pctl 用本地，標註）
 loc = {}
@@ -660,52 +669,92 @@ if breadth_regime == "partial_kill" and not credit_glass and yf_ok and c96_top:
         note("C96 候選定價失敗：%s %s" % (ex.__class__.__name__, ex))
 
 # ---------- 🛰️ 衛星台候選（10td+PT50+δ0.30，2026-11-10 三路研究拍板）----------
+# ⭐11-10 shadow 池已剷（用戶令：淨返 pool117+C96 兩個池；BE/ALAB/CRDO 本來就喺 pool117）
 # 研究 verdict：10td 全樣本 PF 2.23／MDD −11.8%（d30 六成）／崩盤窗唯一 PF>1 短 tenor；
 # 3-5td 三線全滅（PF 1.57-1.83＋崩盤窗 0.49-0.70＋單名成本 60-100%）。
 # 池＝C96 板塊頭部（研究：短 tenor 成本要 mega-liquid——AI 池 OKTA 10td 實測 worst 33% mid 亮紅燈）。
 # 業績閘＝研究②Q4 口徑：只 skip 業績落喺窗口內（earn_td ≤ sat_td+1）——唔用 C96 21td 禁
 # （嗰個對 10td 窗過嚴會全滅）。verdict 🔴/ai_sealed 由 satellite_d10.py 照 📒 規矩處理（照開標 🧪）。
 sat_candidates = []
-if yf_ok and c96_top:
+# ⭐11-10 擴池（用戶令「117+c96 都入晒衛星台」）：C96 全池＋pool117 欽定池去重統一掃描（≈185 名），
+# shadow 池剷除（BE/ALAB/CRDO 本來就喺 pool117 入面，唔再需要獨立觀察組）。定價照 price_spread
+# 三層——第一層已經係 bridge 真鏈（Futu OpenD 真 bid/ask，測得 0.2s/名、185 名 ≈ 40s）。
+# 閘不挑池：mom63>0／死亡區 rv<25／gap chg1d>8%／業績 ≤sat_td+1 禁
+# （pool117 用本地 earnings_days，C96-only 用 yf calendar 現拉）。
+if yf_ok:
     try:
         _sat_exp = pick_exp_d_sat(today)
         _sat_str = _sat_exp.strftime("%Y-%m-%d")
         _sat_td = td_between(today, _sat_exp)
         _sat_T = max(_sat_td, 1) / 252.0
         _sat_cap = NAV_USD * SINGLE_CAP_FRAC
-        for x in c96_top:
-            if x["iv"] == "死亡區" or x["gap"] != "ok":
+        _seen = set()
+        _scan = []
+        for s in C96 + POOL117:
+            if s in _seen:
                 continue
-            s = x["sym"]
-            S = px.get(s)
-            if not S:
+            _seen.add(s)
+            _ic, _ip = s in _C96SET, s in _P117SET
+            _scan.append((s, "C96+117" if (_ic and _ip) else ("C96" if _ic else "117")))
+        for s, _pool in _scan:
+            try:
+                sub = series(s)
+                if sub is None or len(sub) < 60:
+                    continue
+                S = px.get(s) or float(sub.iloc[-1])
+                m63 = float(sub.iloc[-1]) / float(sub.iloc[-64]) - 1.0 if len(sub) > 64 else None
+                if not m63 or m63 <= 0:
+                    continue  # mom63>0（同 c96_screen 口徑）
+                rv_p = loc.get(s, {}).get("rv21_pctl") if s in loc else None
+                if rv_p is None or rv_p != rv_p:
+                    rv_p = rv21_pctl_ser(sub)
+                if rv_p is not None and rv_p < 25:
+                    continue  # 死亡區
+                r1d = (px.get(s, S) / prev_close.get(s, S) - 1.0) if s in px and s in prev_close else float("nan")
+                if not math.isnan(r1d) and r1d > 0.08:
+                    continue  # gap 禁
+                _etd = loc.get(s, {}).get("earnings_days") if s in loc else None
+                if _etd is None or _etd != _etd:
+                    try:
+                        _cal = yf.Ticker(s).calendar
+                        _eds = (_cal or {}).get("Earnings Date")
+                        _d0 = _eds[0] if isinstance(_eds, (list, tuple)) and len(_eds) else _eds
+                        if isinstance(_d0, str):
+                            _d0 = datetime.date.fromisoformat(str(_d0)[:10])
+                        elif hasattr(_d0, "date"):
+                            _d0 = _d0.date()
+                        _etd = td_between(today, _d0) if _d0 else None
+                    except Exception:
+                        _etd = None
+                try:
+                    if _etd is not None and not math.isnan(float(_etd)) and float(_etd) >= 0 and float(_etd) <= _sat_td + 1:
+                        continue  # 業績落喺 10td 窗口內——可避風險唔做
+                except Exception:
+                    pass
+                iv_s = 0.35
+                try:
+                    import numpy as _np
+                    _arr = _np.asarray(series(s), dtype=float)
+                    _lr = _np.diff(_np.log(_arr))
+                    iv_s = float(_lr[-21:].std(ddof=1) * _np.sqrt(252.0)) * 1.10
+                except Exception:
+                    pass
+                iv_s = max(min(iv_s, 1.5), 0.12)
+                Ks_s, Kl_s, credit_s, src_s, iv_s_out, cw_s = price_spread(S, _sat_T, SAT_DELTA, iv_s, _sat_str, s)
+                credit_s = max(credit_s, 0.01)
+                ml_s = (Ks_s - Kl_s) * 100 - credit_s * 100
+                n_s = max(int(_sat_cap // ml_s), 1) if ml_s > 0 else 1
+                sat_candidates.append(dict(
+                    sym=s, spot=usd(S), short_k=Ks_s, long_k=Kl_s, expiry=_sat_str,
+                    dte_td=_sat_td, credit=usd(credit_s), credit_worst=cw_s,
+                    credit_min=usd(max((Ks_s - Kl_s) * 0.10, 1.50)),
+                    contracts=int(n_s), premium_in=usd(credit_s * 100 * n_s),
+                    margin=usd(ml_s * n_s), iv_used=round((iv_s_out or iv_s) * 100, 1), src=src_s,
+                    delta=SAT_DELTA, pt="PT50", pool=_pool))
+            except Exception:
                 continue
-            try:
-                _etd = x.get("earn_td")
-                if _etd is not None and float(_etd) >= 0 and float(_etd) <= _sat_td + 1:
-                    continue  # 業績落喺 10td 窗口內——可避風險唔做
-            except Exception:
-                pass
-            iv_s = 0.35
-            try:
-                import numpy as _np
-                _arr = _np.asarray(series(s), dtype=float)
-                _lr = _np.diff(_np.log(_arr))
-                iv_s = float(_lr[-21:].std(ddof=1) * _np.sqrt(252.0)) * 1.10
-            except Exception:
-                pass
-            iv_s = max(min(iv_s, 1.5), 0.12)
-            Ks_s, Kl_s, credit_s, src_s, iv_s_out, cw_s = price_spread(S, _sat_T, SAT_DELTA, iv_s, _sat_str, s)
-            credit_s = max(credit_s, 0.01)
-            ml_s = (Ks_s - Kl_s) * 100 - credit_s * 100
-            n_s = max(int(_sat_cap // ml_s), 1) if ml_s > 0 else 1
-            sat_candidates.append(dict(
-                sym=s, spot=usd(S), short_k=Ks_s, long_k=Kl_s, expiry=_sat_str,
-                dte_td=_sat_td, credit=usd(credit_s), credit_worst=cw_s,
-                credit_min=usd(max((Ks_s - Kl_s) * 0.10, 1.50)),
-                contracts=int(n_s), premium_in=usd(credit_s * 100 * n_s),
-                margin=usd(ml_s * n_s), iv_used=round((iv_s_out or iv_s) * 100, 1), src=src_s,
-                delta=SAT_DELTA, pt="PT50"))
+        # credit 大排先——衛星 engine 每晚 cap 內揀最肥
+        sat_candidates.sort(key=lambda c: -float(c["credit"]))
     except Exception as ex:
         note("衛星候選定價失敗：%s %s" % (ex.__class__.__name__, ex))
 

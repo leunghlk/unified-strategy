@@ -19,6 +19,8 @@ PT_FOLD = 0.50          # PT50：premium 收 50% → 剩 50% 平倉（研究最�
 FORCE_DTE = 3           # dte≤3 硬平倉（wheel320 dte=1 教訓——唔抱到期尾）
 FEE_PER_CT = 1.2        # 來回費用/張（統一簿口徑）
 NAV_USD = 49145.0
+MAX_NIGHTLY = 5         # ⭐11-10 擴池配套：每晚最多開 5 倉（credit 大排先；池 11→185 名後唔 cap 會一晚十幾倉）
+MARGIN_CAP_USD = NAV_USD * 0.40   # 簿內總按金上限 40% NAV（≈$19,658）
 START = None            # 首個 full run 自動寫入
 
 
@@ -202,28 +204,73 @@ def _run(mode):
     # 2) 新倉（full 模式先開；mark 模式純 MTM；同 sym 冇 open 才開）
     opens_syms = {e["sym"] for e in book["entries"] if e["status"] == "open"}
     if mode == "full":
+        _margin_now = sum(float(e.get("margin") or 0) for e in book["entries"] if e["status"] == "open")
+        _n_tonight = 0
+        _skip_min, _skip_w, _skip_no_real = 0, 0, 0   # ⭐聚合統計——185 名逐名出「跳過」會轟炸 TG（11-10 擴池配套）
+        _skip_eg = []
         for c in (td.get("sat_candidates") or []):
             if c["sym"] in opens_syms:
                 continue
             # ⭐三條線紀律（11-10 用戶拍板）：未過 credit_min 唔好開＋width≥15（研究拍板）
             if float(c.get("credit_min") or 0) > 0 and float(c["credit"]) < float(c["credit_min"]):
-                acts.append("跳過 %s credit %.2f < 最低線 %.2f（寧願不做）" % (c["sym"], c["credit"], c["credit_min"]))
+                _skip_min += 1
+                if len(_skip_eg) < 3:
+                    _skip_eg.append("%s %.2f<%.2f" % (c["sym"], c["credit"], c["credit_min"]))
                 continue
             if float(c.get("short_k") or 0) - float(c.get("long_k") or 0) < 15:
-                acts.append("跳過 %s width %.1f < 15（credit_min 拍板配套）" % (c["sym"], c["short_k"] - c["long_k"]))
+                _skip_w += 1
+                continue
+            # ⭐11-10 擴池配套：每晚 ≤5 倉＋總按金 ≤40% NAV（池 11→185 名後唔 cap 會一晚爆十幾倉；
+            #    gen 已 credit 大排先，行到呢度就係最肥先開）
+            if _n_tonight >= MAX_NIGHTLY:
+                acts.append("每晚 %d 倉已滿——%s 之後嘅候選留下一晚" % (MAX_NIGHTLY, c["sym"]))
+                break
+            if _margin_now + float(c.get("margin") or 0) > MARGIN_CAP_USD:
+                acts.append("按金上限 $%.0f 到頂——%s（要 $%.0f）唔開" % (MARGIN_CAP_USD, c["sym"], float(c.get("margin") or 0)))
+                continue
+            # ⭐落單前真鏈覆核（11-10 用戶令「要攞真價」）：gen 時段（07:30/21:35 HKT＝ET 盤前/盤後）
+            #    OpenD 有機會俾唔到真鏈（0/0 snapshot 窗）——BS 合成價唔准開倉（OKTA 灌水教訓：
+            #    board mid 1.64 vs 真鏈 worst 0.54）。開倉嗰刻重新向 Futu 攞真 mid，攞唔到＝跳過。
+            _rm, _rsrc, _ku, _lu = chain_mid(c["sym"], c["expiry"], c["short_k"], c["long_k"])
+            if _rm is None:
+                _skip_no_real += 1
+                if len(_skip_eg) < 3:
+                    _skip_eg.append("%s(無真鏈)" % c["sym"])
+                continue
+            _credit, _ks, _kl = float(_rm), float(_ku), float(_lu)
+            if _ks != float(c["short_k"]) or _kl != float(c["long_k"]):
+                pass   # snap 落 listed strike（chain_mid tol 5%）——照用 snapped
+            _width = _ks - _kl
+            if _width < 15:
+                _skip_w += 1
+                continue
+            if float(c.get("credit_min") or 0) > 0 and _credit < float(c["credit_min"]):
+                _skip_min += 1
+                if len(_skip_eg) < 3:
+                    _skip_eg.append("%s 真鏈%.2f<%.2f" % (c["sym"], _credit, float(c["credit_min"])))
+                continue
+            _margin = round(_width * 100 - _credit * 100, 2)
+            if _margin_now + _margin > MARGIN_CAP_USD:
+                acts.append("按金上限 $%.0f 到頂——%s（要 $%.0f）唔開" % (MARGIN_CAP_USD, c["sym"], _margin))
                 continue
             try:
                 iv = float(c.get("iv_used") or 35) / 100.0
             except Exception:
                 iv = 0.35
-            sh = bool(blocked)
+            sh = bool(blocked)   # 簿級 🔴 test-only 開關（shadow 池已剷——11-10 用戶令淨返兩個池）
             book["entries"].append(dict(
-                date=today_iso, sym=c["sym"], spot=c["spot"], short_k=c["short_k"], long_k=c["long_k"],
-                expiry=c["expiry"], credit=float(c["credit"]), contracts=int(c["contracts"]),
-                margin=float(c["margin"]), iv=iv, status="open", shadow=sh,
-                dte_td=c.get("dte_td"), config="satellite 10td+PT50+δ0.30"))
-            acts.append(("🧪 shadow 開倉（簿級 🔴 test-only）" if sh else "開倉") +
-                        " %s %s/%s %s credit %s×%d張（dte %s）" % (c["sym"], c["short_k"], c["long_k"], c["expiry"], c["credit"], c["contracts"], c.get("dte_td")))
+                date=today_iso, sym=c["sym"], spot=c["spot"], short_k=_ks, long_k=_kl,
+                expiry=c["expiry"], credit=_credit, contracts=int(c["contracts"]),
+                margin=_margin, iv=iv, status="open", shadow=sh, mark=_credit, mark_src=_rsrc,
+                dte_td=c.get("dte_td"), pool=c.get("pool", "C96"), config="satellite 10td+PT50+δ0.30 池=117+C96"))
+            _margin_now += _margin
+            _n_tonight += 1
+            acts.append(("🧪 簿級 test-only 開倉" if sh else "開倉") +
+                        "（%s·真鏈） %s %s/%s %s credit %.2f×%d張（dte %s）" % (c.get("pool", "C96"), c["sym"], _ks, _kl, c["expiry"], _credit, c["contracts"], c.get("dte_td")))
+        if _skip_min or _skip_w or _skip_no_real:
+            acts.append("跳過合計 %d（未過最低線 %d〔例：%s〕／width<15 %d／開倉時無真鏈 %d）——寧願不做" %
+                        (_skip_min + _skip_w + _skip_no_real, _skip_min,
+                         "、".join(_skip_eg) if _skip_eg else "—", _skip_w, _skip_no_real))
 
     # 3) 匯總
     opens = [e for e in book["entries"] if e["status"] == "open"]
