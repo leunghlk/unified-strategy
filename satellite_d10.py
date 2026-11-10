@@ -19,7 +19,7 @@ PT_FOLD = 0.50          # PT50：premium 收 50% → 剩 50% 平倉（研究最�
 FORCE_DTE = 3           # dte≤3 硬平倉（wheel320 dte=1 教訓——唔抱到期尾）
 FEE_PER_CT = 1.2        # 來回費用/張（統一簿口徑）
 NAV_USD = 49145.0
-MAX_NIGHTLY = 5         # ⭐11-10 擴池配套：每晚最多開 5 倉（credit 大排先；池 11→185 名後唔 cap 會一晚十幾倉）
+MAX_NIGHTLY = 5         # ⭐11-10 擴池配套：每晚最多開 5 倉（credit 大排先；池 11→189 名後唔 cap 會一晚十幾倉（⭐11-11 +SPCX/AMKR））
 MARGIN_CAP_USD = NAV_USD * 0.40   # 簿內總按金上限 40% NAV（≈$19,658）
 START = None            # 首個 full run 自動寫入
 
@@ -206,7 +206,7 @@ def _run(mode):
     if mode == "full":
         _margin_now = sum(float(e.get("margin") or 0) for e in book["entries"] if e["status"] == "open")
         _n_tonight = 0
-        _skip_min, _skip_w, _skip_no_real = 0, 0, 0   # ⭐聚合統計——185 名逐名出「跳過」會轟炸 TG（11-10 擴池配套）
+        _skip_min, _skip_w, _skip_no_real = 0, 0, 0   # ⭐聚合統計——189 名逐名出「跳過」會轟炸 TG（11-10 擴池配套）
         _skip_eg = []
         for c in (td.get("sat_candidates") or []):
             if c["sym"] in opens_syms:
@@ -245,7 +245,7 @@ def _run(mode):
                         continue
             except Exception:
                 pass
-            # ⭐11-10 擴池配套：每晚 ≤5 倉＋總按金 ≤40% NAV（池 11→185 名後唔 cap 會一晚爆十幾倉；
+            # ⭐11-10 擴池配套：每晚 ≤5 倉＋總按金 ≤40% NAV（池 11→189 名後唔 cap 會一晚爆十幾倉；
             #    gen 已 credit 大排先，行到呢度就係最肥先開）
             if _n_tonight >= MAX_NIGHTLY:
                 acts.append("每晚 %d 倉已滿——%s 之後嘅候選留下一晚" % (MAX_NIGHTLY, c["sym"]))
