@@ -19,7 +19,7 @@
    "dte_td": 7,
    "pool": "C96",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 718.510009765625,
+   "spot_last": 718.2000122070312,
    "unrealized": -28.7
   },
   {
@@ -100,15 +100,56 @@
    "contracts": 1,
    "margin": 3240.0,
    "iv": 0.6579999999999999,
-   "status": "open",
+   "status": "closed",
    "shadow": true,
-   "mark": 3.555,
+   "mark": 2.04,
    "mark_src": "Futu",
    "dte_td": 7,
    "pool": "C96",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "spot_last": 379.7799987792969,
-   "unrealized": 153.3
+   "unrealized": 304.8,
+   "exit_date": "2026-11-11",
+   "exit_reason": "PT50（mark 2.040 ≤ 50%×credit 5.10）",
+   "realized": 304.8
+  },
+  {
+   "date": "2026-11-11",
+   "sym": "META",
+   "spot": 641.39,
+   "short_k": 610.0,
+   "long_k": 550.0,
+   "expiry": "2026-11-27",
+   "credit": 7.245,
+   "contracts": 1,
+   "margin": 5275.5,
+   "iv": 0.46799999999999997,
+   "status": "open",
+   "shadow": true,
+   "mark": 7.245,
+   "mark_src": "Futu",
+   "dte_td": 12,
+   "pool": "C96+117",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96"
+  },
+  {
+   "date": "2026-11-11",
+   "sym": "CDNS",
+   "spot": 331.64,
+   "short_k": 312.5,
+   "long_k": 280.0,
+   "expiry": "2026-11-27",
+   "credit": 4.4,
+   "contracts": 1,
+   "margin": 2810.0,
+   "iv": 0.5539999999999999,
+   "status": "open",
+   "shadow": true,
+   "mark": 4.4,
+   "mark_src": "Futu",
+   "dte_td": 12,
+   "pool": "117",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96"
   }
  ],
  "closed": [
@@ -136,6 +177,30 @@
    "exit_reason": "業績閘漏平倉——凍結CSV ed=18，真實 11-20=到期日（AMC）。fail-closed 根修後剔除",
    "realized": 16.3,
    "manual": true
+  },
+  {
+   "date": "2026-11-10",
+   "sym": "TSLA",
+   "spot": 378.05,
+   "short_k": 357.5,
+   "long_k": 320.0,
+   "expiry": "2026-11-20",
+   "credit": 5.1,
+   "contracts": 1,
+   "margin": 3240.0,
+   "iv": 0.6579999999999999,
+   "status": "closed",
+   "shadow": true,
+   "mark": 2.04,
+   "mark_src": "Futu",
+   "dte_td": 7,
+   "pool": "C96",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "spot_last": 379.7799987792969,
+   "unrealized": 304.8,
+   "exit_date": "2026-11-11",
+   "exit_reason": "PT50（mark 2.040 ≤ 50%×credit 5.10）",
+   "realized": 304.8
   }
  ],
  "log": [
@@ -161,19 +226,36 @@
     "跳過合計 3（未過最低線 3〔例：COST 8.44<10.40、ISRG 真鏈2.70<4.40、META 4.95<6.50〕／width<15 0／開倉時無真鏈 0）——寧願不做"
    ]
   },
-  "2026-11-11 00:05 手動平倉 INTU：業績閘漏（10-28凍結CSV）→satellite_d10 引擎加二重閘根修；realized=+16.3"
+  "2026-11-11 00:05 手動平倉 INTU：業績閘漏（10-28凍結CSV）→satellite_d10 引擎加二重閘根修；realized=+16.3",
+  {
+   "date": "2026-11-11",
+   "acts": [
+    "PT50 平 TSLA 5.10→2.04（Futu mark）realized +305",
+    "按金上限 $19658 到頂——LLY（要 $11361）唔開",
+    "🧪 簿級 test-only 開倉（C96+117·真鏈） META 610.0/550.0 2026-11-27 credit 7.25×1張（dte 12）",
+    "按金上限 $19658 到頂——MA（要 $5636）唔開",
+    "🧪 簿級 test-only 開倉（117·真鏈） CDNS 312.5/280.0 2026-11-27 credit 4.40×1張（dte 12）",
+    "按金上限 $19658 到頂——V（要 $3621）唔開",
+    "按金上限 $19658 到頂——QCOM（要 $2413）唔開",
+    "按金上限 $19658 到頂——UNP（要 $2544）唔開",
+    "按金上限 $19658 到頂——ECL（要 $2658）唔開",
+    "按金上限 $19658 到頂——PSA（要 $2960）唔開",
+    "按金上限 $19658 到頂——ABBV（要 $2581）唔開",
+    "跳過合計 44（未過最低線 24〔例：BLK 真鏈8.22<11.70、UI(無真鏈)、COST 真鏈8.20<10.40〕／width<15 6／開倉時無真鏈 14）——寧願不做"
+   ]
+  }
  ],
  "config": "satellite 10td+PT50+δ0.30（2026-11-10 三路研究拍板）",
  "summary": {
-  "as_of": "2026-11-11 05:03",
-  "open_n": 4,
-  "realized": 16.3,
-  "unrealized": 263.7,
-  "total": 280.0,
-  "nav_paper": 49425.0,
-  "shadow_n": 4,
-  "margin_used": 12423.5,
-  "closed_n": 1
+  "as_of": "2026-11-11 21:50",
+  "open_n": 5,
+  "realized": 321.1,
+  "unrealized": 110.4,
+  "total": 431.5,
+  "nav_paper": 49576.5,
+  "shadow_n": 5,
+  "margin_used": 17269.0,
+  "closed_n": 2
  },
- "fp": "[8.5, 7.8, 3.915, 2.11, 3.555, 263.7, 16.3, 4, 1]"
+ "fp": "[8.5, 7.8, 3.915, 2.11, 2.04, 7.245, 4.4, 110.4, 321.1, 5, 2]"
 }
