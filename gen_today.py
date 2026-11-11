@@ -835,6 +835,33 @@ if yf_ok:
                 except Exception:
                     pass
                 iv_s = max(min(iv_s, 1.5), 0.12)
+                # ⭐11-11 根修（MPWR 11-27 幻影 tenor，用戶 app 實錘「得 11-20/12-18/65天」＝月選名）：
+                # pick_exp_d_sat 係投影曆——個股未必有嗰個週選；Futu scoped chain 撞唔到 tenor 唔報錯、
+                # 靜靜返鄰月（實測 MPWR 11-27 → 返 11-20/12-18），令幻影 row 著住「真鏈」外衣。
+                # per-name 真曆覆核（yf options 全到期列表）：揀日唔喺真曆 → 8–14td 帶內最近真日替換；
+                # 帶內冇真日 → skip（fail-closed：月選名唔啱短 tenor 衛星台，唔好硬夾）。
+                try:
+                    _reals = []
+                    for _re in (yf.Ticker(s).options or ()):
+                        try:
+                            _rd = datetime.date.fromisoformat(str(_re)[:10])
+                            _rt = td_between(today, _rd)
+                            if _rt is not None:
+                                _reals.append((_re, _rt))
+                        except Exception:
+                            continue
+                    if _reals and not any(_x[0] == _sat_str for _x in _reals):
+                        _band = [x for x in _reals if 8 <= x[1] <= 14]
+                        if _band:
+                            _pick = min(_band, key=lambda x: abs(x[1] - _sat_td))
+                            _sat_str, _sat_td = _pick[0], _pick[1]
+                            _sat_T = max(_sat_td, 1) / 252.0
+                        else:
+                            sat_skips.append(dict(sym=s, pool=_pool, reason="tenor_phantom",
+                                                  note="pick %s 唔喺真曆＋8–14td 帶內冇真 tenor——skip" % _sat_str))
+                            continue
+                except Exception:
+                    pass
                 Ks_s, Kl_s, credit_s, src_s, iv_s_out, cw_s = price_spread(S, _sat_T, SAT_DELTA, iv_s, _sat_str, s, use_bridge=False)
                 credit_s = max(credit_s, 0.01)
                 ml_s = (Ks_s - Kl_s) * 100 - credit_s * 100
