@@ -14,13 +14,13 @@
    "iv": 0.354,
    "status": "open",
    "shadow": true,
-   "mark": 5.525,
+   "mark": 5.575,
    "mark_src": "Futu",
    "dte_td": 6,
    "pool": "C96",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 723.9160766601562,
-   "unrealized": 268.8
+   "spot_last": 723.56201171875,
+   "unrealized": 263.8
   },
   {
    "date": "2026-11-10",
@@ -132,13 +132,13 @@
    "iv": 0.46799999999999997,
    "status": "open",
    "shadow": true,
-   "mark": 9.822,
+   "mark": 9.733,
    "mark_src": "BS",
    "dte_td": 11,
    "pool": "C96+117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 642.6300048828125,
-   "unrealized": -258.89
+   "spot_last": 643.0250244140625,
+   "unrealized": -250.01
   },
   {
    "date": "2026-11-11",
@@ -151,17 +151,20 @@
    "contracts": 1,
    "margin": 2810.0,
    "iv": 0.5539999999999999,
-   "status": "open",
+   "status": "closed",
    "shadow": true,
-   "mark": 2.25,
+   "mark": 1.85,
    "mark_src": "Futu",
    "dte_td": 11,
    "pool": "117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 333.67999267578125,
-   "unrealized": 213.8,
+   "spot_last": 333.32000732421875,
+   "unrealized": 253.8,
    "mark_ks": 310.0,
-   "mark_kl": 280.0
+   "mark_kl": 280.0,
+   "exit_date": "2026-11-12",
+   "exit_reason": "PT50（mark 1.850 ≤ 50%×credit 4.40）",
+   "realized": 253.8
   }
  ],
  "closed": [
@@ -261,6 +264,32 @@
    "exit_date": "2026-11-11",
    "exit_reason": "PT50（mark 2.110 ≤ 50%×credit 4.53）",
    "realized": 240.3
+  },
+  {
+   "date": "2026-11-11",
+   "sym": "CDNS",
+   "spot": 331.64,
+   "short_k": 312.5,
+   "long_k": 280.0,
+   "expiry": "2026-11-27",
+   "credit": 4.4,
+   "contracts": 1,
+   "margin": 2810.0,
+   "iv": 0.5539999999999999,
+   "status": "closed",
+   "shadow": true,
+   "mark": 1.85,
+   "mark_src": "Futu",
+   "dte_td": 11,
+   "pool": "117",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "spot_last": 333.32000732421875,
+   "unrealized": 253.8,
+   "mark_ks": 310.0,
+   "mark_kl": 280.0,
+   "exit_date": "2026-11-12",
+   "exit_reason": "PT50（mark 1.850 ≤ 50%×credit 4.40）",
+   "realized": 253.8
   }
  ],
  "log": [
@@ -315,19 +344,25 @@
    "acts": [
     "PT50 平 CRWD 4.53→2.11（Futu mark）realized +240"
    ]
+  },
+  {
+   "date": "2026-11-12",
+   "acts": [
+    "PT50 平 CDNS 4.40→1.85（Futu mark）realized +254"
+   ]
   }
  ],
  "config": "satellite 10td+PT50+δ0.30（2026-11-10 三路研究拍板）",
  "summary": {
-  "as_of": "2026-11-12 01:33",
-  "open_n": 3,
-  "realized": 720.2,
-  "unrealized": 223.71,
-  "total": 943.91,
-  "nav_paper": 50088.91,
-  "shadow_n": 3,
-  "margin_used": 14263.0,
-  "closed_n": 4
+  "as_of": "2026-11-12 01:38",
+  "open_n": 2,
+  "realized": 974.0,
+  "unrealized": 13.79,
+  "total": 987.79,
+  "nav_paper": 50132.79,
+  "shadow_n": 2,
+  "margin_used": 11453.0,
+  "closed_n": 5
  },
- "fp": "[5.525, 7.8, 2.11, 1.315, 2.04, 9.822, 2.25, 223.71, 720.2, 3, 4]"
+ "fp": "[5.575, 7.8, 2.11, 1.315, 2.04, 9.733, 1.85, 13.79, 974.0, 2, 5]"
 }
