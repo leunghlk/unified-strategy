@@ -1313,6 +1313,18 @@ _roadmap = dict(
     stop_protocol=(dict(active=_sp.get("active"), leg=_sp.get("leg_key"), t0=_sp.get("t0"), polls=_sp.get("polls"), note="🛑 三次確認進行中") if (_sp and _sp.get("active")) else None),
 )
 
+def _sat_margin_gate():
+    """⭐11-11（用戶令「每隻候選寫埋按金過唔過閘」）：衛星簿按金實況——cap 錨 40%×$49,145
+    （同 satellite_d10.py NAV_USD/MARGIN_CAP_USD 同源），used＝paper_satellite_d10.json summary。"""
+    _cap = 49145.0 * 0.40
+    try:
+        _st = json.load(open(os.path.join(HERE, "paper_satellite_d10.json")))
+        _used = float((_st.get("summary") or {}).get("margin_used") or 0.0)
+    except Exception:
+        _used = 0.0
+    return dict(cap=round(_cap), used=round(_used), headroom=round(max(_cap - _used, 0.0)))
+
+
 out = dict(
     roadmap=_roadmap,
     as_of=datetime.datetime.now().strftime("%Y-%m-%d %H:%M HKT"),
@@ -1333,6 +1345,7 @@ out = dict(
     golden=gold,
     screen=top6, candidates=candidates, paper_candidates=paper_candidates,
     sat_candidates=sat_candidates,
+    sat_margin=_sat_margin_gate(),
     sat_skips=sat_skips[:300], csv_asof=str(last_loc), csv_ed_drift=_csv_ed_drift,
     c96_screen=c96_screen[:12], c96_candidates=c96_candidates,
     ownable6=ownable6,

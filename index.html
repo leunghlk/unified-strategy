@@ -916,13 +916,17 @@ function renderToday(d){
     var cands=td.sat_candidates||[];
     var sct2='';
     if(cands.length){
-      sct2='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>今晚候選（短 tenor · gen 21:35）</b>——三閘過晒先開，每晚 ≤5 倉＋總按金 ≤40% 衛星 NAV（11-10 拍板）<div class="table-scroll"><table><thead><tr><th>倉</th><th>到期</th><th class="num">剩 td</th><th class="num">Credit（靚價=mid）</th><th class="num">掛價低至</th><th class="num">最低線</th><th>三閘</th><th>處理</th></tr></thead><tbody>'+
+      var SB=td.sat_margin||{};
+      sct2='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>今晚候選（短 tenor · gen 21:35）</b>——三閘過晒先開，每晚 ≤5 倉＋總按金 ≤40% 衛星 NAV（11-10 拍板）'+(SB.cap?'<span style="color:#64748b">· 按金已用 <b>$'+SB.used+'</b>／cap <b>$'+SB.cap+'</b>，剩 <b>$'+SB.headroom+'</b></span>':'')+'<div class="table-scroll"><table><thead><tr><th>倉</th><th>到期</th><th class="num">剩 td</th><th class="num">Credit</th><th class="num">掛價低至</th><th class="num">最低線</th><th class="num">按金／閘</th><th>三閘</th><th>處理</th></tr></thead><tbody>'+
         cands.map(function(c){
           var passMin=!(c.credit_min>0&&c.credit<c.credit_min);
           var w=(c.short_k||0)-(c.long_k||0),passW=w>=15;
           var flags='<span class="pill '+(passMin?'g':'r')+'">'+(passMin?'✓ 最低線':'✗ 最低線')+'</span> <span class="pill '+(passW?'g':'r')+'">'+(passW?'✓ 寬度':'✗ 寬度')+'</span>';
           var disp=openedToday[c.sym]?'<span class="pill b">✅ 已開'+(openedToday[c.sym].shadow?' 🧪':'')+'</span>':(!passMin?'✗ 未過最低線，不開':(!passW?'✗ 寬度不足，不開':'—（排名／上限外）'));
-          return '<tr><td><b>'+c.sym+'</b> 賣'+c.short_k+'／買'+c.long_k+'</td><td>'+c.expiry+'</td><td class="num">'+(c.dte_td!=null?c.dte_td:'—')+'</td><td class="num">$'+c.credit+'</td><td class="num">'+(c.credit_worst!=null?'$'+c.credit_worst:'—')+'</td><td class="num">'+(c.credit_min!=null?'$'+c.credit_min:'—')+'</td><td>'+flags+'</td><td>'+disp+'</td></tr>';
+          var mg=Number(c.margin||0);
+          var mgCell=(mg?'$'+Math.round(mg).toLocaleString():'—')+(SB.cap?(mg&&SB.used+mg<=SB.cap?' <span class="pill g">✓夠位</span>':' <span class="pill r">✗爆</span>'):'');
+          var crCell='$'+c.credit+(c.src&&String(c.src).indexOf('BS')===0?' <span style="color:#b45309;font-size:10px">BS估</span>':'');
+          return '<tr><td><b>'+c.sym+'</b> 賣'+c.short_k+'／買'+c.long_k+'</td><td>'+c.expiry+'</td><td class="num">'+(c.dte_td!=null?c.dte_td:'—')+'</td><td class="num">'+crCell+'</td><td class="num">'+(c.credit_worst!=null?'$'+c.credit_worst:'—')+'</td><td class="num">'+(c.credit_min!=null?'$'+c.credit_min:'—')+'</td><td class="num">'+mgCell+'</td><td>'+flags+'</td><td>'+disp+'</td></tr>';
         }).join('')+'</tbody></table></div></div>';
     }else{
       sct2='<div class="note">今晚候選未出（每日 21:35 gen 出候選 → 21:50 開倉判定；post-close 時段 0 候選屬正常）。</div>';
