@@ -14,13 +14,13 @@
    "iv": 0.354,
    "status": "open",
    "shadow": true,
-   "mark": 8.5,
+   "mark": 5.95,
    "mark_src": "Futu",
    "dte_td": 7,
    "pool": "C96",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 718.2000122070312,
-   "unrealized": -28.7
+   "spot_last": 721.8499755859375,
+   "unrealized": 226.3
   },
   {
    "date": "2026-11-10",
@@ -60,13 +60,13 @@
    "iv": 0.799,
    "status": "open",
    "shadow": true,
-   "mark": 3.915,
+   "mark": 2.28,
    "mark_src": "Futu",
    "dte_td": 7,
    "pool": "117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 225.75999450683594,
-   "unrealized": 59.8
+   "spot_last": 237.60000610351562,
+   "unrealized": 223.3
   },
   {
    "date": "2026-11-10",
@@ -79,15 +79,18 @@
    "contracts": 1,
    "margin": 1208.5,
    "iv": 0.953,
-   "status": "open",
+   "status": "closed",
    "shadow": true,
-   "mark": 2.11,
+   "mark": 1.315,
    "mark_src": "Futu",
    "dte_td": 7,
    "pool": "117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 178.36000061035156,
-   "unrealized": 79.3
+   "spot_last": 186.51499938964844,
+   "unrealized": 158.8,
+   "exit_date": "2026-11-11",
+   "exit_reason": "PT50（mark 1.315 ≤ 50%×credit 2.92）",
+   "realized": 158.8
   },
   {
    "date": "2026-11-10",
@@ -126,11 +129,13 @@
    "iv": 0.46799999999999997,
    "status": "open",
    "shadow": true,
-   "mark": 7.245,
+   "mark": 6.695,
    "mark_src": "Futu",
    "dte_td": 12,
    "pool": "C96+117",
-   "config": "satellite 10td+PT50+δ0.30 池=117+C96"
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "spot_last": 646.489990234375,
+   "unrealized": 53.8
   },
   {
    "date": "2026-11-11",
@@ -145,11 +150,13 @@
    "iv": 0.5539999999999999,
    "status": "open",
    "shadow": true,
-   "mark": 4.4,
-   "mark_src": "Futu",
+   "mark": 4.898,
+   "mark_src": "BS",
    "dte_td": 12,
    "pool": "117",
-   "config": "satellite 10td+PT50+δ0.30 池=117+C96"
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "spot_last": 338.6600036621094,
+   "unrealized": -51.02
   }
  ],
  "closed": [
@@ -201,6 +208,30 @@
    "exit_date": "2026-11-11",
    "exit_reason": "PT50（mark 2.040 ≤ 50%×credit 5.10）",
    "realized": 304.8
+  },
+  {
+   "date": "2026-11-10",
+   "sym": "OKTA",
+   "spot": 177.57,
+   "short_k": 165.0,
+   "long_k": 150.0,
+   "expiry": "2026-11-20",
+   "credit": 2.915,
+   "contracts": 1,
+   "margin": 1208.5,
+   "iv": 0.953,
+   "status": "closed",
+   "shadow": true,
+   "mark": 1.315,
+   "mark_src": "Futu",
+   "dte_td": 7,
+   "pool": "117",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "spot_last": 186.51499938964844,
+   "unrealized": 158.8,
+   "exit_date": "2026-11-11",
+   "exit_reason": "PT50（mark 1.315 ≤ 50%×credit 2.92）",
+   "realized": 158.8
   }
  ],
  "log": [
@@ -243,19 +274,25 @@
     "按金上限 $19658 到頂——ABBV（要 $2581）唔開",
     "跳過合計 44（未過最低線 24〔例：BLK 真鏈8.22<11.70、UI(無真鏈)、COST 真鏈8.20<10.40〕／width<15 6／開倉時無真鏈 14）——寧願不做"
    ]
+  },
+  {
+   "date": "2026-11-11",
+   "acts": [
+    "PT50 平 OKTA 2.92→1.31（Futu mark）realized +159"
+   ]
   }
  ],
  "config": "satellite 10td+PT50+δ0.30（2026-11-10 三路研究拍板）",
  "summary": {
-  "as_of": "2026-11-11 21:50",
-  "open_n": 5,
-  "realized": 321.1,
-  "unrealized": 110.4,
-  "total": 431.5,
-  "nav_paper": 49576.5,
-  "shadow_n": 5,
-  "margin_used": 17269.0,
-  "closed_n": 2
+  "as_of": "2026-11-11 22:34",
+  "open_n": 4,
+  "realized": 479.9,
+  "unrealized": 452.38,
+  "total": 932.28,
+  "nav_paper": 50077.28,
+  "shadow_n": 4,
+  "margin_used": 16060.5,
+  "closed_n": 3
  },
- "fp": "[8.5, 7.8, 3.915, 2.11, 2.04, 7.245, 4.4, 110.4, 321.1, 5, 2]"
+ "fp": "[5.95, 7.8, 2.28, 1.315, 2.04, 6.695, 4.898, 452.38, 479.9, 4, 3]"
 }
