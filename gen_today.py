@@ -533,6 +533,7 @@ for s in names:
     # ⭐11-11 根修（agent C 實錘 UI 假禁）：CSV 投影話禁（−5..21）嘅先做 fresh yf 覆核——UI 11-06 已出、
     # CSV 投影 11-18 → 假禁 3-5td（同 rv21 假死亡區同根：凍結錨）。已出≤5td→禁（冷靜）；>5td→ok 放行；
     # fresh fail→照 CSV 判決（唔信邪亦唔錯放）。只覆核禁區名，配額友好。
+    _earn_post = None  # ⭐11-11 顯示修：fresh 覆核確認「已出 Ntd」→ 0td 唔好同「今晚出」混
     if yf_ok and ed is not None and ed == ed and -5 <= ed <= 10:  # ⭐11-11 拍板：前禁 21→10td（pre10+p5 數據最優）
         try:
             _cal = yf.Ticker(s).calendar
@@ -551,6 +552,8 @@ for s in names:
                     _fgap = td_between(_d0, today)
                     if _fgap is not None:
                         ed = 0 if _fgap <= 5 else None  # ≤5td 冷靜禁；>5td 放行（下季未公佈＝唔知窗）
+                        if ed == 0:
+                            _earn_post = _fgap  # 已出 _fgap td，冷靜中——顯示用，唔入閘數學
         except Exception:
             pass
     r1d = (px.get(s, loc[s]["close"]) / prev_close.get(s, loc[s]["close"]) - 1.0) if s in px and s in prev_close else float("nan")
@@ -559,9 +562,17 @@ for s in names:
         earn=("禁" if (ed is not None and not math.isnan(ed) and -5 <= ed <= 10) else "ok"),  # ⭐11-11 拍板：前10td禁（21→10，pre10+p5）＋後5td冷靜（拍板⑥：−5..0=已出5td內）
         gap=("禁" if (not math.isnan(r1d) and r1d > 0.08) else "ok"),
     )
+    # ⭐11-11 顯示修：「禁（0td）」兩義——前禁（未出）vs 後冷靜（已出）分開寫，用戶唔會再誤讀
+    _earn_label = None
+    if gates["earn"] == "禁":
+        if _earn_post is not None:
+            _earn_label = "已出%std 冷靜中" % int(_earn_post)
+        elif ed is not None and not math.isnan(ed):
+            _earn_label = ("已出%std 冷靜中" % int(-ed)) if ed < 0 else ("前%std" % int(ed))
     screen.append(dict(sym=s, mom63=round(100 * m63, 1), close=usd(px.get(s, loc[s]["close"])),
                        rv21_pctl=(None if rv_p is None or math.isnan(rv_p) else round(rv_p, 0)),
                        earn_td=(None if ed is None or math.isnan(ed) else int(ed)),
+                       earn_label=_earn_label,
                        chg1d=(None if math.isnan(r1d) else round(100 * r1d, 2)),
                        **gates))
 screen.sort(key=lambda x: -x["mom63"])
