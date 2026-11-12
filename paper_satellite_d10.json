@@ -132,13 +132,13 @@
    "iv": 0.46799999999999997,
    "status": "open",
    "shadow": true,
-   "mark": 10.2,
+   "mark": 10.195,
    "mark_src": "Futu",
    "dte_td": 11,
    "pool": "C96+117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "spot_last": 628.77001953125,
-   "unrealized": -296.7
+   "unrealized": -296.2
   },
   {
    "date": "2026-11-11",
@@ -165,6 +165,28 @@
    "exit_date": "2026-11-12",
    "exit_reason": "PT50（mark 1.850 ≤ 50%×credit 4.40）",
    "realized": 253.8
+  },
+  {
+   "date": "2026-11-12",
+   "sym": "AMD",
+   "spot": 552.9,
+   "short_k": 500.0,
+   "long_k": 450.0,
+   "expiry": "2026-11-27",
+   "credit": 6.925,
+   "credit_worst": 6.5,
+   "contracts": 1,
+   "margin": 4307.5,
+   "iv": 1.291,
+   "status": "open",
+   "shadow": true,
+   "mark": 6.925,
+   "mark_src": "Futu",
+   "track": "std",
+   "dte_td": 11,
+   "pool": "C96+117",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "rv21_pctl": 100.0
   }
  ],
  "closed": [
@@ -350,19 +372,40 @@
    "acts": [
     "PT50 平 CDNS 4.40→1.85（Futu mark）realized +254"
    ]
+  },
+  {
+   "date": "2026-11-12",
+   "acts": [
+    "🧪 簿級 test-only 開倉（C96+117·真鏈·worst 6.50） AMD 500.0/450.0 2026-11-27 mid 6.92×1張（dte 11）",
+    "跳過合計 47（hiIV閘 35〔例：UI(無真鏈)、UI w6(無真 width 格)、LLY hiIV 75<90〕／未過最低線(worst) 9／width<15 1／無真鏈 2）——寧願不做"
+   ]
   }
  ],
  "config": "satellite 10td+PT50+δ0.30（2026-11-10 三路研究拍板）",
  "summary": {
-  "as_of": "2026-11-12 05:02",
-  "open_n": 2,
+  "as_of": "2026-11-12 13:19",
+  "open_n": 3,
   "realized": 974.0,
-  "unrealized": -157.9,
-  "total": 816.1,
-  "nav_paper": 49961.1,
-  "shadow_n": 2,
-  "margin_used": 11453.0,
-  "closed_n": 5
+  "unrealized": -157.4,
+  "total": 816.6,
+  "nav_paper": 49961.6,
+  "shadow_n": 3,
+  "margin_used": 15760.5,
+  "closed_n": 5,
+  "std_open_n": 3,
+  "w6_open_n": 0,
+  "w6_realized": 0,
+  "w6_unrealized": 0,
+  "day": {
+   "date": "2026-11-12",
+   "std": 1,
+   "w6": 0
+  }
  },
- "fp": "[6.825, 7.8, 2.11, 1.315, 2.04, 10.2, 1.85, -157.9, 974.0, 2, 5]"
+ "fp": "[6.825, 7.8, 2.11, 1.315, 2.04, 10.195, 1.85, 6.925, -157.4, 974.0, 3, 5]",
+ "day": {
+  "date": "2026-11-12",
+  "std": 1,
+  "w6": 0
+ }
 }
