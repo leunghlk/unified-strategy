@@ -872,7 +872,8 @@ if yf_ok:
                     credit_min=usd(max((Ks_s - Kl_s) * 0.10, 1.50)),
                     contracts=int(n_s), premium_in=usd(credit_s * 100 * n_s),
                     margin=usd(ml_s * n_s), iv_used=round((iv_s_out or iv_s) * 100, 1), src=src_s,
-                    delta=SAT_DELTA, pt="PT50", pool=_pool))
+                    delta=SAT_DELTA, pt="PT50", pool=_pool,
+                    rv21_pctl=(round(float(rv_p), 1) if rv_p is not None and rv_p == rv_p else None)))
             except Exception:
                 continue
         # credit 大排先——衛星 engine 每晚 cap 內揀最肥
@@ -1126,6 +1127,66 @@ try:
     # verified 驗證：Futu 88日成交或現持倉搵唔到＝幽靈倉（IAU 11-06 實錘）→ 唔入義務計
     for _po in positions_out:
         _po["verified"] = bool(_po.get("ticker") in _fill_unds or _po.get("ticker") in _real_stock_tickers)
+    # ⭐ 11-13 用戶令：平倉價位三數上板——靚價＝兩腿 mid；最貴＝賣腿 ask−買腿 bid（市價最壞情況）；
+    # mark（靚價）低過 PT50 線先平、貴過就「唔落住」掛住等。攞價必用持倉自己 expiry（TMO 12-18 教訓）。
+    # ⭐走 bridge_chain 同一層＋磁碟 cache（TTL 900s；quota 爆食舊價）——30s/10 配額留俾定價層（11-10 五刀教訓）
+    import time as _time_mod
+    _CPX_CACHE_F = os.path.join(HERE, "close_px_cache.json")
+
+    def _spread_close_px(_t, _exp, _sk, _lk):
+        _key = "%s_%s" % (_t, _exp)
+        _now = _time_mod.time()
+        try:
+            _cs = json.load(open(_CPX_CACHE_F))
+        except Exception:
+            _cs = {}
+        _hit = _cs.get(_key)
+        if _hit and _now - _hit.get("ts", 0) < 900:
+            return _hit.get("px")
+        try:
+            _bc = bridge_chain(_t, str(_exp))
+        except Exception:
+            _bc = None
+        _px = None
+        if _bc and _bc.get("puts"):
+            _srow = _lrow = None
+            for _r in _bc["puts"]:
+                try:
+                    if float(_r["strike"]) == float(_sk):
+                        _srow = _r
+                    if _lk and float(_r["strike"]) == float(_lk):
+                        _lrow = _r
+                except Exception:
+                    continue
+            if _srow:
+                _b_s, _a_s = float(_srow.get("bid") or 0), float(_srow.get("ask") or 0)
+                if _b_s or _a_s:
+                    _mid_s = (_b_s + _a_s) / 2
+                    if _lrow:
+                        _b_l, _a_l = float(_lrow.get("bid") or 0), float(_lrow.get("ask") or 0)
+                        _mid_l = ((_b_l + _a_l) / 2) if (_b_l or _a_l) else 0.0
+                    else:
+                        _b_l = _a_l = _mid_l = 0.0
+                    _px = dict(mid=round(_mid_s - _mid_l, 2),
+                               worst=round(_a_s - _b_l, 2),
+                               best=round(_b_s - _a_l, 2))
+        if _px:
+            _cs[_key] = dict(ts=_now, px=_px)
+            try:
+                json.dump(_cs, open(_CPX_CACHE_F, "w"))
+            except Exception:
+                pass
+            return _px
+        return (_hit or {}).get("px")  # quota 爆／無鏈：食舊 cache（fail-open 帶舊值）都好過全無
+    for _po in (positions_out + positions_paper):
+        _ep = _po.get("entry_prem") or 0
+        _po["pt50"] = (round(_ep * 0.5, 2) if _ep else None)
+        _px = _spread_close_px(_po.get("ticker"), _po.get("expiry"), _po.get("strike"), _po.get("long_k"))
+        _po["close_px"] = _px
+        if _px and _po.get("pt50"):
+            _po["close_verdict"] = ("✅可平" if _px["mid"] <= _po["pt50"] else "貴過唔落住")
+        else:
+            _po["close_verdict"] = None
 except Exception as _e:
     note("我的倉讀取失敗：%s" % _e)
 # 用戶指示 paper 簿（bridge /paper_order 落單 → user_paper_orders.json；⭐11-07 button 用）
@@ -1352,6 +1413,24 @@ def _sat_margin_gate():
     return dict(cap=round(_cap), used=round(_used), headroom=round(max(_cap - _used, 0.0)))
 
 
+# ---------- ⭐11-12 CORE width regime switch pilot（純 shadow 記錄，引擎零改動） ----------
+# round-2 拍板③後半：RV21 pctl≥80→w15／≤30→w6／中間 w10（+31% PF1.78 三 crash window 全過）。
+# pilot paper：呢度只記錄「如果行 regime switch，每名 CORE 候選會用邊條 width」，
+# 引擎照行 spr10；11-17 檢討對比先決定升 live。
+core_width_pilot = []
+_cwp_seen = set()
+for _cc in (candidates + c96_candidates):
+    if _cc["sym"] in _cwp_seen:
+        continue
+    _cwp_seen.add(_cc["sym"])
+    _p = _cc.get("rv21_pctl")
+    _w15 = 15 if _p is not None and float(_p) >= 80 else (6 if _p is not None and float(_p) <= 30 else 10)
+    _ks = float(_cc["short_k"])
+    core_width_pilot.append(dict(
+        sym=_cc["sym"], pool=_cc.get("pool"), rv21_pctl=(round(float(_p), 1) if _p is not None else None),
+        cur_width=round(_ks - float(_cc["long_k"]), 1), cur_width_pct=_cc.get("width_pct"),
+        pilot_width=_w15, pilot_long_k=round(_ks - _w15, 1), pilot_credit_min=round(max(_w15 * 0.10, 1.50), 2)))
+
 out = dict(
     roadmap=_roadmap,
     as_of=datetime.datetime.now().strftime("%Y-%m-%d %H:%M HKT"),
@@ -1371,6 +1450,7 @@ out = dict(
     funnel=funnel,
     golden=gold,
     screen=top6, candidates=candidates, paper_candidates=paper_candidates,
+    core_width_pilot=core_width_pilot,
     sat_candidates=sat_candidates,
     sat_margin=_sat_margin_gate(),
     sat_skips=sat_skips[:300], csv_asof=str(last_loc), csv_ed_drift=_csv_ed_drift,

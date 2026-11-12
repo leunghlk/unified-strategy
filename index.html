@@ -853,13 +853,17 @@ function renderToday(d){
   if(posEl){
     var posHtml='';
     if(!pos.length)posHtml='<div class="note">現時無真倉 short put 在場。</div>';
-    else posHtml='<div class="table-scroll"><table><thead><tr><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩（mark÷入場）</th><th>PT50</th><th class="num">現價離接貨</th><th class="num">浮動</th></tr></thead><tbody>'+
+    else posHtml='<div class="table-scroll"><table><thead><tr><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩（mark÷入場）</th><th>PT50</th><th title="靚價＝兩腿 mid 買返嚟；最貴＝賣腿 ask−買腿 bid（市價單最壞情況）。靚價低過 PT50 線先平，貴過就唔落住、掛 mid 等">平倉價（靚價／最貴）</th><th class="num">現價離接貨</th><th class="num">浮動</th></tr></thead><tbody>'+
     pos.map(function(p){
       var dist=(p.spot!=null&&p.strike)?((p.spot-p.strike)/p.strike*100):null;
+      var cx=p.close_px,t50=p.pt50,cxCell;
+      if(cx)cxCell='$'+cx.mid.toFixed(2)+'／最貴 $'+cx.worst.toFixed(2)+(t50?' <span class="pill '+(cx.mid<=t50?'g':'r')+'">'+(cx.mid<=t50?'✅可平':'貴過唔落住')+'</span>':'');
+      else cxCell='<span title="bridge 攞唔到呢個 expiry 嘅 bid/ask——fail-closed，照 PT50 zone 判">無鏈</span>';
       return '<tr><td><b>'+p.ticker+'</b> 賣'+p.strike+'P'+(p.long_k?'／買'+p.long_k+'P':'')+'×'+p.contracts+'（'+expZh(p.expiry)+'，剩 '+p.dte+'td）'+(p.verified===false?' <span class="pill y">⚠️ Futu 搵唔到</span>':'')+'</td>'+
       '<td class="num">$'+p.entry_prem+'</td><td class="num">$'+(p.cur_prem!=null?p.cur_prem:'—')+'</td>'+
       '<td class="num">'+(p.pt_remaining!=null?p.pt_remaining+'%':'—')+'</td>'+
       '<td>'+(p.pt_zone==='可平倉'?'<span class="pill g">可平倉</span>':(p.pt_zone==='接近'?'<span class="pill y">接近</span>':'<span class="pill r">未到</span>'))+'</td>'+
+      '<td class="num">'+cxCell+'</td>'+
       '<td class="num">'+(dist!=null?(dist>=0?'+':'')+dist.toFixed(1)+'%':'—')+'</td>'+
       '<td class="num">'+(p.pnl_usd!=null?(p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0):'—')+'</td></tr>';
     }).join('')+'</tbody></table></div>';
@@ -870,13 +874,17 @@ function renderToday(d){
   var pbEl=document.getElementById('tdPaperBook');
   if(pbEl){
     var ppos=d.positions_paper||[];
-    var pbHtml=ppos.length?'<div class="table-scroll"><table><thead><tr><th>簿</th><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩</th><th>PT50</th><th class="num">浮動</th></tr></thead><tbody>'+
+    var pbHtml=ppos.length?'<div class="table-scroll"><table><thead><tr><th>簿</th><th>倉</th><th class="num">入場 credit</th><th class="num">而家 mark</th><th class="num">credit 剩</th><th>PT50</th><th title="靚價＝兩腿 mid 買返嚟；最貴＝賣腿 ask−買腿 bid。靚價低過 PT50 線先平，貴過就唔落住">平倉價（靚價／最貴）</th><th class="num">浮動</th></tr></thead><tbody>'+
       ppos.map(function(p){
+        var cx=p.close_px,t50=p.pt50,cxCell;
+        if(cx)cxCell='$'+cx.mid.toFixed(2)+'／最貴 $'+cx.worst.toFixed(2)+(t50?' <span class="pill '+(cx.mid<=t50?'g':'r')+'">'+(cx.mid<=t50?'✅可平':'貴過唔落住')+'</span>':'');
+        else cxCell='無鏈';
         return '<tr><td><span class="pill '+(p.book==='user_paper'?'b':'n')+'">'+(p.book==='user_paper'?'🧪 我落':(p.book||'paper'))+'</span></td>'+
         '<td><b>'+p.ticker+'</b> 賣'+p.strike+'P'+(p.long_k?'／買'+p.long_k+'P':'')+'×'+p.contracts+'（'+expZh(p.expiry)+'，剩 '+p.dte+'td）</td>'+
         '<td class="num">$'+(p.entry_prem!=null?p.entry_prem:'—')+'</td><td class="num">$'+(p.cur_prem!=null?p.cur_prem:'—')+'</td>'+
         '<td class="num">'+(p.pt_remaining!=null?p.pt_remaining+'%':'—')+'</td>'+
         '<td>'+(p.pt_zone==='可平倉'?'<span class="pill g">可平倉</span>':(p.pt_zone==='接近'?'<span class="pill y">接近</span>':(p.pt_zone==='未到'?'<span class="pill r">未到</span>':'—')))+'</td>'+
+        '<td class="num">'+cxCell+'</td>'+
         '<td class="num">'+(p.pnl_usd!=null?((p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0)):'—')+'</td></tr>';
       }).join('')+'</tbody></table></div>':'<div class="note">paper 簿空——下面落單即出現（gen 下輪自動 mark 價）。</div>';
     pbHtml+='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>🧪 落 paper 單</b>（bull put spread；只入 paper 簿，唔掂真倉）<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px">'+
@@ -940,9 +948,12 @@ function renderToday(d){
     }else{
       sct2='<div class="note">今晚候選未出（每日 21:35 gen 出候選 → 21:50 開倉判定；post-close 時段 0 候選屬正常）。</div>';
     }
-    var sot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th title="股票＋shadow/w6 旗">倉</th><th class="num" title="賣出腿／買入腿 strike">Spread</th><th>到期</th><th class="num" title="距到期交易日數">剩 td</th><th class="num" title="開倉時每張收權費（mid）">Credit</th><th class="num" title="而家市價：Futu 真鏈 mid，攞唔到先 BS 模型價">Mark</th><th class="num" title="mark÷credit——跌到 50% 觸發 PT50 自動平倉落袋">credit 剩</th><th class="num" title="未實現損益＝(credit−mark)×100×張數−$1.2/張來回費">浮動</th></tr></thead><tbody>'+
+    var sot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th title="股票＋shadow/w6 旗">倉</th><th class="num" title="賣出腿／買入腿 strike">Spread</th><th>到期</th><th class="num" title="距到期交易日數">剩 td</th><th class="num" title="開倉時每張收權費（mid）">Credit</th><th class="num" title="而家市價：Futu 真鏈 mid，攞唔到先 BS 模型價">Mark</th><th class="num" title="mark÷credit——跌到 50% 觸發 PT50 自動平倉落袋">credit 剩</th><th title="靚價＝Mark（mid）；最貴＝賣腿 ask−買腿 bid。靚價低過 PT50 線先平，貴過就唔落住">平倉價（靚價／最貴）</th><th class="num" title="未實現損益＝(credit−mark)×100×張數−$1.2/張來回費">浮動</th></tr></thead><tbody>'+
       op.map(function(e){var rem=(e.credit>0&&e.mark!=null)?Math.round(100*e.mark/e.credit)+'%':'—';
-        return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+(e.track==='w6'?' <span class="pill b">w6試</span>':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+(e.dte_td!=null?e.dte_td:'—')+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+(e.mark_src==='BS'?'（BS）':'')+'</td><td class="num">'+rem+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open 衛星倉——候選須連過四閘（hiIV pctl≥90 pilot／最低 credit 線〔executable-worst〕／寬度≥15／dte≤3 硬平倉線）才開倉。</div>';
+        var t50=e.credit>0?e.credit*0.5:null;var cw=e.close_worst,cxCell;
+        if(cw!=null&&e.mark!=null)cxCell='$'+e.mark.toFixed(2)+'／最貴 $'+cw.toFixed(2)+(t50?' <span class="pill '+(e.mark<=t50?'g':'r')+'">'+(e.mark<=t50?'✅可平':'貴過唔落住')+'</span>':'');
+        else cxCell='—';
+        return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+(e.track==='w6'?' <span class="pill b">w6試</span>':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+(e.dte_td!=null?e.dte_td:'—')+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+(e.mark_src==='BS'?'（BS）':'')+'</td><td class="num">'+rem+'</td><td class="num">'+cxCell+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open 衛星倉——候選須連過四閘（hiIV pctl≥90 pilot／最低 credit 線〔executable-worst〕／寬度≥15／dte≤3 硬平倉線）才開倉。</div>';
     var _sumR=cl.reduce(function(a,e){return a+(e.realized||0);},0);
     var _wins=cl.filter(function(e){return (e.realized||0)>0;}).length;
     var sct=cl.length?'<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>平倉戰績</b>（'+cl.length+' 倉 · 勝 '+_wins+'／'+cl.length+' · 累計 '+(_sumR>=0?'+':'')+'$'+_sumR.toFixed(0)+'）<div class="table-scroll"><table><thead><tr><th>日期</th><th title="股票＋腿">倉</th><th class="num" title="賣腿／買腿 strike">Spread</th><th>到期</th><th class="num" title="開倉收權費→平倉時市價">Credit→Mark</th><th class="num" title="已落袋損益（含 $1.2/張來回費）">realized</th><th title="出場原因：PT50 賺半落袋／dte≤3 硬平倉／到期／廣度回50全平">出場</th></tr></thead><tbody>'+
