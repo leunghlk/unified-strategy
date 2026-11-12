@@ -139,6 +139,13 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 
   <div class="grid" style="margin-top:12px">
     <div class="card">
+      <h3>🎲 XSP 1-day 台＋🐻 跌市腿 shadow<span class="pill n" style="margin-left:6px">回血第三輪拍板 11-12 · 全 paper pilot</span></h3>
+      <div class="desc" id="tdNewDesks">讀取中…</div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px">
+    <div class="card">
       <h3>🌡️ VIX 對應策略表<span class="pill n" style="margin-left:6px" id="vixNow">—</span></h3>
       <div class="table-scroll"><table>
         <thead><tr><th>VIX 區間</th><th>層級</th><th>研究實數</th><th>策略判決（XSP／單名／現有腿）</th></tr></thead>
@@ -917,12 +924,14 @@ function renderToday(d){
     var sct2='';
     if(cands.length){
       var SB=td.sat_margin||{};
-      sct2='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>今晚候選（短 tenor · gen 21:35）</b>——三閘過晒先開，每晚 ≤5 倉＋總按金 ≤40% 衛星 NAV（11-10 拍板）'+(SB.cap?'<span style="color:#64748b">· 按金已用 <b>$'+SB.used+'</b>／cap <b>$'+SB.cap+'</b>，剩 <b>$'+SB.headroom+'</b></span>':'')+'<div class="table-scroll"><table><thead><tr><th>倉</th><th>到期</th><th class="num">剩 td</th><th class="num">Credit</th><th class="num">掛價低至</th><th class="num">最低線</th><th class="num">按金／閘</th><th>三閘</th><th>處理</th></tr></thead><tbody>'+
+      sct2='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>今晚候選（短 tenor · gen 21:35）</b>——四閘過晒先開：hiIV(rv21 pctl≥90 pilot)＋最低線(worst)＋寬度≥15＋業績窗；每晚 ≤7 倉（full＋贏腿回收共用，11-12 拍板①）＋w6 pilot 腿 ≤3 張；總按金 ≤40% 衛星 NAV'+(SB.cap?'<span style="color:#64748b">· 按金已用 <b>$'+SB.used+'</b>／cap <b>$'+SB.cap+'</b>，剩 <b>$'+SB.headroom+'</b></span>':'')+'<div class="table-scroll"><table><thead><tr><th>倉</th><th>到期</th><th class="num">剩 td</th><th class="num">Credit</th><th class="num">掛價低至</th><th class="num">最低線</th><th class="num">按金／閘</th><th>三閘</th><th>處理</th></tr></thead><tbody>'+
         cands.map(function(c){
           var passMin=!(c.credit_min>0&&c.credit<c.credit_min);
           var w=(c.short_k||0)-(c.long_k||0),passW=w>=15;
-          var flags='<span class="pill '+(passMin?'g':'r')+'">'+(passMin?'✓ 最低線':'✗ 最低線')+'</span> <span class="pill '+(passW?'g':'r')+'">'+(passW?'✓ 寬度':'✗ 寬度')+'</span>';
-          var disp=openedToday[c.sym]?'<span class="pill b">✅ 已開'+(openedToday[c.sym].shadow?' 🧪':'')+'</span>':(!passMin?'✗ 未過最低線，不開':(!passW?'✗ 寬度不足，不開':'—（排名／上限外）'));
+          var passHi=(c.rv21_pctl==null)?null:(c.rv21_pctl>=90);
+          var hiChip=passHi==null?'':(passHi?' <span class="pill g">✓ hiIV</span>':' <span class="pill r">✗ hiIV '+Math.round(c.rv21_pctl)+'</span>');
+          var flags='<span class="pill '+(passMin?'g':'r')+'">'+(passMin?'✓ 最低線':'✗ 最低線')+'</span> <span class="pill '+(passW?'g':'r')+'">'+(passW?'✓ 寬度':'✗ 寬度')+'</span>'+hiChip+(c.credit_worst!=null?' <span class="pill '+(passMin?'g':'r')+'">'+(passMin?'✓':'✗')+' worst</span>':'');
+          var disp=openedToday[c.sym]?'<span class="pill b">✅ 已開'+(openedToday[c.sym].shadow?' 🧪':'')+(openedToday[c.sym].track==='w6'?' w6':'')+'</span>':(passHi===false?'✗ hiIV 未過，不開':(!passMin?'✗ 未過最低線(worst)，不開':(!passW?'✗ 寬度不足，不開':'—（排名／上限外）')));
           var mg=Number(c.margin||0);
           var mgCell=(mg?'$'+Math.round(mg).toLocaleString():'—')+(SB.cap?(mg&&SB.used+mg<=SB.cap?' <span class="pill g">✓夠位</span>':' <span class="pill r">✗爆</span>'):'');
           var crCell='$'+c.credit+(c.src&&String(c.src).indexOf('BS')===0?' <span style="color:#b45309;font-size:10px">BS估</span>':'');
@@ -933,13 +942,32 @@ function renderToday(d){
     }
     var sot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th>倉</th><th class="num">Spread</th><th>到期</th><th class="num">剩 td</th><th class="num">Credit</th><th class="num">Mark</th><th class="num">credit 剩</th><th class="num">浮動</th></tr></thead><tbody>'+
       op.map(function(e){var rem=(e.credit>0&&e.mark!=null)?Math.round(100*e.mark/e.credit)+'%':'—';
-        return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+(e.dte_td!=null?e.dte_td:'—')+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+(e.mark_src==='BS'?'（BS）':'')+'</td><td class="num">'+rem+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open 衛星倉——候選須連過三閘（最低 credit 線／寬度≥15／dte≤3 硬平倉線）才開倉。</div>';
+        return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+(e.track==='w6'?' <span class="pill b">w6試</span>':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+(e.dte_td!=null?e.dte_td:'—')+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+(e.mark_src==='BS'?'（BS）':'')+'</td><td class="num">'+rem+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open 衛星倉——候選須連過四閘（hiIV pctl≥90 pilot／最低 credit 線〔executable-worst〕／寬度≥15／dte≤3 硬平倉線）才開倉。</div>';
     var _sumR=cl.reduce(function(a,e){return a+(e.realized||0);},0);
     var _wins=cl.filter(function(e){return (e.realized||0)>0;}).length;
     var sct=cl.length?'<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>平倉戰績</b>（'+cl.length+' 倉 · 勝 '+_wins+'／'+cl.length+' · 累計 '+(_sumR>=0?'+':'')+'$'+_sumR.toFixed(0)+'）<div class="table-scroll"><table><thead><tr><th>日期</th><th>倉</th><th class="num">Spread</th><th>到期</th><th class="num">Credit→Mark</th><th class="num">realized</th><th>出場</th></tr></thead><tbody>'+
       cl.map(function(e){return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+e.credit.toFixed(2)+'→'+(e.mark!=null?e.mark.toFixed(2):'—')+'</td><td class="num" style="color:'+(e.realized>=0?'#15803d':'#b91c1c')+'">'+(e.realized>=0?'+':'')+'$'+e.realized.toFixed(0)+'</td><td>'+(e.exit_reason||'—')+'</td></tr>';}).join('')+'</tbody></table></div></div>':'';
-    document.getElementById('tdSat').innerHTML='<div class="desc">2026-11-10 起 · <b>'+(b.config||'')+'</b> · realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · 衛星 NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'；shadow 🧪 '+(s.shadow_n||0)+'）'+sct+sot+sct2+'<div class="note" style="margin-top:6px">口徑：候選源＝pool119 欽定池（原 pool117，⭐11-10 擴池＋11-11 +SPCX/AMKR＝119）＋C96 板塊頭部池全掃（189 名去重，shadow 觀察組剷除；定價三層——第一層已是 Futu OpenD 真鏈 bid/ask）（8–14td 真到期日曆、δ0.30、業績窗避閘、IV＝rv21×1.10）；紀律三閘：①最低 credit 線 max(10%×寬度,$1.50) 未過不開（寧缺勿濫）②寬度≥15 ③dte≤3 硬平倉（wheel320 dte=1 兩單災難教訓，不抱到期尾）；開倉上限：每晚 ≤5 倉＋總按金 ≤40% 衛星 NAV；平倉規則 PT50（mark≤50%×credit 提前平倉收差價）；mark＝Futu 真鏈 mid（取不到才 BS 兜底）；$1.2/張來回費、零滑價。每日 21:50 開倉判定，ET 開市每 5 分鐘 mark。</div></div>';
+    document.getElementById('tdSat').innerHTML='<div class="desc">2026-11-10 起 · <b>'+(b.config||'')+'</b> · realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · 衛星 NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'；shadow 🧪 '+(s.shadow_n||0)+'）'+sct+sot+sct2+'<div class="note" style="margin-top:6px">口徑：候選源＝pool119 欽定池（原 pool117，⭐11-10 擴池＋11-11 +SPCX/AMKR＝119）＋C96 板塊頭部池全掃（189 名去重，shadow 觀察組剷除；定價三層——第一層已是 Futu OpenD 真鏈 bid/ask）（8–14td 真到期日曆、δ0.30、業績窗避閘、IV＝rv21×1.10）；紀律三閘：①最低 credit 線 max(10%×寬度,$1.50) 未過不開（寧缺勿濫）②寬度≥15 ③dte≤3 硬平倉（wheel320 dte=1 兩單災難教訓，不抱到期尾）；開倉上限：每晚 ≤7 倉（full＋PT50 贏腿即日回收共用，11-12 拍板①）＋總按金 ≤40% 衛星 NAV；⭐11-12 拍板②④ pilot：hiIV 部署閘（rv21 pctl≥90，缺值不開）＋w6 試驗腿（spot≥$150 名，長腿＝短−6，獨立每晚 ≤3 張／$6k sub-cap，11-17 對比 std 腿判去留）；credit_min 閘食 executable-worst（短 bid−長 ask，mid 只用嚟 mark）；平倉規則 PT50（mark≤50%×credit 提前平倉收差價）；mark＝Futu 真鏈 mid（取不到才 BS 兜底）；$1.2/張來回費、零滑價。每日 21:50 開倉判定，ET 開市每 5 分鐘 mark。</div></div>';
   }).catch(function(){document.getElementById('tdSat').textContent='paper_satellite_d10.json／today.json 讀取失敗。';});
+  Promise.all([
+    fetch('paper_xsp_1day.json?v='+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
+    fetch('paper_bear_legs.json?v='+Date.now()).then(function(r){return r.json();}).catch(function(){return null;})
+  ]).then(function(rs){
+    var x=rs[0],bl=rs[1],h='';
+    if(x&&x.summary){var s=x.summary;
+      h+='<div style="margin-top:8px"><b>🎲 XSP 1-day 台</b>（δ0.30／w$10×'+ (x.entries&&x.entries[0]?x.entries[0].contracts:'—') +'張 hold-to-settle、skip FOMC 決議日；index 豁免 credit_min=max(10%×寬,$0.50)；11-12 拍板③）realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 已結 '+s.closed_n+' 倉（勝 '+(s.win_n||0)+'）· open '+s.open_n+' · review <b>'+s.review+'</b>（兩週 OOS 先諗加倉）';
+      var xo=(x.entries||[]).filter(function(e){return e.status==='open';});
+      if(xo.length){h+='<div class="table-scroll"><table><thead><tr><th>倉</th><th>到期</th><th class="num">Credit(worst)</th><th class="num">按金</th></tr></thead><tbody>'+xo.map(function(e){return '<tr><td><b>XSP</b> 賣'+e.short_k+'／買'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">$'+e.credit.toFixed(2)+'（'+e.credit_worst.toFixed(2)+'）</td><td class="num">$'+Math.round(e.margin).toLocaleString()+'</td></tr>';}).join('')+'</tbody></table></div>';}else{h+='<div class="note">今晚收市 ET 16:10 開首注（真鏈必到、BS 合成唔准開）。</div>';}
+      h+='</div>';
+    }else{h+='<div class="note">XSP 台簿讀唔到（paper_xsp_1day.json）。</div>';}
+    if(bl&&bl.summary){var s2=bl.summary,st=bl.state||{};
+      h+='<div style="margin-top:10px;border-top:1px solid #e2e8f0;padding-top:8px"><b>🐻 跌市腿 shadow</b>（T1 鐘：廣度 −20pct/5d 或 regime≠normal＋hi10≥60；三層梯 L0 anchor put spread／L1 backspread 1×2／L4 inverse ETF 15td／L3 T+20 三閘；全 shadow 1 真殺窗後檢討升 live；11-12 拍板④）狀態 <b>'+(s2.kill_confirmed?'🔴 真殺確認（'+s2.kill_kind+'，'+s2.kill_date+'）':(s2.armed?'🟡 T1 armed（'+(st.armed_by||'')+'，'+s2.arm_date+'）':'⚪ 未 armed'))+'</b> · open '+s2.open_n+' · realized <b>'+(s2.realized>=0?'+':'')+'$'+(s2.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s2.unrealized>=0?'+':'')+'$'+(s2.unrealized||0).toFixed(0)+'</b>';
+      var blo=(bl.entries||[]).filter(function(e){return e.status==='open';});
+      if(blo.length){h+='<div class="note">'+blo.map(function(e){var d=e.tag+' '+e.sym+' ';if(e.legs&&e.legs.k1){d+=(e.tag==='L1'?('賣'+e.legs.k1+'／買2×'+e.legs.k2):('買'+e.legs.k1+'／賣'+e.legs.k2))+'→'+e.expiry;}else{d+=(e.shares||'—')+'股@$'+(e.entry_px||'—')+'→'+e.expiry;}d+='（'+(e.unrealized!=null?((e.unrealized>=0?'+':'')+'$'+Math.round(e.unrealized)):'—')+'） ‖';return d;}).join(' ')+'</div>';}
+      h+='</div>';
+    }else{h+='<div class="note">🐻 跌市腿簿讀唔到（paper_bear_legs.json）。</div>';}
+    document.getElementById('tdNewDesks').innerHTML=h;
+  });
   fetch('c96_universe.json?v='+Date.now()).then(function(r){return r.json();}).then(function(u){
     var h='',secs=u.sectors||{};
     Object.keys(secs).forEach(function(k){h+='<b>'+k+'（'+secs[k].length+'）</b> <span style="line-height:2">'+secs[k].join(' ')+'</span><br>';});
