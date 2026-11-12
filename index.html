@@ -125,21 +125,21 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 
   <div class="grid" style="margin-top:12px">
     <div class="card">
-      <h3>📒 Paper 台（winner PT60＋δ0.28）<span class="pill b" style="margin-left:6px">背後自動跑 · 每日 ET 開市前</span></h3>
+      <h3 title="Paper 台＝winner 引擎影子簿：PT60＝credit 賺到 60% 平倉（比衛星 PT50 留多啲肉）；δ0.28＝短腿約 28% 穿過機率位置（比 δ0.30 縮深少少）；2 週期滿 11-17 檢討切真倉">📒 Paper 台（winner PT60＋δ0.28）<span class="pill b" style="margin-left:6px">背後自動跑 · 每日 ET 開市前</span></h3>
       <div class="desc" id="tdPaper">讀取中…</div>
     </div>
   </div>
 
   <div class="grid" style="margin-top:12px">
     <div class="card">
-      <h3>🛰️ 衛星台（10td＋PT50＋δ0.30）<span class="pill n" style="margin-left:6px">短 tenor 三路研究拍板 11-10</span></h3>
+      <h3 title="衛星台＝10 交易日短年期賣出價差簿。δ0.30＝短腿 strike 揀喺約 30% 機率被穿嘅位置；PT50＝credit 跌剩一半自動平倉落袋；四閘＋每晚 ≤7 倉＋w6 試驗腿（hover 候選表睇詳情)">🛰️ 衛星台（10td＋PT50＋δ0.30）<span class="pill n" style="margin-left:6px">短 tenor 三路研究拍板 11-10</span></h3>
       <div class="desc" id="tdSat">讀取中…</div>
     </div>
   </div>
 
   <div class="grid" style="margin-top:12px">
     <div class="card">
-      <h3>🎲 XSP 1-day 台＋🐻 跌市腿 shadow<span class="pill n" style="margin-left:6px">回血第三輪拍板 11-12 · 全 paper pilot</span></h3>
+      <h3 title="🎲＝標普迷你指數（XSP）1 日信用價差台：美股收市入、聽日收市現金結算、零接貨；🐻＝跌市手冊：T1 觸發鐘響先入場嘅四條看跌腿，全部模擬倉（hover 綠色字睇逐條解釋)">🎲 XSP 1-day 台＋🐻 跌市腿 shadow<span class="pill n" style="margin-left:6px">回血第三輪拍板 11-12 · 全 paper pilot</span></h3>
       <div class="desc" id="tdNewDesks">讀取中…</div>
     </div>
   </div>
@@ -796,7 +796,7 @@ function renderToday(d){
   }).join(''):'<tr><td colspan="5">無名過 mom63&gt;0</td></tr>';
   var fu=d.funnel||{};
   if(fu.pool){
-    document.getElementById('tdRouteTxt').innerHTML+=' <br><b>過閘漏斗</b>：池 '+fu.pool+' → mom63&gt;0 '+fu.mom_pos+' 隻 → top-6 → IV 過 '+fu.iv_ok+' → 業績過 '+fu.earn_ok+' → 裂口過 '+fu.gap_ok+' → <b>候選 '+fu.final+'</b>。per-name 五閘（動量/IV/業績/裂口/雷達）＋簿級三閘（廣度梯/義務 5%+12%/按金 65%）全過先落得單；'+(((v.level||'').indexOf('🔴')>=0)?'簿級現時紅——有候選都唔開。':'簿級狀態見頂部判決。');
+    document.getElementById('tdRouteTxt').innerHTML+=' <br><b>過閘漏斗</b>：池 '+fu.pool+' → mom63&gt;0 '+fu.mom_pos+' 隻 → top-6 → IV 過 '+fu.iv_ok+' → 業績過 '+fu.earn_ok+' → 裂口過 '+fu.gap_ok+' → <b>候選 '+fu.final+'</b>。<span title="CORE 引擎閘（同衛星四閘係兩套嘢）：per-name 五閘＝動量>0／IV 分位 ≥25（死亡區禁）／業績窗外／無裂口／雷達；簿級三閘＝①廣度梯封刀 ②單名義務 5%＋總義務 12% ③總按金 65% 上限">per-name 五閘（動量/IV/業績/裂口/雷達）＋簿級三閘（廣度梯/義務 5%+12%/按金 65%）全過先落得單</span>；'+(((v.level||'').indexOf('🔴')>=0)?'簿級現時紅——有候選都唔開。':'簿級狀態見頂部判決。');
   }
   var ow=d.ownable6||[];
   if(ow.length){
@@ -924,14 +924,14 @@ function renderToday(d){
     var sct2='';
     if(cands.length){
       var SB=td.sat_margin||{};
-      sct2='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>今晚候選（短 tenor · gen 21:35）</b>——四閘過晒先開：hiIV(rv21 pctl≥90 pilot)＋最低線(worst)＋寬度≥15＋業績窗；每晚 ≤7 倉（full＋贏腿回收共用，11-12 拍板①）＋w6 pilot 腿 ≤3 張；總按金 ≤40% 衛星 NAV'+(SB.cap?'<span style="color:#64748b">· 按金已用 <b>$'+SB.used+'</b>／cap <b>$'+SB.cap+'</b>，剩 <b>$'+SB.headroom+'</b></span>':'')+'<div class="table-scroll"><table><thead><tr><th>倉</th><th>到期</th><th class="num">剩 td</th><th class="num">Credit</th><th class="num">掛價低至</th><th class="num">最低線</th><th class="num">按金／閘</th><th>三閘</th><th>處理</th></tr></thead><tbody>'+
+      sct2='<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>今晚候選（短 tenor · gen 21:35）</b>——<span title="四閘詳細：hiIV＝呢隻股 21 日實現波動喺自身兩年歷史百分位 ≥90（高波動期先做——高 IV 象限每 $1 按金月收係低 IV 嘅 3.5 倍；缺數據唔開；11-17 檢討去留）。最低線(worst)＝真鏈最壞成交價過 max(10%×寬度,$1.50)。寬度≥15＝賣買腿 strike 相距至少 $15。業績窗＝業績前 10＋後 5 個交易日唔開（跳空係短年期最大死位）。每晚 ≤7 倉＝每日新倉上限；贏腿賺到一半（PT50）折咗，同一晚可以用釋放出嚟嘅按金補開（回收）。w6 pilot 腿＝spot≥$150 嘅名另開一條闊度 $6 嘅試驗價差（每 $1 按金月收 $0.1196＝w15 嘅 1.8 倍、最大蝕反而 −40%），獨立每晚 ≤3 張＋$6k 按金上限，11-17 同標準腿 A/B 對比判去留">四閘過晒先開：hiIV(rv21 pctl≥90 pilot)＋最低線(worst)＋寬度≥15＋業績窗；每晚 ≤7 倉（full＋贏腿回收共用，11-12 拍板①）＋w6 pilot 腿 ≤3 張</span>；總按金 ≤40% 衛星 NAV'+(SB.cap?'<span style="color:#64748b">· 按金已用 <b>$'+SB.used+'</b>／cap <b>$'+SB.cap+'</b>，剩 <b>$'+SB.headroom+'</b></span>':'')+'<div class="table-scroll"><table><thead><tr><th title="股票名＋賣出腿／買入腿 strike">倉</th><th title="期權到期日">到期</th><th class="num" title="距到期交易日數（td=trading day）">剩 td</th><th class="num" title="每張收權費 USD（mid 唛價）">Credit</th><th class="num" title="executable-worst＝短腿 bid−長腿 ask：真落盤最壞情況收到嘅錢。OKTA 曾出現 mid 1.64 vs worst 0.54 假過閘，所以改食呢個數">掛價低至</th><th class="num" title="credit_min＝max(10%×寬度, $1.50)——credit/worst 必須 ≥ 呢條線先開">最低線</th><th class="num" title="凍結按金＝寬度−credit（＝最大風險），＋40% NAV 簿上限夠唔夠位">按金／閘</th><th title="開倉四閘：hiIV／最低線(worst)／寬度≥15／業績窗——四條全綠先開">四閘</th><th title="今晚處理：已開／hiIV 未過／最低線未過／寬度不足／排隊（上限外）">處理</th></tr></thead><tbody>'+
         cands.map(function(c){
           var passMin=!(c.credit_min>0&&c.credit<c.credit_min);
           var w=(c.short_k||0)-(c.long_k||0),passW=w>=15;
           var passHi=(c.rv21_pctl==null)?null:(c.rv21_pctl>=90);
-          var hiChip=passHi==null?'':(passHi?' <span class="pill g">✓ hiIV</span>':' <span class="pill r">✗ hiIV '+Math.round(c.rv21_pctl)+'</span>');
-          var flags='<span class="pill '+(passMin?'g':'r')+'">'+(passMin?'✓ 最低線':'✗ 最低線')+'</span> <span class="pill '+(passW?'g':'r')+'">'+(passW?'✓ 寬度':'✗ 寬度')+'</span>'+hiChip+(c.credit_worst!=null?' <span class="pill '+(passMin?'g':'r')+'">'+(passMin?'✓':'✗')+' worst</span>':'');
-          var disp=openedToday[c.sym]?'<span class="pill b">✅ 已開'+(openedToday[c.sym].shadow?' 🧪':'')+(openedToday[c.sym].track==='w6'?' w6':'')+'</span>':(passHi===false?'✗ hiIV 未過，不開':(!passMin?'✗ 未過最低線(worst)，不開':(!passW?'✗ 寬度不足，不開':'—（排名／上限外）')));
+          var hiChip=passHi==null?'':(passHi?' <span class="pill g" title="hiIV 閘過：正喺自身高波動期（兩年內前 10%），收嘅 premium 最肥">✓ hiIV</span>':' <span class="pill r" title="hiIV 閘未過：rv21 分位 <90＝低波動期，premium 薄唔做；11-17 檢討呢條閘去留">✗ hiIV '+Math.round(c.rv21_pctl)+'</span>');
+          var flags='<span class="pill '+(passMin?'g':'r')+'" title="最低線閘：credit ≥ max(10%×寬度,$1.50)，用 executable-worst 口徑">'+(passMin?'✓ 最低線':'✗ 最低線')+'</span> <span class="pill '+(passW?'g':'r')+'" title="寬度閘：賣買腿相距 ≥$15">'+(passW?'✓ 寬度':'✗ 寬度')+'</span>'+hiChip+(c.credit_worst!=null?' <span class="pill '+(passMin?'g':'r')+'" title="worst 閘：真鏈 executable-worst（短 bid−長 ask）≥ 最低線">'+(passMin?'✓':'✗')+' worst</span>':'');
+          var disp=openedToday[c.sym]?'<span class="pill b" title="今晚已開呢張。🧪＝shadow 模擬倉（簿級封刀時照開嚟收執行數據）；w6＝w6 試驗腿">✅ 已開'+(openedToday[c.sym].shadow?' 🧪':'')+(openedToday[c.sym].track==='w6'?' w6':'')+'</span>':(passHi===false?'✗ hiIV 未過，不開':(!passMin?'✗ 未過最低線(worst)，不開':(!passW?'✗ 寬度不足，不開':'—（排名／上限外）')));
           var mg=Number(c.margin||0);
           var mgCell=(mg?'$'+Math.round(mg).toLocaleString():'—')+(SB.cap?(mg&&SB.used+mg<=SB.cap?' <span class="pill g">✓夠位</span>':' <span class="pill r">✗爆</span>'):'');
           var crCell='$'+c.credit+(c.src&&String(c.src).indexOf('BS')===0?' <span style="color:#b45309;font-size:10px">BS估</span>':'');
@@ -940,14 +940,14 @@ function renderToday(d){
     }else{
       sct2='<div class="note">今晚候選未出（每日 21:35 gen 出候選 → 21:50 開倉判定；post-close 時段 0 候選屬正常）。</div>';
     }
-    var sot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th>倉</th><th class="num">Spread</th><th>到期</th><th class="num">剩 td</th><th class="num">Credit</th><th class="num">Mark</th><th class="num">credit 剩</th><th class="num">浮動</th></tr></thead><tbody>'+
+    var sot=op.length?'<div class="table-scroll"><table><thead><tr><th>日期</th><th title="股票＋shadow/w6 旗">倉</th><th class="num" title="賣出腿／買入腿 strike">Spread</th><th>到期</th><th class="num" title="距到期交易日數">剩 td</th><th class="num" title="開倉時每張收權費（mid）">Credit</th><th class="num" title="而家市價：Futu 真鏈 mid，攞唔到先 BS 模型價">Mark</th><th class="num" title="mark÷credit——跌到 50% 觸發 PT50 自動平倉落袋">credit 剩</th><th class="num" title="未實現損益＝(credit−mark)×100×張數−$1.2/張來回費">浮動</th></tr></thead><tbody>'+
       op.map(function(e){var rem=(e.credit>0&&e.mark!=null)?Math.round(100*e.mark/e.credit)+'%':'—';
         return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+(e.track==='w6'?' <span class="pill b">w6試</span>':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+(e.dte_td!=null?e.dte_td:'—')+'</td><td class="num">'+e.credit.toFixed(2)+'</td><td class="num">'+(e.mark!=null?e.mark.toFixed(2):'—')+(e.mark_src==='BS'?'（BS）':'')+'</td><td class="num">'+rem+'</td><td class="num">'+(e.unrealized!=null?(e.unrealized>=0?'+':'')+'$'+e.unrealized.toFixed(0):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="note">暫無 open 衛星倉——候選須連過四閘（hiIV pctl≥90 pilot／最低 credit 線〔executable-worst〕／寬度≥15／dte≤3 硬平倉線）才開倉。</div>';
     var _sumR=cl.reduce(function(a,e){return a+(e.realized||0);},0);
     var _wins=cl.filter(function(e){return (e.realized||0)>0;}).length;
-    var sct=cl.length?'<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>平倉戰績</b>（'+cl.length+' 倉 · 勝 '+_wins+'／'+cl.length+' · 累計 '+(_sumR>=0?'+':'')+'$'+_sumR.toFixed(0)+'）<div class="table-scroll"><table><thead><tr><th>日期</th><th>倉</th><th class="num">Spread</th><th>到期</th><th class="num">Credit→Mark</th><th class="num">realized</th><th>出場</th></tr></thead><tbody>'+
+    var sct=cl.length?'<div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px"><b>平倉戰績</b>（'+cl.length+' 倉 · 勝 '+_wins+'／'+cl.length+' · 累計 '+(_sumR>=0?'+':'')+'$'+_sumR.toFixed(0)+'）<div class="table-scroll"><table><thead><tr><th>日期</th><th title="股票＋腿">倉</th><th class="num" title="賣腿／買腿 strike">Spread</th><th>到期</th><th class="num" title="開倉收權費→平倉時市價">Credit→Mark</th><th class="num" title="已落袋損益（含 $1.2/張來回費）">realized</th><th title="出場原因：PT50 賺半落袋／dte≤3 硬平倉／到期／廣度回50全平">出場</th></tr></thead><tbody>'+
       cl.map(function(e){return '<tr><td>'+e.date+'</td><td><b>'+e.sym+'</b>'+(e.shadow?' 🧪':'')+'</td><td class="num">'+e.short_k+'/'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">'+e.credit.toFixed(2)+'→'+(e.mark!=null?e.mark.toFixed(2):'—')+'</td><td class="num" style="color:'+(e.realized>=0?'#15803d':'#b91c1c')+'">'+(e.realized>=0?'+':'')+'$'+e.realized.toFixed(0)+'</td><td>'+(e.exit_reason||'—')+'</td></tr>';}).join('')+'</tbody></table></div></div>':'';
-    document.getElementById('tdSat').innerHTML='<div class="desc">2026-11-10 起 · <b>'+(b.config||'')+'</b> · realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · 衛星 NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'；shadow 🧪 '+(s.shadow_n||0)+'）'+sct+sot+sct2+'<div class="note" style="margin-top:6px">口徑：候選源＝pool119 欽定池（原 pool117，⭐11-10 擴池＋11-11 +SPCX/AMKR＝119）＋C96 板塊頭部池全掃（189 名去重，shadow 觀察組剷除；定價三層——第一層已是 Futu OpenD 真鏈 bid/ask）（8–14td 真到期日曆、δ0.30、業績窗避閘、IV＝rv21×1.10）；紀律三閘：①最低 credit 線 max(10%×寬度,$1.50) 未過不開（寧缺勿濫）②寬度≥15 ③dte≤3 硬平倉（wheel320 dte=1 兩單災難教訓，不抱到期尾）；開倉上限：每晚 ≤7 倉（full＋PT50 贏腿即日回收共用，11-12 拍板①）＋總按金 ≤40% 衛星 NAV；⭐11-12 拍板②④ pilot：hiIV 部署閘（rv21 pctl≥90，缺值不開）＋w6 試驗腿（spot≥$150 名，長腿＝短−6，獨立每晚 ≤3 張／$6k sub-cap，11-17 對比 std 腿判去留）；credit_min 閘食 executable-worst（短 bid−長 ask，mid 只用嚟 mark）；平倉規則 PT50（mark≤50%×credit 提前平倉收差價）；mark＝Futu 真鏈 mid（取不到才 BS 兜底）；$1.2/張來回費、零滑價。每日 21:50 開倉判定，ET 開市每 5 分鐘 mark。</div></div>';
+    document.getElementById('tdSat').innerHTML='<div class="desc">2026-11-10 起 · <b>'+(b.config||'')+'</b> · realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · 衛星 NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'；shadow 🧪 '+(s.shadow_n||0)+'）'+sct+sot+sct2+'<div class="note" style="margin-top:6px">口徑：候選源＝pool119 欽定池（原 pool117，⭐11-10 擴池＋11-11 +SPCX/AMKR＝119）＋C96 板塊頭部池全掃（189 名去重，shadow 觀察組剷除；定價三層——第一層已是 Futu OpenD 真鏈 bid/ask）（8–14td 真到期日曆、δ0.30、業績窗避閘、IV＝rv21×1.10）；開倉四閘：①hiIV 部署閘（rv21 pctl≥90，缺值不開）②最低 credit 線 max(10%×寬度,$1.50) 未過不開（寧缺勿濫，食 executable-worst）③寬度≥15 ④業績窗（前 10＋後 5 個交易日唔開）；平倉紀律：PT50 賺半落袋＋dte≤3 硬平倉（wheel320 dte=1 兩單災難教訓，不抱到期尾）；開倉上限：每晚 ≤7 倉（full＋PT50 贏腿即日回收共用，11-12 拍板①）＋總按金 ≤40% 衛星 NAV；⭐11-12 拍板②④ pilot：hiIV 部署閘（rv21 pctl≥90，缺值不開）＋w6 試驗腿（spot≥$150 名，長腿＝短−6，獨立每晚 ≤3 張／$6k sub-cap，11-17 對比 std 腿判去留）；credit_min 閘食 executable-worst（短 bid−長 ask，mid 只用嚟 mark）；平倉規則 PT50（mark≤50%×credit 提前平倉收差價）；mark＝Futu 真鏈 mid（取不到才 BS 兜底）；$1.2/張來回費、零滑價。每日 21:50 開倉判定，ET 開市每 5 分鐘 mark。</div></div>';
   }).catch(function(){document.getElementById('tdSat').textContent='paper_satellite_d10.json／today.json 讀取失敗。';});
   Promise.all([
     fetch('paper_xsp_1day.json?v='+Date.now()).then(function(r){return r.json();}).catch(function(){return null;}),
@@ -955,13 +955,13 @@ function renderToday(d){
   ]).then(function(rs){
     var x=rs[0],bl=rs[1],h='';
     if(x&&x.summary){var s=x.summary;
-      h+='<div style="margin-top:8px"><b>🎲 XSP 1-day 台</b>（δ0.30／w$10×'+ (x.entries&&x.entries[0]?x.entries[0].contracts:'—') +'張 hold-to-settle、skip FOMC 決議日；index 豁免 credit_min=max(10%×寬,$0.50)；11-12 拍板③）realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 已結 '+s.closed_n+' 倉（勝 '+(s.win_n||0)+'）· open '+s.open_n+' · review <b>'+s.review+'</b>（兩週 OOS 先諗加倉）';
+      h+='<div style="margin-top:8px"><b>🎲 XSP 1-day 台</b><span title="δ0.30＝短腿 strike 約 30% 穿過機率位置；w$10＝賣買腿相距 $10＝100 SPX 點；hold-to-settle＝收市入、唔止賺唔止蝕，聽日收市現金結算；skip FOMC＝結算日撞聯儲議決日唔入（實證 FOMC 日 PF 0.89、剔走後日均 +5%）；豁免線＝指數 1-day 信用薄，個股 $1.50 線豁免做 max(10%×寬,$0.50)，一樣要 executable-worst 過">（δ0.30／w$10×'+ (x.entries&&x.entries[0]?x.entries[0].contracts:'—') +'張 hold-to-settle、skip FOMC 決議日；index 豁免 credit_min=max(10%×寬,$0.50)；11-12 拍板③）</span>realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 已結 '+s.closed_n+' 倉（勝 '+(s.win_n||0)+'）· open '+s.open_n+' · review <b>'+s.review+'</b><span title="11-26 檢討：兩週 OOS 近窗 PF＋尾窗實測，先決定 3 張→5 張">（兩週 OOS 先諗加倉）</span>';
       var xo=(x.entries||[]).filter(function(e){return e.status==='open';});
-      if(xo.length){h+='<div class="table-scroll"><table><thead><tr><th>倉</th><th>到期</th><th class="num">Credit(worst)</th><th class="num">按金</th></tr></thead><tbody>'+xo.map(function(e){return '<tr><td><b>XSP</b> 賣'+e.short_k+'／買'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">$'+e.credit.toFixed(2)+'（'+e.credit_worst.toFixed(2)+'）</td><td class="num">$'+Math.round(e.margin).toLocaleString()+'</td></tr>';}).join('')+'</tbody></table></div>';}else{h+='<div class="note">今晚收市 ET 16:10 開首注（真鏈必到、BS 合成唔准開）。</div>';}
+      if(xo.length){h+='<div class="table-scroll"><table><thead><tr><th title="賣腿／買腿 strike">倉</th><th title="到期日＝聽日美股收市，現金結算零接貨">到期</th><th class="num" title="mid 收權費（括號內＝executable-worst 掛價下限）">Credit(worst)</th><th class="num" title="凍結按金＝寬度−credit＝最大風險封頂">按金</th></tr></thead><tbody>'+xo.map(function(e){return '<tr><td><b>XSP</b> 賣'+e.short_k+'／買'+e.long_k+'</td><td>'+e.expiry+'</td><td class="num">$'+e.credit.toFixed(2)+'（'+e.credit_worst.toFixed(2)+'）</td><td class="num">$'+Math.round(e.margin).toLocaleString()+'</td></tr>';}).join('')+'</tbody></table></div>';}else{h+='<div class="note"><span title="每個美股交易日收市後 10 分鐘（冬天 HKT 聽朝 05:10／夏天 04:10）開倉；真鏈攞唔到＝唔開，唔准 BS 模型價落注；聽日收市自動現金結算">今晚收市 ET 16:10 開首注（真鏈必到、BS 合成唔准開）。</span></div>';}
       h+='</div>';
     }else{h+='<div class="note">XSP 台簿讀唔到（paper_xsp_1day.json）。</div>';}
     if(bl&&bl.summary){var s2=bl.summary,st=bl.state||{};
-      h+='<div style="margin-top:10px;border-top:1px solid #e2e8f0;padding-top:8px"><b>🐻 跌市腿 shadow</b>（T1 鐘：廣度 −20pct/5d 或 regime≠normal＋hi10≥60；三層梯 L0 anchor put spread／L1 backspread 1×2／L4 inverse ETF 15td／L3 T+20 三閘；全 shadow 1 真殺窗後檢討升 live；11-12 拍板④）狀態 <b>'+(s2.kill_confirmed?'🔴 真殺確認（'+s2.kill_kind+'，'+s2.kill_date+'）':(s2.armed?'🟡 T1 armed（'+(st.armed_by||'')+'，'+s2.arm_date+'）':'⚪ 未 armed'))+'</b> · open '+s2.open_n+' · realized <b>'+(s2.realized>=0?'+':'')+'$'+(s2.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s2.unrealized>=0?'+':'')+'$'+(s2.unrealized||0).toFixed(0)+'</b>';
+      h+='<div style="margin-top:10px;border-top:1px solid #e2e8f0;padding-top:8px"><b>🐻 跌市腿 shadow</b><span title="T1 觸發鐘＝①廣度 5 日急跌 ≥20 個百分點（速度鐘）②或廣度狀態轉差＋過去 10 日廣度曾經 ≥60（高位急殺前兆）——43 發歷史 5 次真殺。四條腿：L0＝買 −1%/賣 −10% 14日看跌價差（真殺確認後 T+1~3 入、過 5 日唔追、賺到 80% 平倉）；L1＝保險版 1×2 賣 −1%/買 2× −5%（T1 響就入，唔靠精確時機：殺得深有槓桿、殺唔落都有細肉）；L4＝反向 ETF 事件制（AI/半殺用 SOXS、廣譜殺用 SDS，$5k 持 15 交易日硬出場——常駐會流血所以只事件制）；L3＝殺後第 20 個交易日先入（等刀落地），三閘＝T+20＋VIX 252日分位 ≥70＋credit/最大風險 ≥20%，齊晒先開 30 日價差×2，過唔到＝唔開。全部模擬倉，經 1 個真殺窗檢討先升 live">（T1 鐘：廣度 −20pct/5d 或 regime≠normal＋hi10≥60；四條腿 L0 anchor put spread／L1 backspread 1×2／L4 inverse ETF 15td／L3 T+20 三閘；全 shadow 1 真殺窗後檢討升 live；11-12 拍板④）</span>狀態 <b title="狀態機：⚪ 未 armed＝無鐘靜止；🟡 T1 armed＝觸發鐘已響（L1 保險腿即入，等跌破確認）；🔴 真殺確認＝SPX 收低過 arm 日收市（L0/L4 入場窗開，廣度回 50 全平）">'+(s2.kill_confirmed?'🔴 真殺確認（'+s2.kill_kind+'，'+s2.kill_date+'）':(s2.armed?'🟡 T1 armed（'+(st.armed_by||'')+'，'+s2.arm_date+'）':'⚪ 未 armed'))+'</b> · open '+s2.open_n+' · realized <b>'+(s2.realized>=0?'+':'')+'$'+(s2.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s2.unrealized>=0?'+':'')+'$'+(s2.unrealized||0).toFixed(0)+'</b>';
       var blo=(bl.entries||[]).filter(function(e){return e.status==='open';});
       if(blo.length){h+='<div class="note">'+blo.map(function(e){var d=e.tag+' '+e.sym+' ';if(e.legs&&e.legs.k1){d+=(e.tag==='L1'?('賣'+e.legs.k1+'／買2×'+e.legs.k2):('買'+e.legs.k1+'／賣'+e.legs.k2))+'→'+e.expiry;}else{d+=(e.shares||'—')+'股@$'+(e.entry_px||'—')+'→'+e.expiry;}d+='（'+(e.unrealized!=null?((e.unrealized>=0?'+':'')+'$'+Math.round(e.unrealized)):'—')+'） ‖';return d;}).join(' ')+'</div>';}
       h+='</div>';
