@@ -588,7 +588,7 @@ function payoffChart(c){
   s+='<rect class="payoff-hit" data-x0="'+x0+'" data-x1="'+x1+'" data-longk="'+c.long_k+'" data-shortk="'+c.short_k+'" data-credit="'+cr+'" data-n="'+n+'" data-mw="'+mw+'" data-ml="'+ml+'" x="'+L+'" y="'+T+'" width="'+(R-L)+'" height="'+(B-T)+'" fill="transparent" style="cursor:crosshair"/>';
   s+='</svg>';
   return '<div class="scen-wrap" style="position:relative;margin-top:12px;padding:10px 12px 6px;border:1px solid #e2e8f0;border-radius:8px;background:#fff">'+
-    '<div style="font-size:12.5px;margin-bottom:4px"><b>📊 '+c.sym+' 賣'+c.short_k+'P／買'+c.long_k+'P</b> · '+n+'張 · '+expZh(c.expiry)+'到期'+(sp?' · 現價 $'+FMT2(sp):'')+'——到期日收市價落喺邊，就贏／輸幾多：</div>'+s+
+    '<div style="font-size:12.5px;margin-bottom:4px"><b>📊 '+c.sym+' 賣'+c.short_k+'P／買'+c.long_k+'P</b> · '+n+'張 · '+expZh(c.expiry)+'到期'+(sp?' · 現價 $'+FMT2(sp):'')+(c.cur!=null?' ｜ <b style="color:'+((Number(c.credit)-Number(c.cur))>=0?'#15803d':'#b91c1c')+'">而家 mark $'+FMT2(c.cur)+'（浮動 '+((Number(c.credit)-Number(c.cur))>=0?'+':'−')+'$'+FMT2(Math.abs((Number(c.credit)-Number(c.cur))*100*n))+'）</b>':'')+'——到期日收市價落喺邊，就贏／輸幾多：</div>'+s+
     '<div class="note" style="margin-top:6px">盈虧平衡 <b>$'+be.toFixed(2)+'</b>'+(bePct?'（'+c.sym+' 現價跌 '+bePct+'% 先開始輸）':'')+' ｜ 贏最多 <b>+$'+FMT2(mw)+'</b> ｜ 頂蝕 <b>−$'+FMT2(ml)+'</b>（封頂，唔會蝕超過） ｜ credit 跌剩約 $'+half+' 照 PT50 提前平倉</div>'+
     '<div class="payoff-tip" style="display:none;position:absolute;z-index:5;pointer-events:none;background:#0f172a;color:#fff;font-size:11.5px;padding:5px 8px;border-radius:6px;white-space:nowrap"></div></div>';
 }
@@ -830,8 +830,14 @@ function renderToday(d){
     '④ <b>限價</b>：掛板面 Credit mid 同「掛價低至」之間（例 mid $6.00／低至 $5.35 → 掛 $5.4–6.0 試）；三條線記住——<b>靚價＝mid</b>（上）、<b>掛價低至＝可執行底</b>、<b>最低做得過＝credit_min</b>（低過呢條唔好開，寧願唔做）；<b>唔好用市價單</b>——盤口闊嘅日子市價單即刻食走你成個 spread 差價<br>'+
     '⑤ 確認頁核三個數：收 credit ≈板面 Premium÷張數÷100、最大虧損 ≈板面按金、盈虧平衡點 ＝ 賣出 strike − credit<br>'+
     '⑥ 成交後管理照規則：<b>credit 跌剩三成（PT50/60）就走</b>；到期日股價收市低過賣出 strike 先會被接貨</div>'+
-    '<div style="margin-top:12px"><b>📊 情景推演——每個可落候選開倉後會點</b> <span class="pill n">到期盈虧圖：綠區＝贏、紅區＝輸；滑鼠移去圖上任何價位睇即時賺蝕</span>'+(candsT.length<cands.length?'<div class="note" style="margin-top:4px">⚠️ 作廢／被閘裁走嘅候選（表格劃線嗰啲）唔出圖、唔入試算——跟判決行，唔好諗開佢。</div>':'')+'</div>'+
-    scenCards(candsT);
+    '<div style="margin-top:12px"><b>📊 情景推演——現有真倉到期會點</b> <span class="pill n">到期盈虧圖：綠區＝贏、紅區＝輸；滑鼠移去圖上任何價位睇即時賺蝕</span></div>'+
+    (function(){var _rp=(d.positions||[]).filter(function(p){return p.strike!=null&&p.long_k!=null;});
+      if(!_rp.length)return '<div class="note" style="margin-top:4px">現時無真倉在場——開倉後呢度出你手上倉嘅到期盈虧圖（11-14 用戶令：情景圖跟真倉，唔再畫候選）。</div>';
+      return scenCards(_rp.map(function(p){var _w=(p.strike||0)-(p.long_k||0);
+        return {sym:p.ticker,short_k:p.strike,long_k:p.long_k,credit:p.entry_prem,contracts:p.contracts,spot:p.spot,expiry:p.expiry,
+                premium_in:(p.entry_prem||0)*100*(p.contracts||1),
+                margin:Math.max(1,(_w-(p.entry_prem||0))*100*(p.contracts||1)),
+                cur:p.cur_prem};}));})();
   }
   var c96s=d.c96_screen||[];
   if(c96s.length){
