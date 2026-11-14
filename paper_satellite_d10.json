@@ -14,14 +14,14 @@
    "iv": 0.354,
    "status": "open",
    "shadow": true,
-   "mark": 10.95,
+   "mark": 10.05,
    "mark_src": "Futu",
    "dte_td": 5,
    "pool": "C96",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 699.9849853515625,
-   "unrealized": -273.7,
-   "close_worst": 13.5
+   "spot_last": 700.219970703125,
+   "unrealized": -183.7,
+   "close_worst": 14.3
   },
   {
    "date": "2026-11-10",
@@ -133,14 +133,14 @@
    "iv": 0.46799999999999997,
    "status": "open",
    "shadow": true,
-   "mark": 6.855,
+   "mark": 6.56,
    "mark_src": "Futu",
    "dte_td": 10,
    "pool": "C96+117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "spot_last": 641.6900024414062,
-   "unrealized": 37.8,
-   "close_worst": 7.16
+   "unrealized": 67.3,
+   "close_worst": 6.92
   },
   {
    "date": "2026-11-11",
@@ -194,6 +194,28 @@
    "exit_date": "2026-11-13",
    "exit_reason": "PT50（mark 3.205 ≤ 50%×credit 6.92）",
    "realized": 370.8
+  },
+  {
+   "date": "2026-11-14",
+   "sym": "AMD",
+   "spot": 533.45,
+   "short_k": 480.0,
+   "long_k": 430.0,
+   "expiry": "2026-11-27",
+   "credit": 6.69,
+   "credit_worst": 5.55,
+   "contracts": 1,
+   "margin": 4331.0,
+   "iv": 1.34,
+   "status": "open",
+   "shadow": true,
+   "mark": 6.69,
+   "mark_src": "Futu",
+   "track": "std",
+   "dte_td": 10,
+   "pool": "C96+117",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "rv21_pctl": 100.0
   }
  ],
  "closed": [
@@ -433,33 +455,40 @@
    "acts": [
     "跳過合計 51（hiIV閘 36〔例：LLY hiIV 72<90、BLK hiIV 87<90、UI(無真鏈)〕／未過最低線(worst) 4／width<15 0／無真鏈 11）——寧願不做"
    ]
+  },
+  {
+   "date": "2026-11-14",
+   "acts": [
+    "🧪 簿級 test-only 開倉（C96+117·真鏈·worst 5.55） AMD 480.0/430.0 2026-11-27 mid 6.69×1張（dte 10）",
+    "跳過合計 48（hiIV閘 36〔例：UI(無真鏈)、UI w6(無真 width 格)、LLY hiIV 68<90〕／未過最低線(worst) 8／width<15 2／無真鏈 2）——寧願不做"
+   ]
   }
  ],
  "config": "satellite 10td+PT50+δ0.30（2026-11-10 三路研究拍板）",
  "summary": {
-  "as_of": "2026-11-14 05:00",
-  "open_n": 2,
+  "as_of": "2026-11-14 21:50",
+  "open_n": 3,
   "realized": 1344.8,
-  "unrealized": -235.9,
-  "total": 1108.9,
-  "nav_paper": 50253.9,
-  "shadow_n": 2,
-  "margin_used": 11453.0,
+  "unrealized": -116.4,
+  "total": 1228.4,
+  "nav_paper": 50373.4,
+  "shadow_n": 3,
+  "margin_used": 15784.0,
   "closed_n": 6,
-  "std_open_n": 2,
+  "std_open_n": 3,
   "w6_open_n": 0,
   "w6_realized": 0,
   "w6_unrealized": 0,
   "day": {
    "date": "2026-11-14",
-   "std": 0,
+   "std": 1,
    "w6": 0
   }
  },
- "fp": "[10.95, 7.8, 2.11, 1.315, 2.04, 6.855, 1.85, 3.205, -235.9, 1344.8, 2, 6]",
+ "fp": "[10.05, 7.8, 2.11, 1.315, 2.04, 6.56, 1.85, 3.205, 6.69, -116.4, 1344.8, 3, 6]",
  "day": {
   "date": "2026-11-14",
-  "std": 0,
+  "std": 1,
   "w6": 0
  }
 }
