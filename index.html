@@ -61,6 +61,20 @@ tbody tr:last-child td{border-bottom:none;}
 .gate .no{flex-shrink:0;width:24px;height:24px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
 .bad{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.7;}
 .note{font-size:11px;color:var(--mut);line-height:1.6;}
+/* ═ 🧭 殺倉雷達 tab（自 quant-dashboard 移植 11-15；scoped，唔掂全域 CSS） ═ */
+#t8 .card{margin-bottom:12px}
+#t8 .card-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:10px}
+#t8 .card-h .t{font-size:14px;font-weight:700;color:var(--ink)}
+#t8 .card-h .meta{font-size:11px;color:var(--mut)}
+#t8 .card-b{font-size:12.5px;line-height:1.65}
+#t8 .muted{color:var(--mut)}
+#t8 .small{font-size:11.5px}
+#t8 .btn-ghost{border:1px solid var(--line);background:#fff;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--ink)}
+#t8 table.utable{border-collapse:collapse;width:100%;font-size:12px}
+#t8 .utable th,#t8 .utable td{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;white-space:nowrap}
+#t8 .utable th.r,#t8 .utable td.r{text-align:right}
+#t8 .utable th.c,#t8 .utable td.c{text-align:center}
+#t8 ul{margin:6px 0;padding-left:18px}
 .big-em{font-size:13.5px;line-height:1.8;}
 .chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
 .foot{background:#fff;border-top:1px solid var(--line);padding:14px;text-align:center;font-size:11px;color:#94a3b8;}
@@ -89,6 +103,7 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
 <div class="tabs"><div class="tabs-in">
   <span class="tab" data-t="t7" onclick="setTab('t7',this)">🗺️ Roadmap</span>
   <span class="tab act" data-t="t0" onclick="setTab('t0',this)">🎯 今日台</span>
+  <span class="tab" data-t="t8" onclick="setTab('t8',this)">🧭 殺倉雷達</span>
   <span class="tab" data-t="t1" onclick="setTab('t1',this)">📊 總覽</span>
   <span class="tab" data-t="t2" onclick="setTab('t2',this)">🧬 統一簿規格</span>
   <span class="tab" data-t="t3" onclick="setTab('t3',this)">🔬 OOS 七窗</span>
@@ -502,6 +517,114 @@ input[type=number]{width:110px;padding:6px 8px;border:1px solid var(--line);bord
     <button id="rmStopCancel" style="margin-top:8px;padding:8px 18px;background:#b45309;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px" onclick="stopProtocolCancel()">🛑 取消止蝕（如有進行中確認，按呢度）</button>
     <span id="rmStopCancelMsg" class="note" style="margin-left:8px"></span>
   </div>
+</div>
+
+<!-- ═══════════ 🧭 殺倉雷達 tab（v2 六腿 2026-10-16 四研究定案；自 quant-dashboard 移植 11-15；唯讀零落單） ═══════════ -->
+<div id="t8" class="tabc" style="display:none">
+  <div class="card" style="border:1.5px solid #b45309"><div class="card-h"><span class="t">⚠️ 純顯示制（零落單）＋⭐ 統一台修訂（11-05 分腿制）</span><span class="meta">唯讀雷達，不接入 engine／落單系統 · launchd 每 30 分鐘掃描＋Telegram 推送（🔴即時／🟡07:00 digest／E腿首響／尾聲確認／脆弱度滿分）· 數據源與 quant-dashboard 殺倉雷達同一 kill_radar_status.json</span></div>
+      <div class="card-b small muted">數據源：Yahoo 日線（stale-bar 閘）＋FRED OAS（T-1）。訊號分層＝兩窗（2026-06~07 內生去槓桿 / 10月 macro 點火）四研究定案：<b>E=POW/QQQ 是唯一兩窗一致最早的主trigger</b>；C/D 窗A型盲（theme 內生殺倉它們全程靜音）；VIX／廣度預測／情緒兩窗全程盲——只准顯示不入評分。</div>
+      <div class="card-b" style="margin-top:8px;border-top:1px dashed var(--line);padding-top:8px">⭐ <b>燈響後點做——跟統一台分腿制（11-05 拍板／11-12 熊門），唔跟本雷達 10-18 舊卡逐字：</b>
+        <ul style="margin-top:4px">
+        <li>雷達響鐘 → 封 <b>AI 池＋指數腿（XSP）</b>；<b>C96 板塊頭部照開</b>（δ縮深 0.02＋break-glass 三條件；199日實證紅日 C96 方向相反）。</li>
+        <li>熊狀態門：SPX ≥ SMA200（牛）單名放行；SPX &lt; SMA200（熊）先全封。</li>
+        <li>δ 錨＝統一台現行（基座 δ0.30 拍板④／winner 0.28 paper 影子）——本頁舊卡見到 δ0.22→0.12 係舊系統口徑，勿跟。</li>
+        <li>廣度兩把尺：雷達 br200 只入 re-entry 確認②；統一台開倉閘＝收市&gt;SMA50 廣度＋RSP 全市雙閘（−20pct/5日 鐘）——用途唔同，唔互通。</li>
+        <li>行動最終以 🎯 今日台 verdict＋🗺️ Roadmap 為準——雷達負責響鐘，唔負責落單。</li>
+        </ul></div></div>
+
+  <!-- 總燈 -->
+  <div class="card" id="krTopCard"><div class="card-h"><span class="t"><span id="krLamp">…</span> <span id="krLvText">載入中…</span></span><span class="meta" id="krAsof"></span><span class="meta" id="krStreaks" style="margin-left:6px"></span><span style="margin-left:auto"><button class="btn-ghost" onclick="krLoad(true)">🔄 刷新</button></span></div>
+    <div class="card-b"><ul id="krReasons"><li class="muted">載入中…</li></ul></div></div>
+
+  <!-- 白說解讀 -->
+  <div class="card" style="border:1.5px solid #1a73e8"><div class="card-h"><span class="t">🗣️ 白說解讀</span><span class="meta">一句總結＋現在什麼情況＋re-entry rule 情況 · 自動跟隨這個板更新（不是人手寫死）</span></div>
+    <div class="card-b" id="krInterpret"><div class="muted small">載入中…</div></div></div>
+
+  <!-- 燈響→動作 -->
+  <div class="card" style="border:1.5px solid #0f766e"><div class="card-h"><span class="t">🚦 燈響→動作（正股層＋CSP 層）</span><span class="meta">2026-10-18 三 agent 回測定案 · 純顯示制零落單 · ⚠️ CSP 層兩行舊口徑已標記，行動跟頂卡分腿制</span></div>
+    <div class="card-b">
+      <div id="krActStatus" style="margin-bottom:10px"><div class="muted small">載入中…</div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px">
+        <div style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px"><b>📈 正股／beta 層：走人變現金，綁回補</b>
+          <ul class="small" style="line-height:1.65">
+            <li>🟡／🔴 任一腿響 → <b>次日收市全走</b>（有義務簿：🟡 截 score≥4、🔴 連 score3）</li>
+            <li>尾聲三確認 <b>2/3 → 次日收市補回</b>；補後只有 🔴 先再走</li>
+            <li>中途見 GREEN 不要急於回場（狀態制實測每窗多輸 4-8pts）</li>
+            <li class="muted">三窗 net：C +18.4%／A +4.8%（mdd −29→0）／B至今 −1.1%；照持有三窗複合 +63.8%&gt;規則 +18.9%＝回撤保險不是 alpha</li>
+          </ul></div>
+        <div style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px"><b>💵 CSP 收息層：不停手——縮深＋禁單名</b> <span style="color:#b45309;font-size:10.5px">【10-18 舊口徑——11-05 分腿制修訂，見頂卡】</span>
+          <ul class="small" style="line-height:1.65">
+            <li>【舊口徑】🔴期 單名 CSP 禁開：紅日開倉 avg −$1,509/張 vs 非紅日 +$675；實倉反事實 +$11,730——修訂後＝AI 池封、C96 照開＋熊門放行</li>
+            <li>【舊口徑】🔴期 δ 0.22→0.12 照寫——修訂後＝δ 跟統一台錨（基座 0.30；紅日 C96 縮深 0.02）</li>
+            <li>不要全停／停寫（三窗 −$21k~−$120k）；不要尾聲復寫（PF 1.58、接貨 45%）</li>
+            <li class="muted">最貴模式＝止蝕後同鏈重複進場（WDC −560→−4,075）——止蝕那鏈當日列黑名</li>
+          </ul></div>
+      </div>
+      <div class="small muted" style="margin-top:8px">⚠️ 限制：n=3 窗一年、窗B未完沒有反彈頂、VULN 名單 point-in-time 倒推（上限數）、窗B停寫結論 premium 敏感（真實成交=模型 44-50%，縮深臂穩）。尾聲 2/3 實測只窗A fire 過一次（08-03 真底+3td）。</div>
+    </div></div>
+
+  <!-- 手動持倉 -->
+  <div class="card" id="krHoldCard" style="display:none;border:1.5px solid #dc2626"><div class="card-h"><span class="t">⚠️ 手動持倉 <span style="background:#fee2e2;color:#b91c1c;border-radius:99px;padding:1px 8px;font-size:10.5px;font-weight:700">系統不管理</span></span><span class="meta">富途 app 手動持倉（系統不管理，人工盯倉）· Telegram 盯倉 com.kathy.manual-watch 每 5 分鐘 · 到期自動出卡</span></div>
+    <div class="card-b"><div class="table-scroll"><table class="utable">
+      <thead><tr><th>Ticker</th><th class="r">持倉</th><th class="r">BE</th><th>到期</th><th class="r">倒數</th><th>風險 note</th></tr></thead>
+      <tbody id="krHoldRows"><tr><td colspan="6" class="muted">—</td></tr></tbody>
+    </table></div></div></div>
+
+  <!-- 六腿 -->
+  <div class="card"><div class="card-h"><span class="t">六腿狀態</span><span class="meta">每 30 分鐘掃 · A/B/C/D 評分入燈；E=👑主trigger；F credit 錨顯示不評分 · ⓘ hover 每腿看定義＋兩窗實績</span></div>
+    <div class="card-b"><div id="krLegs" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px"><div class="muted small">載入中…</div></div></div></div>
+
+  <!-- 環境數據 -->
+  <div class="card"><div class="card-h"><span class="t">環境數據</span><span class="meta">只顯示不評分（盲名單）· ⓘ hover 每格看定義</span></div>
+    <div class="card-b"><div id="krCtx" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px"><div class="muted small">載入中…</div></div></div></div>
+
+  <!-- 尾聲三確認 -->
+  <div class="card"><div class="card-h"><span class="t">尾聲三確認（re-entry rule）</span><span class="meta" id="krTwN">—</span></div>
+    <div class="card-b">
+      <div class="small muted">窗A 模擬：真底 +2td armed、兩假底零中伏（中伏代價 −26%/−17%，確認代價＝入場高底 11.6%）。任兩齊＝可落注窗口（旗鮮 5td）· ⚠️ 等確認不等於執最平：OAS 真底當日還創窗新高（遲 4-5td）</div>
+      <div style="height:10px;background:#f1f5f9;border-radius:99px;overflow:hidden;margin:8px 0"><div id="krTwBar" style="height:100%;width:0%;background:#0d9488;border-radius:99px;transition:width .3s"></div></div>
+      <div id="krTwGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px"></div>
+      <div class="small muted" id="krTwStatus" style="margin-top:8px"></div>
+    </div></div>
+
+  <!-- 脆弱度 -->
+  <div class="card"><div class="card-h"><span class="t">脆弱度旗 Top 10</span><span class="meta">旗不是 trigger · β60&gt;3＋vol20&gt;0.6＋市值&lt;$60B＋corr20&gt;0.6＋debt/mcap&gt;5%（兩窗 AUC .80/.83，in-sample——做相對排名）· 窗A worst10 10/10 窗B 再死＝持久脆弱 cluster</span></div>
+    <div class="card-b"><div class="table-scroll"><table class="utable">
+      <thead><tr><th>Ticker</th><th class="r">分</th><th class="r">β60</th><th class="r">vol20</th><th class="r">市值($B)</th><th class="r">corr20</th><th class="r">debt/mcap</th><th>持倉</th></tr></thead>
+      <tbody id="krVuln"><tr><td colspan="8" class="muted">載入中…</td></tr></tbody>
+    </table></div></div></div>
+
+  <!-- 監察池 40 隻 -->
+  <div class="card"><div class="card-h"><span class="t">監察池 40 隻</span><span class="meta">雷達底層掃的全名單（AI 主力／AI infra／半導體鏡／高波動）· 🔴行=A腿血（今日≤−6%）· 旗：⛳deep20 彈坑｜⏳bar遲到（chg1d 不計）｜🟣手動持倉 · 分=脆弱度 0-5</span></div>
+    <div class="card-b"><div class="table-scroll"><table class="utable">
+      <thead><tr><th>Ticker</th><th class="r">收市</th><th class="r">chg1d</th><th class="r">dd20</th><th class="r">脆弱度</th><th>旗</th></tr></thead>
+      <tbody id="krUni"><tr><td colspan="6" class="muted">載入中…</td></tr></tbody>
+    </table></div></div></div>
+
+  <!-- 歷史回看 -->
+  <div class="card"><div class="card-h"><span class="t">歷史回看</span><span class="meta" id="krHistMeta">2026-02-02 起 逐日</span></div>
+    <div class="card-b">
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btn-ghost" id="krWtB" onclick="krSetWin('B')">窗B：10月轉（08-03→）</button>
+        <button class="btn-ghost" id="krWtA" onclick="krSetWin('A')">窗A：6-7月轉（02-02→07-31）</button>
+      </div>
+      <div class="table-scroll"><table class="utable">
+        <thead><tr><th>日期</th><th class="c">燈</th><th class="r">A 血</th><th class="r">B 深20</th><th class="r">C 10y</th><th class="r">D OAS</th><th class="c">E POW/QQQ</th><th class="r">MOVE</th><th class="c">尾聲</th></tr></thead>
+        <tbody id="krHist"><tr><td colspan="9" class="muted">載入中…</td></tr></tbody>
+      </table></div>
+      <div class="small muted" style="margin-top:8px">🟠行＝關鍵日（頂/底/假底）｜🔴行＝主殺日。窗A：06-02 頂→07-29 真底（−28.1%）；03-26「狼來了」假警梯（EW40 只回 −12.4% 就破頂）；tnx_stk3 07-28 亮→07-29 底、07-31 落注 +2td。窗B：10-06/07 頂、09-10 🟡 起（頂前18td）、主殺日＝ET 10-14（CPI，16 隻≤−6%）。</div>
+    </div></div>
+
+  <!-- 研究錨 -->
+  <div class="card"><div class="card-h"><span class="t">研究錨（10-16 四研究定案）</span><span class="meta">報告在 ~/quant_model/kill_research_20261016/</span></div>
+    <div class="card-b small">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px">
+        <div style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px"><b>👑 E 腿＝POW/QQQ（CEG+VST 等權）</b><div class="muted" style="margin-top:3px">窗A 頂前 17td 七連響／窗B 14td——兩窗最乾淨，唯一先斷價格線。破20d低=🟡、40d新低=🔴</div></div>
+        <div style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px"><b>單名 credit＝鐵證級</b><div class="muted" style="margin-top:3px">窗A：CRWV 06-11 B級定價投降（7td）；窗B：ORCL 5Y CDS 09-25 紀錄 227bp（12-13td）。免費日度拿不到——最平升級＝FINRA token 解鎖 TRACE；現用 CRWV 股價代理</div></div>
+        <div style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px"><b>「狼來了」假警梯</b><div class="muted" style="margin-top:3px">窗A 頂前 2-3 月有成套假警（03-26 單日23隻血、OAS 3.46、MOVE 115）→ EW40 只回 −12.4% 就破頂。macro 梯可以呃人，<b>單名深水 credit 不會</b>——窗A 後 8 月 alert 批無行動是對的</div></div>
+        <div style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px"><b>盲名單（只准顯示）</b><div class="muted" style="margin-top:3px">VIX／廣度做預測／20d相關性／CNN F&amp;G／AAII／IG OAS／RRP/TGA——兩窗全程盲。殺前一日廣度 100% 完美＝反向脆弱標記</div></div>
+      </div>
+    </div></div>
 </div>
 
 </div><!-- /wrap -->
@@ -1222,6 +1345,294 @@ function saveProg(v){try{localStorage.setItem(PROG_KEY,String(v||0));}catch(e){}
   rows.addEventListener('click',function(e){var b=e.target.closest('.cDel');if(b&&rows.querySelectorAll('.crow').length>1){b.closest('.crow').remove();calc();}});
   rows.addEventListener('input',calc);
 })();
+/* ═══════════ 🧭 殺倉雷達 tab JS（自 quant-dashboard 移植 11-15；唯讀顯示）═══════════
+   資料=quant-dashboard gh-pages kill_radar_status.json＋kill_radar_history.json（launchd engine git push，同源）。
+   ⭐ 11-05 分腿制修訂：本頁 krActRender 動作行已對齊統一台錨（δ0.30／C96 分腿／熊門）——雷達本身照舊唯讀。 */
+"use strict";
+var KR_BASE='https://leunghlk.github.io/quant-dashboard/';
+var KR_STATUS=null, KR_HIST=null, KR_WIN='B', KR_LOADED=false;
+var KR_KEY_A={"2026-06-02":"頂","2026-07-29":"真底","2026-06-10":"假底1","2026-07-17":"假底2","2026-03-26":"狼來了23血","2026-05-07":"E腿首響","2026-07-28":"TNX3連跌"};
+var KR_KEY_B={"2026-10-06":"頂","2026-10-07":"頂","2026-10-14":"主殺日CPI","2026-09-10":"首🟡(前18td)","2026-09-14":"首🔴","2026-09-16":"E腿破20d"};
+function krEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function krBadge(txt,bg,fg,bd){return '<span style="display:inline-block;padding:1px 8px;border-radius:99px;font-size:10.5px;font-weight:700;background:'+bg+';color:'+fg+(bd?';border:1px solid '+bd:'')+'">'+txt+'</span>';}
+function krStateBadge(s){
+  if(s==='R')return krBadge('🔴 紅','#fee2e2','#b91c1c','#fecaca');
+  if(s==='Y')return krBadge('🟡 黃','#fef3c7','#92400e','#fde68a');
+  if(s==='note')return krBadge('ℹ️ 顯示','#f1f5f9','#64748b');
+  return krBadge('— 靜','#f1f5f9','#64748b');
+}
+function krFetch(url){return fetch(KR_BASE+url+'?v='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();});}
+function krLoad(manual){
+  Promise.all([krFetch('kill_radar_status.json'),krFetch('kill_radar_history.json').catch(function(){return null;})])
+    .then(function(rs){KR_STATUS=rs[0];KR_HIST=rs[1];KR_LOADED=true;krRender();})
+    .catch(function(e){
+      var b=document.getElementById('krReasons');
+      if(b)b.innerHTML='<li class="muted">殺倉雷達數據連不上（'+krEsc(e.message||'?')+'）· 5 分鐘後重試</li>';
+      setTimeout(function(){krLoad(false);},300000);
+    });
+}
+setInterval(function(){if(KR_LOADED)krLoad(false);},300000);
+
+function krInterpretHTML(S){
+  var lv=S.level||'GREEN', sk=S.streak||{}, legs=S.legs||{}, tw=S.tailwind||{}, cx=S.context||{};
+  function st(k){var L=legs[k];return L?(L.state||'off'):'off';}
+  var cOn=(st('C')==='Y'||st('C')==='R'),cR=(st('C')==='R');
+  var dOn=(st('D')==='Y'||st('D')==='R'),dR=(st('D')==='R');
+  var macro=(cOn||dOn), macroRed=(cR||dR);
+  var eY=(st('E')==='Y'),eR=(st('E')==='R'),eOn=(eY||eR);
+  var abOn=(st('A')==='Y'||st('A')==='R'||st('B')==='Y'||st('B')==='R');
+  var n=tw.n||0;
+  var sTxt='';
+  if(sk.yel)sTxt='已連續響 '+sk.yel+' 個交易日'+(sk.red?('，其中 🔴 '+sk.red+' td'):'');
+  var head,body;
+  if(lv==='GREEN'&&!macro&&!eOn&&!abOn){
+    head='🟢 全靜——常規監察中';
+    body=['判定全靜：A–E 腿目前沒有殺倉訊號（F 腿純顯示），可以照回自己計劃行事。',
+          '不用估頂——👑 E 腿（POW/QQQ）一破 20d 低，TG 會即推，那個才是主trigger。'];
+  }else if(eOn&&abOn){
+    head=((eR||st('A')==='R'||st('B')==='R')?'🔴':'🟡')+' 殺倉進行中——主trigger＋單名血齊響（最高警戒組合）';
+    body=['👑 POW/QQQ 已斷線＋單名血／深20 響緊＝結構弱勢同屠殺同時成立，最毒的組合。',
+          '動作：已持倉縮、新倉停（⭐ 執行跟統一台分腿制——AI 池＋指數腿停、C96 照規矩）。不要同市場拗撬。'];
+  }else if(eOn){
+    head='👑 主trigger 響——theme 相對弱勢已現，引信倒數中';
+    body=['POW/QQQ（CEG+VST vs QQQ）破了 20d 低'+(eR?'，還要是 40d 新低（加強版🔴）':'')+'——兩窗研究入面最準的訊號（窗A 頂前 17td／窗B 14td）。',
+          macro?'macro 壓力族（C/D）都着緊——同窗B 梯一樣，引信快過淨 E 腿獨響。':'macro 壓力族（C/D）未跟——窗A 型（theme 內生殺倉）沒有 macro 點火是預期，不是矛盾。',
+          '動作：新倉停（⭐ 分腿制：AI 池＋指數腿停、C96 照開）；舊倉跟出場規則，不用恐慌全清——窗B 由首 🔴 到殺日實際行了 16 個交易日。'];
+  }else if(abOn){
+    var abFired=[];if(st('A')==='Y'||st('A')==='R')abFired.push('A 廣度血');if(st('B')==='Y'||st('B')==='R')abFired.push('B 新深20');
+    head=((st('A')==='R'||st('B')==='R')?'🔴':'🟡')+' 單名殺倉開始——theme 內生型（窗A 那隻獸）';
+    body=[abFired.join('＋')+' 響緊，但 👑 主trigger 未斷。',
+          '窗A 教訓：這種殺法 C/D 可以全程盲——跟 A/B/E 梯行，不要等 10y／OAS 施救。',
+          '動作：新倉停先（⭐ 分腿制：AI 池停、C96 照開）；若 E 腿其後都斷（TG 會推），即升級全面縮倉。'];
+  }else if(macro){
+    var mFired=[];
+    if(cOn)mFired.push('C 10y（'+((legs.C||{}).val||'?')+'）');
+    if(dOn)mFired.push('D HY OAS（'+((legs.D||{}).val||'?')+'）');
+    head=(macroRed?'🔴':'🟡')+' 壓力鍋還熱——'+mFired.join('＋')+'着火，主trigger 未響';
+    body=['響燈＝'+(cOn&&dOn?'10y 水平＋垃圾債息差同時惡劣':(cOn?'10y 企於 5.00 上':'垃圾債息差拉闊'))+'——同窗B（10月波）殺倉前的這個板同款。',
+          '但 👑 E（POW/QQQ）未破新低＋單名血停手＝theme 內部暫時沒有再斷線——即是「剛剛殺完一波」或者「純壓力未爆」，兩種都要當紅燈期處事。',
+          '白說：這個板告訴你的不是「立即再殺」，是「環境未准你落場」——停開新倉（⭐ 分腿制：AI 池＋指數腿停、C96 照開），等梯升級（TG 會推）或者解除。'];
+  }else{
+    head='單一 regime 標記——未成梯';
+    body=['有腿亮但是孤燈（例如 MOVE ≥100 標記）——這類虛警高，要疊加先算數，不用單獨做東西。'];
+  }
+  var watch=[];
+  if(lv!=='GREEN'&&!eOn)watch.push('最想盯住：👑 E 腿——POW/QQQ 一破 20d 低，TG 即推（第二波確認訊號）。');
+  if(lv!=='GREEN')watch.push('解除條件：連續 3 日六腿全靜 → ✅ TG 自動通知，燈先算真解除。');
+  if(lv!=='GREEN')watch.push('不用估：紅燈不預測邊日殺，它只負責叫你「停開新倉」——日子交由梯升級告訴你。');
+  var rows=[],brLast=null;
+  if(KR_HIST&&KR_HIST.rows){for(var i=KR_HIST.rows.length-1;i>=0;i--){if(KR_HIST.rows[i].br200!=null){brLast=KR_HIST.rows[i].br200;break;}}}
+  rows.push((tw.c1?'✅':'⬜')+' <b>① TNX 自 20 日高連跌 3 日</b>'+((!tw.c1&&cx.tnx)?'——現在 10y '+cx.tnx+'，要先見頂回落（借貸成本壓力先退得）':''));
+  rows.push((tw.c2?'✅':'⬜')+' <b>② 廣度（&gt;200MA%）五日 +10pp</b>'+((!tw.c2&&brLast!=null)?'——現值 '+Math.round(brLast*100)+'%，要轉勢上推':''));
+  if(tw.c3){
+    var c3r=(tw.c3_mode==='oas')
+      ?'✅ <b>③ 後備亮（OAS 距峰 '+(tw.oas_offpeak_bp!=null?tw.oas_offpeak_bp:'?')+'bp）</b>——本體未收回：CRWV '+(tw.crwv_px!=null?tw.crwv_px:'?')+' 仍在 sma20 '+(tw.crwv_sma20!=null?tw.crwv_sma20:'?')+' 之下'
+      :'✅ <b>③ 本體確認——CRWV 已收返 sma20</b>'+((tw.crwv_px!=null&&tw.crwv_sma20!=null)?'（'+tw.crwv_px+' vs '+tw.crwv_sma20+'）':'');
+    rows.push(c3r);
+  }else{
+    rows.push('⬜ <b>③ CRWV 收回 sma20</b>（後備：OAS 距 25 日峰 −10bp）'+(tw.detail?'——後備③現值：'+krEsc(String(tw.detail)):''));
+  }
+  var reVerdict;
+  if(n>=2)reVerdict='✅ <b>2/3 齊——re-entry 窗口 armed</b>（旗鮮 5td）'+((tw.c3&&tw.c3_mode==='oas')?'（注意：③ 係 OAS 後備亮，唔係 CRWV 收回）':'')+'：可以開始分注落回來，不用執最平——研究價：確認代價＝入場高底 11.6%，換來兩個假底零中伏（假底中伏 −26%/−17%）。';
+  else if(n===1)reVerdict='<b>1/3——進行中但未到</b>：現在不要撈底，等第兩個確認亮先算 re-entry。';
+  else reVerdict='<b>0/3——完全未到尾聲</b>：任何「見底」感覺都不算數（OAS 真底還遲 4-5td），等確認梯先講落注。';
+  return '<div style="border-left:4px solid #1a73e8;padding:2px 0 2px 12px;margin-bottom:10px">'+
+    '<div style="font-size:15px;font-weight:800">'+head+(sTxt?' <span class="muted" style="font-weight:400;font-size:12px">（'+sTxt+'）</span>':'')+'</div>'+
+    '<ul style="margin:8px 0 0 18px;font-size:12.5px;line-height:1.65">'+body.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul></div>'+
+    (watch.length?'<div style="font-weight:800;font-size:13px;margin-bottom:4px">🔄 升級／解除位</div><ul style="margin:0 0 10px 18px;font-size:12.5px;line-height:1.6">'+watch.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul>':'')+
+    '<div style="font-weight:800;font-size:13px;margin-bottom:4px">🚪 re-entry rule 情況：'+n+'/3</div>'+
+    '<div style="font-size:12.5px;line-height:1.7">'+rows.join('<br>')+'</div>'+
+    '<div style="margin-top:6px;font-size:12.5px;background:'+(n>=2?'#ccfbf1':'#f1f5f9')+';border-radius:8px;padding:8px 10px">'+reVerdict+'</div>';
+}
+function krRender(){
+  var S=KR_STATUS; if(!S)return;
+  var lv=S.level||'GREEN';
+  var lamp={RED:'🔴',YEL:'🟡',GREEN:'🟢'}[lv]||'⚪';
+  var lvTxt={RED:'紅燈——縮倉／停開新倉（1-4日引信）',YEL:'黃燈——計時中',GREEN:'綠燈——靜'}[lv]||lv;
+  document.getElementById('krLamp').textContent=lamp;
+  document.getElementById('krLvText').textContent=lvTxt;
+  document.getElementById('krTopCard').style.border='1.5px solid '+(lv==='RED'?'#dc2626':lv==='YEL'?'#d97706':'#16a34a');
+  var age=S.updated?Math.max(0,Math.round((Date.now()-S.updated)/60000)):null;
+  document.getElementById('krAsof').textContent=(S.as_of||'')+(age!=null?(' · '+age+' 分鐘前'):'');
+  var sk=S.streak||{},sh='';
+  if(sk.red)sh+=krBadge('連續 🔴 '+sk.red+' td','#fee2e2','#b91c1c','#fecaca')+' ';
+  if(sk.yel)sh+=krBadge('連續 ≥🟡 '+sk.yel+' td','#fef3c7','#92400e','#fde68a');
+  if(!sk.red&&!sk.yel)sh=krBadge('常規','#f0fdf4','#166534');
+  document.getElementById('krStreaks').innerHTML=sh;
+  document.getElementById('krReasons').innerHTML=(S.reasons&&S.reasons.length)?S.reasons.map(function(r){return '<li>'+krEsc(r)+'</li>';}).join(''):'<li class="muted">各腿靜</li>';
+
+  // 手動持倉
+  var holds=S.holdings||[],hc=document.getElementById('krHoldCard');
+  if(!holds.length){hc.style.display='none';}
+  else{
+    hc.style.display='';
+    document.getElementById('krHoldRows').innerHTML=holds.map(function(h){
+      var urgent=(h.days!=null&&h.days<=7);
+      return '<tr'+(urgent?' style="background:#fef2f2;font-weight:700"':'')+'>'+
+        '<td style="font-weight:800">'+krEsc(h.t)+'</td><td class="r">'+krEsc(h.pos)+'</td><td class="r">$'+h.be+'</td>'+
+        '<td>'+krEsc(h.exp)+'</td><td class="r"'+(urgent?' style="color:#dc2626"':'')+'><b>'+(h.days!=null?h.days+' 日':'—')+'</b></td>'+
+        '<td style="white-space:normal">'+krEsc(h.note)+'</td></tr>';
+    }).join('');
+  }
+
+  // 六腿（hover＝定義＋兩窗實績）
+  var notes={A:'廣度血：跟得到但訊號噪雜（11/18td）',B:'新深20：跟得到（10/16td）',
+    C:'窗A 全盲（max 4.74）——只做 macro 型後置確認',D:'窗A 頂前盲（+18td 先響）——B型專用',
+    E:'👑主trigger：窗A 17td／窗B 14td，兩窗最乾淨',F:'鐵證級（7-13td）：真數要 FINRA token，現用股價代理'};
+  var krShort={A:'今日跌≥6%隻數（40隻AI/半導體/電力池）',B:'今日「新」跌穿 −20% 的隻數',
+    C:'美國 10 年期國債孳息率',D:'垃圾債息差（credit 違約風險定價）',
+    E:'發電股(CEG+VST)÷納指100 相對強度',F:'單名 credit：CRWV 代理＋ORCL CDS 錨'};
+  var krDefs={
+    A:'量什麼：40 隻 AI／半導體／電力股入面，今日收市跌 ≥6% 的隻數。\n閘：≥2 隻🟡／≥5 隻🔴（10-14 主殺日＝16 隻）。\n兩窗表現：跟得到但訊號噪雜（窗A 11/18td）——它響起時多半已經正在殺，是確認不是預警。\n現在靜＝沒有單名屠殺進行中。',
+    B:'量什麼：今日「首次」跌穿 20 日高位 −20% 的隻數——只計新傷，不計舊彈坑。\n閘：≥3🟡／≥6🔴。\n兩窗表現：窗A 10/16-18td，同 A 一齊做確認腿。\n現在靜＝沒有新名跌入深水區（deep20 累計 16 隻是殘留彈坑，不是新訊號）。',
+    C:'量什麼：美國 10 年期國債孳息率（^TNX）——全市場借貸成本的錨。\n閘：≥5.00%🟡／≥5.15%🔴／<4.95% 先解除。sticky 設計：亮過要保持亮，防日日閃。\n為什麼重要：10月波就是 10y 穿 5.00 點火（殺在見頂後——水平＞速度）。\n⚠️ 窗A（6-7月）它全程盲：theme 內生殺倉可以同 10y 無關。',
+    D:'量什麼：美國垃圾債息差（FRED BAMLH0A0HYM2，T-1 數）——credit 市場對違約風險的定價，AI 債風險最先在這裡現形。\n閘：水平 ≥3.20🟡，或者 5 日 +0.15pp 以上＝🔴（正在升比高企更毒）。\n兩窗表現：窗A 頂前盲（+18td 先響）；窗B 09-25 轉紅（殺前 13td）＝B 型專用。\n現在 3.25 還正在升＝紅燈未退。',
+    E:'👑 主trigger（兩窗最準）。\n量什麼：POW/QQQ＝CEG+VST 發電股等權指數 ÷ 納指100。AI data center 耗電——發電股是最擠擁的 AI 表達，聰明錢撤退一定最先斷這條線。\n⚠️ 沒有絕對 safe 數：ratio 是相對值，只同自己近期比——破 20 日低🟡／40 日新低🔴；緩衝＝現在離觸發線幾遠。\n兩窗實績：唯一兩窗都先斷價格線（窗A 頂前 42td、殺前 17td；窗B 頂前 20td、殺前 14td）。\n現在靜＝水未退、亦未再斷。',
+    F:'量什麼：單名 credit 錨——CRWV 股價 vs sma20 做代理（真債價免費拿不到）＋ORCL 5Y CDS 人手錨 227bp（09-25 紀錄高）。\n為什麼重要：兩次殺倉最早的鐵證都是單名 credit——窗A：CRWV B級定價投降→股殺 7td；窗B：ORCL CDS 破紀錄→殺 12-13td。\n顯示不評分：真數要 FINRA TRACE token（最平升級步）。'};
+  document.getElementById('krLegs').innerHTML=Object.keys(S.legs||{}).map(function(k){
+    var L=S.legs[k],hot=(L.state==='R'),warm=(L.state==='Y');
+    var buf='';
+    if(k==='E'&&L.buf20!=null&&!L.on){
+      var bc=(L.buf20>=5?'#16a34a':L.buf20>=2?'#d97706':'#dc2626');
+      buf=' <span style="display:inline-block;font-size:10.5px;font-weight:700;color:#fff;background:'+bc+';border-radius:99px;padding:1px 8px;margin-left:4px" title="緩衝＝現在 ratio 離 20 日低（觸發線）幾遠。沒有絕對 safe 數——相對值只同自己比；緩衝越大越難誤響。≥5% 綠／2-5% 黃／<2% 紅。">緩衝 +'+L.buf20+'%</span>';
+    }
+    return '<div title="'+krEsc(krDefs[k]||'')+'" style="background:'+(hot?'#fef2f2':warm?'#fffbeb':'#f8fafc')+';border:1px solid '+(hot?'#fecaca':warm?'#fde68a':'var(--line)')+';border-radius:10px;padding:10px 12px;cursor:help">'+
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:13px">'+krEsc(k)+' · '+krEsc(L.name)+'</b>'+krStateBadge(L.state)+buf+'</div>'+
+      '<div class="small muted" style="margin-top:3px">量什麼：'+krEsc(krShort[k]||'')+' <span style="opacity:.7">ⓘ hover 看定義</span></div>'+
+      '<div style="font-size:12px;margin-top:4px">'+krEsc(L.val||'')+(L.detail?' <span class="muted">｜'+krEsc(L.detail)+'</span>':'')+'</div>'+
+      '<div class="small muted" style="margin-top:3px">閘：'+krEsc(L.thr||'')+'</div>'+
+      '<div style="font-size:11px;margin-top:4px;color:#1557b0;background:#e8f0fe;border-radius:6px;padding:2px 7px;display:inline-block">'+krEsc(notes[k]||'')+'</div></div>';
+  }).join('')||'<div class="muted small">—</div>';
+
+  // 環境數據（只顯示，hover 有定義）
+  var cx=S.context||{},krBr=null;
+  if(KR_HIST&&KR_HIST.rows){for(var bi=KR_HIST.rows.length-1;bi>=0;bi--){if(KR_HIST.rows[bi].br200!=null){krBr=KR_HIST.rows[bi].br200;break;}}}
+  var krCtxDef={
+    vix:'VIX＝標普期權隱含波動率（「恐慌指數」）。\n⚠️ 兩次殺倉全程滯後——殺完先飆。永遠只准顯示，不入評分。\n統一台另有 VIX[20,32] 開倉窗＋熊狀態門——係開倉閘唔係殺倉預警，兩用唔同。',
+    move:'MOVE＝ICE BofA 國債波動率指數（債市的 VIX）。\n≥100＝債市波動 regime 標記（黃燈級環境提示，虛警高要疊加先算數）。\n窗B 殺前 MOVE 企於 100 上 10-14td。',
+    tnx:'10 年期國債孳息率＝C 腿數據源（借貸成本錨）。\n閘：≥5.00🟡／≥5.15🔴／<4.95 解除。',
+    oas:'垃圾債息差＝D 腿數據源（credit 違約定價，T-1）。\n閘：≥3.20 或 5日 +0.15pp＝🔴。',
+    deep20:'deep20 累計＝還位於 20 日高位 −20% 以下的隻數（彈坑存貨，不是新訊號）。\n新訊號是 B 腿：今日「新」跌入的隻數。',
+    br:'廣度 >200MA%＝多少 % 隻數位於 200 日線上。\n⚠️ 做預測是盲的（殺前一日還 100% 完美＝反向脆弱標記）；但它做 re-entry 確認②有效：五日 +10pp。\n統一台開倉閘另用 >SMA50 廣度＋RSP 雙閘——兩把尺唔互通。'};
+  var krCtx=[
+    ['VIX',cx.vix!=null?cx.vix.toFixed(1):'—',krCtxDef.vix],
+    ['MOVE',cx.move!=null?cx.move.toFixed(0):'—',krCtxDef.move],
+    ['10y %',cx.tnx!=null?cx.tnx.toFixed(2):'—',krCtxDef.tnx],
+    ['HY OAS',cx.oas!=null?Number(cx.oas).toFixed(2):'—',krCtxDef.oas],
+    ['deep20 累計',cx.deep20!=null?cx.deep20:'—',krCtxDef.deep20],
+    ['廣度>200MA',krBr!=null?Math.round(krBr*100)+'%':'—',krCtxDef.br]];
+  document.getElementById('krCtx').innerHTML=krCtx.map(function(c){
+    return '<div title="'+krEsc(c[2])+'" style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:8px 10px;cursor:help">'+
+      '<div class="small muted">'+c[0]+' <span style="opacity:.6">ⓘ</span></div>'+
+      '<div style="font-size:16px;font-weight:800">'+c[1]+'</div></div>';
+  }).join('');
+
+  // 尾聲
+  var tw=S.tailwind||{},names={c1:'① TNX 自20日高連跌3日',c2:'② 廣度 &gt;200MA% 五日 +10pp',c3:'③ CRWV 收回 sma20（後備 OAS 距峰 −10bp）'};
+  document.getElementById('krTwN').textContent=(tw.n||0)+'/3'+((tw.n||0)>=2?' ✅窗口':'');
+  document.getElementById('krTwBar').style.width=((tw.n||0)/3*100)+'%';
+  document.getElementById('krTwGrid').innerHTML=['c1','c2','c3'].map(function(k){
+    var on=!!tw[k],sub=(on?'✅ 已確認':'未確認');
+    if(k==='c3'&&on){
+      var crw=(tw.crwv_px!=null&&tw.crwv_sma20)?('CRWV '+tw.crwv_px+' vs sma20 '+tw.crwv_sma20+'（'+(tw.crwv_px>=tw.crwv_sma20?'上':'下')+'）'):null;
+      if(tw.c3_mode==='oas'){
+        sub='✅ 後備亮（OAS 距峰 '+(tw.oas_offpeak_bp!=null?tw.oas_offpeak_bp:'?')+'bp）';
+        if(crw) sub+='<br><span style="color:#b45309">'+crw+'——本體未收回</span>';
+      } else {
+        sub='✅ 本體確認'+(crw?'（'+crw+'）':'——CRWV 已收返 sma20');
+      }
+    }
+    return '<div style="background:'+(on?'#ccfbf1':'#f8fafc')+';border:1px solid '+(on?'#99f6e4':'var(--line)')+';border-radius:10px;padding:10px 12px">'+
+      '<b style="font-size:12.5px">'+names[k]+'</b><div class="small muted" style="margin-top:3px">'+sub+'</div></div>';
+  }).join('');
+  document.getElementById('krTwStatus').innerHTML=(tw.n||0)>=2
+    ?'✅ <b>2/3 齊——re-entry 窗口 armed</b>（旗鮮 5td，聽日落注原則）'+((tw.c3&&tw.c3_mode==='oas')?'<span style="color:#b45309">（③係 OAS 後備亮，唔係 CRWV 收回）</span>':'')
+    :'現狀 <b>'+(tw.n||0)+'/3</b>——未到尾聲'+(tw.detail?('（後備③現值：'+krEsc(tw.detail)+'）'):'');
+
+  // 脆弱度
+  document.getElementById('krVuln').innerHTML=(S.vuln_top||[]).map(function(v){
+    return '<tr'+(v.score>=5?' style="background:#fef2f2"':'')+'>'+
+      '<td style="font-weight:800">'+krEsc(v.t)+'</td><td class="r"><b'+(v.score>=4?' style="color:#dc2626"':'')+'>'+v.score+'</b>/5</td>'+
+      '<td class="r">'+v.beta+'</td><td class="r">'+v.vol+'</td><td class="r">'+(v.mcap!=null?v.mcap:'—')+'</td>'+
+      '<td class="r">'+v.corr+'</td><td class="r">'+(v.debt!=null?v.debt+'%':'—')+'</td>'+
+      '<td>'+(v.hold?krBadge(krEsc(v.hold),'#fdf4ff','#a21caf','#f5d0fe'):'')+'</td></tr>';
+  }).join('')||'<tr><td colspan="8" class="muted">—</td></tr>';
+
+  // 監察池 40 隻
+  var uni=S.universe||[];
+  document.getElementById('krUni').innerHTML=uni.map(function(u){
+    var flags='';
+    if(u.deep20)flags+=' '+krBadge('⛳ deep20','#ffedd5','#9a3412','#fed7aa');
+    if(u.stale)flags+=' '+krBadge('⏳ bar遲','#f1f5f9','#64748b','#e2e8f0');
+    if(u.hold)flags+=' '+krBadge(krEsc(u.hold),'#fdf4ff','#a21caf','#f5d0fe');
+    var c1=u.chg1d,dd=u.dd20;
+    var c1t=(c1!=null?((c1>=0?'+':'')+(c1*100).toFixed(1)+'%'):'—');
+    var c1s=(c1==null?'':(c1<=-0.06?'color:#dc2626;font-weight:700':(c1>=0?'color:#16a34a':'color:#b45309')));
+    var ddt=(dd!=null?(dd*100).toFixed(1)+'%':'—');
+    var dds=(dd!=null&&dd<=-0.20?'color:#dc2626;font-weight:700':'');
+    return '<tr'+(u.blood?' style="background:#fef2f2"':'')+'>'+
+      '<td style="font-weight:800">'+krEsc(u.t)+'</td>'+
+      '<td class="r">'+(u.last!=null?u.last.toFixed(2):'—')+'</td>'+
+      '<td class="r" style="'+c1s+'">'+c1t+'</td>'+
+      '<td class="r" style="'+dds+'">'+ddt+'</td>'+
+      '<td class="r">'+(u.score>=4?'<b style="color:#dc2626">'+u.score+'</b>':u.score)+'/5</td>'+
+      '<td style="white-space:normal">'+(flags||(u.blood?'<span style="color:#dc2626;font-weight:700">🔴 A腿血</span>':'<span class="muted">—</span>'))+'</td></tr>';
+  }).join('')||'<tr><td colspan="6" class="muted">—</td></tr>';
+
+  document.getElementById('krInterpret').innerHTML=krInterpretHTML(S);
+  krRenderHist();
+}
+function krSetWin(w){
+  KR_WIN=w;
+  document.getElementById('krWtA').style.background=(w==='A')?'#1a73e8':'';
+  document.getElementById('krWtA').style.color=(w==='A')?'#fff':'';
+  document.getElementById('krWtB').style.background=(w==='B')?'#1a73e8':'';
+  document.getElementById('krWtB').style.color=(w==='B')?'#fff':'';
+  krRenderHist();
+}
+function krRenderHist(){
+  var rows=(KR_HIST&&KR_HIST.rows)||[];
+  var sel=rows.filter(function(r){return KR_WIN==='A'?(r.d>='2026-02-02'&&r.d<='2026-07-31'):(r.d>='2026-08-03');});
+  var keys=(KR_WIN==='A')?KR_KEY_A:KR_KEY_B;
+  document.getElementById('krHistMeta').textContent=sel.length+' 個交易日'+(KR_WIN==='A'?'（02-02→07-31 · 6-7月窗A backfill）':'（08-03→今日）');
+  if(!sel.length){document.getElementById('krHist').innerHTML='<tr><td colspan="9" class="muted">—</td></tr>';return;}
+  document.getElementById('krHist').innerHTML=sel.slice().reverse().map(function(r){
+    var key=keys[r.d],kill=(r.d==='2026-10-14');
+    var lvm={RED:['🔴','color:#dc2626;font-weight:700'],YEL:['🟡',''],GREEN:['🟢','color:#16a34a;font-weight:700']}[r.level]||['·',''];
+    var rowBg=kill?'#fef2f2':(key?'#fff7ed':'');
+    return '<tr style="'+(rowBg?('background:'+rowBg+(key?';font-weight:700':'')):'')+'">'+
+      '<td style="font-weight:800">'+r.d+(key?' '+krBadge(krEsc(key),'#fef3c7','#92400e','#fde68a'):'')+'</td>'+
+      '<td class="c"><span style="'+lvm[1]+'">'+lvm[0]+'</span></td>'+
+      '<td class="r"'+((r.blood||0)>=5?' style="color:#dc2626;font-weight:700"':'')+'>'+(r.blood||0)+'</td>'+
+      '<td class="r">'+(r.deep20!=null?r.deep20:'—')+'</td>'+
+      '<td class="r">'+(r.tnx!=null?r.tnx.toFixed(2)+(r.tnx_arm?' '+krBadge(r.tnx_arm,r.tnx_arm==='R'?'#fee2e2':'#fef3c7',r.tnx_arm==='R'?'#b91c1c':'#92400e'):''):'—')+'</td>'+
+      '<td class="r">'+(r.oas!=null?r.oas.toFixed(2)+(r.oas_d5?' <span style="'+(r.oas_d5>=0.15?'color:#dc2626;font-weight:700':'color:#64748b')+'">('+(r.oas_d5>=0?'+':'')+r.oas_d5.toFixed(2)+')</span>':''):'—')+'</td>'+
+      '<td class="c">'+(r.E?'👑':(r.pow!=null?r.pow.toFixed(3):'—'))+'</td>'+
+      '<td class="r">'+(r.move!=null?r.move.toFixed(0):'—')+'</td>'+
+      '<td class="c">'+(r.tw!=null?r.tw+'/3':'—')+'</td></tr>';
+  }).join('');
+}
+krSetWin('B');
+/* 燈響→動作卡：狀態行由 KR_STATUS 自動計（純顯示）· ⭐ 11-15 修訂：δ／禁開文字已對齊統一台分腿制 */
+function krActRender(){
+  var el=document.getElementById('krActStatus');if(!el)return;
+  var S=KR_STATUS;
+  if(!S){el.innerHTML='<div class="muted small">載入中…</div>';return;}
+  var lv=S.level||'GREEN',tw=S.tailwind||{},n=tw.n||0,sk=S.streak||{};
+  var h='';
+  if(n>=2){
+    var armedOk=(lv==='GREEN');
+    h='<span style="font-weight:700;color:'+(armedOk?'#166534':'#92400e')+';font-size:13.5px">'+(armedOk?'🟢':'🟡')+' 尾聲 '+n+'/3 響'+(armedOk?'':'（總燈未解除——等 3 日全靜）')+'——正股：'+(armedOk?'次日收市補回':'等解除先補回')+'；CSP：'+(armedOk?'回復正常（之後只 🔴 再走）':'照停新倉（分腿制：AI 池＋指數腿停、C96 照開）')+'</span>';
+  }else if(lv==='GREEN'){
+    h='<span style="font-weight:700;color:#166534;font-size:13.5px">⚪ 燈靜——正股照持有；CSP 照寫（δ0.30 統一台基座拍板④）· 廣度/VIX 閘照統一台今日台 verdict</span>';
+  }else{
+    var col=lv==='RED'?'#b91c1c':'#92400e';
+    h='<span style="font-weight:700;color:'+col+';font-size:13.5px">'+(lv==='RED'?'🔴':'🟡')+' 燈響中（紅 '+(sk.red||0)+'td）——正股：應在現金（等尾聲 '+n+'/3）；CSP：⭐ 分腿制——AI 池＋指數腿停、C96 照開（δ0.30·紅日縮深 0.02）；熊狀態（SPX&lt;SMA200）先全封</span>';
+  }
+  el.innerHTML=h;
+}
+setInterval(krActRender,5000);krActRender();
+krLoad(false);
 loadMarket();loadToday();countdown();drawProg();setInterval(loadMarket,120000);setInterval(loadToday,300000);
 </script>
 </body>
