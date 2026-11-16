@@ -12,18 +12,21 @@
    "contracts": 1,
    "margin": 6177.5,
    "iv": 0.354,
-   "status": "open",
+   "status": "closed",
    "shadow": true,
-   "mark": 14.65,
+   "mark": 12.55,
    "mark_src": "Futu",
-   "dte_td": 4,
+   "dte_td": 3,
    "pool": "C96",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 694.6099853515625,
-   "unrealized": -643.7,
-   "close_worst": 19.8,
+   "spot_last": 693.9600219726562,
+   "unrealized": -433.7,
+   "close_worst": 18.3,
    "mark_ks": 700.0,
-   "mark_kl": 640.0
+   "mark_kl": 640.0,
+   "exit_date": "2026-11-17",
+   "exit_reason": "dte≤3 硬平倉（mark 12.550）",
+   "realized": -433.7
   },
   {
    "date": "2026-11-10",
@@ -135,14 +138,14 @@
    "iv": 0.46799999999999997,
    "status": "open",
    "shadow": true,
-   "mark": 8.94,
+   "mark": 8.84,
    "mark_src": "Futu",
-   "dte_td": 9,
+   "dte_td": 8,
    "pool": "C96+117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
-   "spot_last": 630.2100219726562,
-   "unrealized": -170.7,
-   "close_worst": 9.25,
+   "spot_last": 629.8099975585938,
+   "unrealized": -160.7,
+   "close_worst": 9.17,
    "mark_ks": 610.0,
    "mark_kl": 545.0
   },
@@ -213,16 +216,38 @@
    "iv": 1.34,
    "status": "open",
    "shadow": true,
-   "mark": 11.925,
-   "mark_src": "Futu",
+   "mark": 17.742,
+   "mark_src": "BS",
    "track": "std",
-   "dte_td": 9,
+   "dte_td": 8,
    "pool": "C96+117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "rv21_pctl": 100.0,
-   "spot_last": 511.0,
+   "spot_last": 510.9599914550781,
    "close_worst": 12.4,
-   "unrealized": -524.7
+   "unrealized": -1106.39
+  },
+  {
+   "date": "2026-11-17",
+   "sym": "PSX",
+   "spot": 260.51,
+   "short_k": 250.0,
+   "long_k": 225.0,
+   "expiry": "2026-11-27",
+   "credit": 3.6,
+   "credit_worst": 2.95,
+   "contracts": 1,
+   "margin": 2140.0,
+   "iv": 0.479,
+   "status": "open",
+   "shadow": true,
+   "mark": 3.6,
+   "mark_src": "Futu",
+   "track": "std",
+   "dte_td": 9,
+   "pool": "C96",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "rv21_pctl": 90.4
   }
  ],
  "closed": [
@@ -375,6 +400,33 @@
    "exit_date": "2026-11-13",
    "exit_reason": "PT50（mark 3.205 ≤ 50%×credit 6.92）",
    "realized": 370.8
+  },
+  {
+   "date": "2026-11-10",
+   "sym": "TMO",
+   "spot": 721.63,
+   "short_k": 700.0,
+   "long_k": 630.0,
+   "expiry": "2026-11-20",
+   "credit": 8.225,
+   "contracts": 1,
+   "margin": 6177.5,
+   "iv": 0.354,
+   "status": "closed",
+   "shadow": true,
+   "mark": 12.55,
+   "mark_src": "Futu",
+   "dte_td": 3,
+   "pool": "C96",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "spot_last": 693.9600219726562,
+   "unrealized": -433.7,
+   "close_worst": 18.3,
+   "mark_ks": 700.0,
+   "mark_kl": 640.0,
+   "exit_date": "2026-11-17",
+   "exit_reason": "dte≤3 硬平倉（mark 12.550）",
+   "realized": -433.7
   }
  ],
  "log": [
@@ -481,33 +533,42 @@
    "acts": [
     "跳過合計 49（hiIV閘 38〔例：LLY hiIV 68<90、UI(無真鏈)、UI w6(無真 width 格)〕／未過最低線(worst) 2／width<15 0／無真鏈 9）——寧願不做"
    ]
+  },
+  {
+   "date": "2026-11-17",
+   "acts": [
+    "dte≤3 硬平 TMO realized -434（wheel320 教訓閘）",
+    "↻ 贏腿即日回收：今日折 1 張，freed margin 補開（day std 0/7、w6 0/3）",
+    "🧪 簿級 test-only 開倉（C96·真鏈·worst 2.95） PSX 250.0/225.0 2026-11-27 mid 3.60×1張（dte 9）",
+    "跳過合計 47（hiIV閘 37〔例：UI(無真鏈)、UI w6(無真 width 格)、LLY hiIV 68<90〕／未過最低線(worst) 7／width<15 1／無真鏈 2）——寧願不做"
+   ]
   }
  ],
  "config": "satellite 10td+PT50+δ0.30（2026-11-10 三路研究拍板）",
  "summary": {
-  "as_of": "2026-11-16 23:54",
+  "as_of": "2026-11-17 00:00",
   "open_n": 3,
-  "realized": 1344.8,
-  "unrealized": -1339.1,
-  "total": 5.7,
-  "nav_paper": 49150.7,
+  "realized": 911.1,
+  "unrealized": -1267.09,
+  "total": -355.99,
+  "nav_paper": 48789.01,
   "shadow_n": 3,
-  "margin_used": 15784.0,
-  "closed_n": 6,
+  "margin_used": 11746.5,
+  "closed_n": 7,
   "std_open_n": 3,
   "w6_open_n": 0,
   "w6_realized": 0,
   "w6_unrealized": 0,
   "day": {
-   "date": "2026-11-16",
-   "std": 0,
+   "date": "2026-11-17",
+   "std": 1,
    "w6": 0
   }
  },
- "fp": "[14.65, 7.8, 2.11, 1.315, 2.04, 8.94, 1.85, 3.205, 11.925, -1339.1, 1344.8, 3, 6]",
+ "fp": "[12.55, 7.8, 2.11, 1.315, 2.04, 8.84, 1.85, 3.205, 17.742, 3.6, -1267.09, 911.1, 3, 7]",
  "day": {
-  "date": "2026-11-16",
-  "std": 0,
+  "date": "2026-11-17",
+  "std": 1,
   "w6": 0
  }
 }
