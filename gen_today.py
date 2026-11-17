@@ -1392,6 +1392,7 @@ _roadmap = dict(
         dict(q="輸邊硬規：spread≥2×credit／短腿觸及", v="🛑三次確認：6min連續bid穿＋3次TG＋30min無取消自動落盤；彈返即重置", hit=None, yes="", no="✅ 三次確認協議 11-08 起"),
         dict(q="earnings／assignment 防線", v="財報前必平／DTE≤5＋S<K＋S<0.95×MA50", hit=None, yes="", no="✅ 現行"),
         dict(q="MTM1× 指數腿＋PCS≥3×", v="拍板①未批／6樣本 paper 4週", hit=None, yes="", no="⏳ 等拍板"),
+        dict(q="🪜 L5 梯式 de-gross（paper 驗證中）", v="11-17 過 probe＋七窗（窗B MDD −53%／六窗成本 0.25pp）", hit=None, yes="", no="🪜 paper 4-8 週驗 fires→live 等量化閘"),
       ]),
       dict(id="F", name="⑥出事", checks=[
         dict(q="熊門／塌陷鐘響→N× 硬閘武裝", v="拍板②未批；硬規嚴執行照行", hit=None, yes="", no="⏳"),

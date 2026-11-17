@@ -23,6 +23,15 @@ PT_FOLD = 0.40          # PT60：premium 收 60% → 剩 40% 平倉
 FEE_PER_CT = 1.2        # 來回費用/張（統一簿口徑）
 NAV_USD = 49145.0
 START = "2026-11-03"    # 觀察期第一個交易日（11-02 為 setup 日）
+# ⭐ L5 梯式 de-gross（11-17 probe＋七窗 sweep 判決：~/shortput_research/ladder_degross_probe_20261117/
+#   窗B MDD −1.83%→−0.86% 砍半正中「回血期再爆」死因；六窗成本 median 0.25pp；熊窗零傷害）
+#   ——paper 台先行 4-8 週驗 fires 行為，live 拍板等 paper 量化閘。
+#   規矩：book equity 每 +5% NAV rung（ratchet 只升唔降）→ trim max-width 最大單名腿；
+#   mark≥2× 唔 trim（sp4 D7「mark≥2× 唔准機械平」紀律對齊）；cooldown 5 td。
+#   ⚠️ 誠實標注：backtest 係 composite（指數＋單名），呢簿＝單名子集——驗 fires 行為唔係數值。
+LADDER_STEP_PCT = 5.0
+LADDER_COOL_TD = 5
+LADDER_STATE = os.path.join(DIR, "ladder_state.json")
 
 
 def td_between(d0, d1):
@@ -216,6 +225,48 @@ def _run(mode):
             acts.append(("shadow 開倉（簿級 🔴 test-only）" if sh else "開 paper 倉") +
                         " %s %s/%s credit %s×%d張" % (c["sym"], c["short_k"], c["long_k"], c["credit"], c["contracts"]))
 
+    # 2.5) ⭐ L5 梯式 de-gross trim（11-17 paper 台啟用；ratchet 只升唔降）
+    opens = [e for e in book["entries"] if e["status"] == "open"]
+    realized = sum(e.get("realized", 0.0) for e in book["closed"])
+    unreal = sum(e.get("unrealized", 0.0) for e in opens)
+    try:
+        lad = json.load(open(LADDER_STATE))
+    except Exception:
+        lad = None
+    if not isinstance(lad, dict):
+        lad = dict(nav=NAV_USD, step_pct=LADDER_STEP_PCT, cool_td=LADDER_COOL_TD,
+                   rung=0, banked_total=0.0, fires=[], last_fire_date=None,
+                   note="L5 paper 驗證台（單名簿子集；backtest=composite）")
+    _eq = NAV_USD + realized + unreal
+    _rung = int((_eq - lad["nav"]) // (lad["nav"] * float(lad.get("step_pct", LADDER_STEP_PCT)) / 100.0))
+    if _rung > int(lad.get("rung", 0)) and opens:
+        _cool_ok = True
+        if lad.get("last_fire_date"):
+            try:
+                _cool_ok = td_between(date.fromisoformat(lad["last_fire_date"]), date.today()) >= int(lad.get("cool_td", LADDER_COOL_TD))
+            except Exception:
+                _cool_ok = True
+        # D7 對齊：mark≥2×credit 嘅腿唔准機械 trim（全部≥2× 就 deferral 下個 pass）
+        _cand = [e for e in opens if e.get("mark") is not None and e.get("mark", 0) < 2.0 * max(float(e.get("credit") or 0), 1e-9)]
+        if _cool_ok and _cand:
+            pick = max(_cand, key=lambda e: (float(e["short_k"]) - float(e["long_k"])) * max(int(e.get("contracts") or 1), 1))
+            _mk = pick.get("mark")
+            pick["status"] = "closed"
+            pick["exit_date"] = today_iso
+            pick["exit_reason"] = "L5 梯式 de-gross（rung %d · trim max-width）" % _rung
+            pick["realized"] = round((pick["credit"] - _mk) * 100 * pick["contracts"] - FEE_PER_CT * pick["contracts"], 2)
+            book["closed"].append(pick)
+            lad["rung"] = _rung
+            lad["banked_total"] = round(float(lad.get("banked_total") or 0.0) + pick["realized"], 2)
+            lad["fires"] = (lad.get("fires") or [])[-19:] + [dict(date=today_iso, sym=pick["sym"], rung=_rung,
+                                                                  mark_ratio=round(_mk / max(float(pick["credit"]), 1e-9), 3),
+                                                                  realized=pick["realized"])]
+            lad["last_fire_date"] = today_iso
+            acts.append("🪜 L5 fire：book 過 +%.0f%% rung %d → trim %s（max-width）realized %+.0f、累計 banked $%.0f"
+                        % (float(lad.get("step_pct", LADDER_STEP_PCT)), _rung, pick["sym"], pick["realized"], lad["banked_total"]))
+    with open(LADDER_STATE, "w") as f:
+        json.dump(lad, f, indent=1, ensure_ascii=False)
+
     # 3) 匯總
     opens = [e for e in book["entries"] if e["status"] == "open"]
     realized = sum(e.get("realized", 0.0) for e in book["closed"])
@@ -252,7 +303,7 @@ def _run(mode):
             print("tg skip: %s" % ex.__class__.__name__)
     # 4) push（dashboard 讀）
     try:
-        subprocess.run(["git", "add", "paper_book.json"], cwd=DIR, check=False)
+        subprocess.run(["git", "add", "paper_book.json", "ladder_state.json"], cwd=DIR, check=False)
         r = subprocess.run(["git", "commit", "-q", "-m", "paper book auto %s" % today_iso],
                            cwd=DIR, capture_output=True, text=True)
         if r.returncode == 0:

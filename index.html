@@ -1054,6 +1054,11 @@ function renderToday(d){
     var ct=cl.length?'<div class="note">已平倉：'+cl.map(function(e){return e.sym+' '+(e.realized>=0?'+':'')+'$'+e.realized.toFixed(0)+'（'+e.exit_reason.split('（')[0]+'）';}).join('、')+'</div>':'';
     document.getElementById('tdPaper').innerHTML='<div class="desc">觀察期 <b>'+b.started+' 起 · 第 '+s.week+'/2 週</b>'+bar+'realized <b>'+(s.realized>=0?'+':'')+'$'+(s.realized||0).toFixed(0)+'</b> · 浮動 <b>'+(s.unrealized>=0?'+':'')+'$'+(s.unrealized||0).toFixed(0)+'</b> · paper NAV <b>$'+(s.nav_paper||0).toFixed(0)+'</b>（NAV 錨 $49,145；按金 $'+(s.margin_used||0).toFixed(0)+'＝'+(s.margin_used&&s.nav_paper?(100*s.margin_used/s.nav_paper).toFixed(1):'0')+'%）'+ct+ot+'<div class="note" style="margin-top:6px">口徑：跟 winner 引擎規則模擬（PT60 平倉、δ0.28、$1.2/張費、零滑價）；浮動＝未實現 P&L＝(credit−mark)×100×張−費（以 mid 平倉袋到幾多）；mark＝Futu OpenD 真鏈 bid/ask mid（⭐11-05；strike snap 最近 listed，攞唔到先 BS 兜底），ET 開市每 5 分鐘更新（其餘時間 21:40 日更）；🧪＝shadow 倉（簿級 🔴 照開 test-only，11-04 追拍）。2 週期滿（約 11-17）無甩嘢即切真倉 PT60+δ0.28（11-02 追拍）。</div></div>';
   }).catch(function(){document.getElementById('tdPaper').textContent='paper_book.json 讀唔到。';});
+  fetch('ladder_state.json?v='+Date.now()).then(function(r){return r.json();}).then(function(L){
+    var el=document.getElementById('tdPaper'); if(!el)return;
+    var fs=(L.fires||[]).map(function(f){return f.date.slice(5)+' '+f.sym+'（rung '+f.rung+'，mark比 '+f.mark_ratio+'，realized '+(f.realized>=0?'+':'')+'$'+f.realized.toFixed(0)+'）';}).join('、');
+    el.insertAdjacentHTML('afterbegin','<div class="desc" style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:6px 10px;margin-bottom:6px"><b>🪜 L5 梯式 de-gross</b>（11-17 過 probe＋七窗 sweep，paper 驗證 4-8 週）：rung <b>'+(L.rung||0)+'</b>／每 +'+(L.step_pct||5)+'% NAV 一級 · 累計 banked <b>$'+(L.banked_total||0).toFixed(0)+'</b> · fires '+(L.fires||[]).length+' 次'+(fs?'：'+fs:'（未响過——book 未過首個 +5% rung，正常）')+'<span style="color:#64748b"> · 規矩：過 rung→trim max-width 最大單名腿；mark≥2× 唔 trim；cooldown 5td；指數腿唔郁。live 拍板等 paper 量化閘。</span></div>');
+  }).catch(function(){});
   Promise.all([
     fetch('paper_satellite_d10.json?v='+Date.now()).then(function(r){return r.json();}),
     fetch('today.json?v='+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
