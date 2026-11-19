@@ -92,8 +92,34 @@
    "contracts": 3,
    "margin": 2454.0,
    "iv": 0.247,
-   "status": "open",
+   "status": "closed",
    "mark": 1.82,
+   "mark_src": "Futu",
+   "delta": 0.3,
+   "dte_td": 1,
+   "pool": "index",
+   "config": "XSP 1-day skip-FOMC",
+   "exit_date": "2026-11-20",
+   "exit_reason": "cash-settle（XSP 717.58）",
+   "settle_xsp": 717.58,
+   "intrinsic": 7.417,
+   "realized": -1682.7
+  },
+  {
+   "date": "2026-11-20",
+   "sym": "XSP",
+   "spot": 717.58,
+   "short_k": 711.0,
+   "long_k": 701.0,
+   "expiry": "2026-11-23",
+   "credit": 2.22,
+   "credit_worst": 2.08,
+   "credit_min": 1.0,
+   "contracts": 3,
+   "margin": 2334.0,
+   "iv": 0.279,
+   "status": "open",
+   "mark": 2.22,
    "mark_src": "Futu",
    "delta": 0.3,
    "dte_td": 1,
@@ -179,6 +205,32 @@
    "settle_xsp": 730.4,
    "intrinsic": 0.0,
    "realized": 666.9
+  },
+  {
+   "date": "2026-11-19",
+   "sym": "XSP",
+   "spot": 730.4,
+   "short_k": 725.0,
+   "long_k": 715.0,
+   "expiry": "2026-11-20",
+   "credit": 1.82,
+   "credit_worst": 1.79,
+   "credit_min": 1.0,
+   "contracts": 3,
+   "margin": 2454.0,
+   "iv": 0.247,
+   "status": "closed",
+   "mark": 1.82,
+   "mark_src": "Futu",
+   "delta": 0.3,
+   "dte_td": 1,
+   "pool": "index",
+   "config": "XSP 1-day skip-FOMC",
+   "exit_date": "2026-11-20",
+   "exit_reason": "cash-settle（XSP 717.58）",
+   "settle_xsp": 717.58,
+   "intrinsic": 7.417,
+   "realized": -1682.7
   }
  ],
  "log": [
@@ -228,18 +280,25 @@
     "結算 XSP 728.0/718.0 XSP 730.40 intrinsic 0.00 realized +667",
     "開倉（真鏈） XSP 725.0/715.0 2026-11-20 δ~0.30 worst 1.79≥1.00 mid 1.82×3張 margin $2454（VIX 24.7）"
    ]
+  },
+  {
+   "date": "2026-11-20",
+   "acts": [
+    "結算 XSP 725.0/715.0 XSP 717.58 intrinsic 7.42 realized -1683",
+    "開倉（真鏈） XSP 711.0/701.0 2026-11-23 δ~0.30 worst 2.08≥1.00 mid 2.22×3張 margin $2334（VIX 27.9）"
+   ]
   }
  ],
  "config": "XSP 1-day δ0.30/w$10×3張 hold-to-settle skip-FOMC（11-12 拍板③，豁免 credit_min max(10%w,$0.50)）",
  "summary": {
-  "as_of": "2026-11-19 05:10",
+  "as_of": "2026-11-20 05:10",
   "open_n": 1,
-  "realized": -1871.41,
-  "closed_n": 3,
-  "nav_paper": 47273.59,
+  "realized": -3554.11,
+  "closed_n": 4,
+  "nav_paper": 45590.89,
   "win_n": 2,
-  "margin_used": 2454.0,
+  "margin_used": 2334.0,
   "review": "2026-11-26"
  },
- "fp": "[\"closed\", \"closed\", \"closed\", \"open\", -1871.41]"
+ "fp": "[\"closed\", \"closed\", \"closed\", \"closed\", \"open\", -3554.11]"
 }
