@@ -1029,6 +1029,7 @@ _OPTCODE = _re.compile(r"^[A-Z]+\d+[CP]\d+$")
 
 positions_out = []
 positions_paper = []
+closed_real = []
 ytd = dict(real_realized_hkd=None, paper_realized_hkd=None, unrealized_hkd=None, base_hkd=None,
            portfolio_return_pct=None, as_of=None)
 account = dict(total_hkd=None, equity_usd=None, us_cash_power_usd=None, long_mv_hkd=None,
@@ -1124,6 +1125,17 @@ try:
         else:
             _d["book"] = _p.get("book") or "paper"
             positions_paper.append(_d)
+    # ⭐ 2026-11-20 用戶令：我的倉 section 加「已平倉」table——數源＝engine ledger_all（11-19 起
+    #   engine 補寫全量 real trades；CRWD combo @1.07 實錄入帳）。最近 12 筆，closed 倒序。
+    for _t in sorted(_rec.get("ledger_all") or [],
+                     key=lambda x: str(x.get("closed") or ""), reverse=True)[:12]:
+        closed_real.append(dict(
+            ticker=_t.get("ticker"), strike=_t.get("strike"), long_k=_t.get("long_k"),
+            contracts=_t.get("contracts"), entry_prem=_t.get("entry_prem"),
+            exit_prem=_t.get("exit_prem"), opened=str(_t.get("opened") or "")[:10],
+            closed=str(_t.get("closed") or "")[:16].replace("T", " "),
+            pnl=_t.get("pnl"), pnl_hkd=_t.get("pnl_hkd"),
+            reason=str(_t.get("close_reason") or "")))
     # verified 驗證：Futu 88日成交或現持倉搵唔到＝幽靈倉（IAU 11-06 實錘）→ 唔入義務計
     for _po in positions_out:
         _po["verified"] = bool(_po.get("ticker") in _fill_unds or _po.get("ticker") in _real_stock_tickers)
@@ -1461,6 +1473,7 @@ out = dict(
              cap_pct=CUM_CAP_FRAC * 100, cash_after=usd(NAV_USD - cum_margin),
              dropped=cum_dropped),
     positions=positions_out, positions_paper=positions_paper, ytd=ytd, risk=risk,
+    closed_real=closed_real,
     account=dict(cash_hkd=CASH_HKD, fx=FX_USDHKD, nav_usd=round(NAV_USD, 0),
                  single_cap_usd=round(NAV_USD * SINGLE_CAP_FRAC, 0), **account),
     config=dict(live="基座 δ0.30/PT50/spr10/35td（拍板④）", shadow="winner δ0.28/PT60 paper 影子 2 週（11-17 無甩嘢切真倉）"),

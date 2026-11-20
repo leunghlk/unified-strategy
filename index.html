@@ -1000,6 +1000,26 @@ function renderToday(d){
       '<td class="num">'+(p.pnl_usd!=null?(p.pnl_usd>=0?'+':'')+'$'+p.pnl_usd.toFixed(0):'—')+'</td></tr>';
     }).join('')+'</tbody></table></div>';
     if(pos.some(function(p){return p.verified===false;}))posHtml+='<div class="note" style="margin-top:4px;color:#b45309">⚠️ 標「Futu 搵唔到」嘅倉：88日成交記錄＋現持倉都無呢筆——唔計入義務／風控行。係咪落咗喺另一個帳戶／未成交？確認咗話我知。</div>';
+    /* ⭐ 2026-11-20 用戶令：已平倉（真倉）table——數源 engine ledger_all（gen_today closed_real）*/
+    var clr=d.closed_real||[];
+    if(clr.length){
+      var su=clr.reduce(function(s,t){return s+(Number(t.pnl)||0);},0),
+          sh=clr.reduce(function(s,t){return s+(Number(t.pnl_hkd)||0);},0);
+      posHtml+='<div style="margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px"><b>已平倉（真倉 · 最近 '+clr.length+' 筆）</b><div class="table-scroll" style="margin-top:6px"><table><thead><tr><th>倉</th><th class="num">入場→平倉</th><th>開 → 平</th><th>原因</th><th class="num">P&amp;L (USD)</th><th class="num">P&amp;L (HKD)</th></tr></thead><tbody>'+
+        clr.map(function(t){
+          var pn=Number(t.pnl)||0,ph=Number(t.pnl_hkd)||0;
+          var rs=(t.reason||'—');
+          var rsh=rs.length>46?rs.slice(0,46)+'…':rs;
+          return '<tr><td><b>'+t.ticker+'</b> 賣'+t.strike+'P'+(t.long_k?'／買'+t.long_k+'P':'')+'×'+(t.contracts||1)+'</td>'+
+          '<td class="num">$'+(t.entry_prem!=null?t.entry_prem:'—')+' → $'+(t.exit_prem!=null?t.exit_prem:'—')+'</td>'+
+          '<td class="small" style="white-space:nowrap">'+(t.opened||'—')+' → '+(t.closed||'—')+'</td>'+
+          '<td class="small" title="'+rs.replace(/"/g,'&quot;')+'">'+rsh+'</td>'+
+          '<td class="num" style="color:'+(pn>=0?'#15803d':'#b91c1c')+'">'+(pn>=0?'+':'')+'$'+pn.toFixed(0)+'</td>'+
+          '<td class="num">'+(ph>=0?'+':'')+ph.toLocaleString()+'</td></tr>';
+        }).join('')+
+        '<tr style="border-top:2px solid #e2e8f0;font-weight:700;background:#f8fafc"><td>Σ '+clr.length+' 筆</td><td></td><td></td><td></td><td class="num">'+(su>=0?'+':'')+'$'+su.toFixed(0)+'</td><td class="num">'+(sh>=0?'+':'')+sh.toLocaleString()+'</td></tr>'+
+        '</tbody></table></div><div class="note" style="margin-top:4px">全數＝engine 簿 real 平倉（費後口徑，同「平倉紀錄」卡一致）；P&amp;L 費後未計佣金。完整 22 筆喺 options dashboard 總覽 tab。</div></div>';
+    }
     posHtml+='<div class="note" style="margin-top:6px">PT50 規則：credit 跌剩 ≤50%（即 mark ≤ 入場÷2）就提前平倉袋差價。'+(rk.oblig_cash_ratio!=null?'<span style="display:inline-block;margin-top:4px">🛡️ <b>風控行</b>（OpenD 實數）：按金佔用 <b>'+(rk.margin_used_pct!=null?rk.margin_used_pct+'%':'—')+'</b>總資產（維持線 HK$'+(acc.maint_margin_hkd!=null?acc.maint_margin_hkd.toLocaleString():'—')+'；全清狀態＝fund-pledge 口徑，唔係持倉風險）；<b>義務/現金 '+rk.oblig_cash_ratio+'</b>'+(rk.oblig_cash_ratio>1?' 🔴超 1 唔准開新倉':(rk.oblig_cash_ratio>0.8?' 🟡 >0.8 留意——開新倉前諗諗':' 🟢'))+'（義務 $'+(rk.obligation_usd!=null?rk.obligation_usd.toLocaleString():'—')+'＝Futu 驗證倉÷live equity US$'+(rk.equity_usd_live!=null?rk.equity_usd_live.toLocaleString():'—')+'）</span>':'')+'</div>';
     posHtml+=posScenHtml(d);
     posEl.innerHTML=posHtml;
