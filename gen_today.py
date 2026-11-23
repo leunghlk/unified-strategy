@@ -167,10 +167,17 @@ def price_spread(S, T, delta_tgt, iv, exp_str, sym=None, use_bridge=True):
         if puts is not None and len(puts):
             rs = puts.iloc[(puts["strike"] - Ks).abs().argmin()]
             rl = puts.iloc[(puts["strike"] - Kl).abs().argmin()]
+            _ks_real, _kl_real = float(rs["strike"]), float(rl["strike"])
+            # ⭐11-23 用戶令：BS 層 strike 必貼真鏈——313/282 呢類「spot×0.5% 步行整數」鏈上根本唔存在，
+            # 唔准上板（APP 實例：spot 348.29 → 假 313/282；真鏈係 312.5/280）。鏈 listing 拎到就貼，
+            # quote 唔可用都照貼、credit 照 BS 計（tag 寫明 K貼鏈）；連 listing 都拎唔到先留假 K（tag 寫 K未貼鏈⚠️）。
+            if _ks_real > 0 and _kl_real > 0 and (_ks_real != Ks or _kl_real != Kl):
+                Ks, Kl = _ks_real, _kl_real
+                credit = bs_put(S, Ks, T, BS_R, iv) - bs_put(S, Kl, T, BS_R, iv)
+                src = "BS(RV21×1.10)·K貼鏈"
             if float(rs["bid"]) > 0 and float(rs["ask"]) > 0 and float(rl["ask"]) > 0:
                 credit = (float(rs["bid"]) + float(rs["ask"])) / 2 - (float(rl["bid"]) + float(rl["ask"])) / 2
                 _cw = float(rs["bid"]) - float(rl["ask"])
-                Ks, Kl = float(rs["strike"]), float(rl["strike"])
                 src = "鏈 mid（延遲價）"
     except Exception:
         pass

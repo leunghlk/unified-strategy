@@ -1100,8 +1100,10 @@ function renderToday(d){
           var disp=openedToday[c.sym]?'<span class="pill b" title="今晚已開呢張。🧪＝shadow 模擬倉（簿級封刀時照開嚟收執行數據）；w6＝w6 試驗腿">✅ 已開'+(openedToday[c.sym].shadow?' 🧪':'')+(openedToday[c.sym].track==='w6'?' w6':'')+'</span>':(passHi===false?'✗ hiIV 未過，不開':(!passMin?'✗ 未過最低線(worst)，不開':(!passW?'✗ 寬度不足，不開':'—（排名／上限外）')));
           var mg=Number(c.margin||0);
           var mgCell=(mg?'$'+Math.round(mg).toLocaleString():'—')+(SB.cap?(mg&&SB.used+mg<=SB.cap?' <span class="pill g">✓夠位</span>':' <span class="pill r">✗爆</span>'):'');
-          var crCell='$'+c.credit+(c.src&&String(c.src).indexOf('BS')===0?' <span style="color:#b45309;font-size:10px">BS估</span>':'');
-          return '<tr><td><b>'+c.sym+'</b> 賣'+c.short_k+'／買'+c.long_k+'</td><td>'+c.expiry+'</td><td class="num">'+(c.dte_td!=null?c.dte_td:'—')+'</td><td class="num">'+crCell+'</td><td class="num">'+(c.credit_worst!=null?'$'+c.credit_worst:'—')+'</td><td class="num">'+(c.credit_min!=null?'$'+c.credit_min:'—')+'</td><td class="num">'+mgCell+'</td><td>'+flags+'</td><td>'+disp+'</td></tr>';
+          var fmtK=function(v){var n=Number(v);return Number.isInteger(n)?String(n):n.toFixed(1);};
+          var bsTag=(c.src&&String(c.src).indexOf('BS')===0)?' <span style="color:'+(String(c.src).indexOf('K貼鏈')>=0?'#b45309':'#b91c1c')+';font-size:10px" title="'+String(c.src)+'——'+(String(c.src).indexOf('K貼鏈')>=0?'strike 已貼近真鏈 listed 價，credit 係 BS 估算':'⚠️ strike 係 spot 步行估算，鏈 listing 攞唔到——未必係真 tradable strike，落單前必對真鏈')+'">'+String(c.src).replace('BS(RV21×1.10)','BS估'+(String(c.src).indexOf('K貼鏈')>=0?'·K貼鏈':'·K未貼鏈⚠️'))+'</span>':'';
+          var crCell='$'+c.credit+bsTag;
+          return '<tr><td><b>'+c.sym+'</b> 賣'+fmtK(c.short_k)+'／買'+fmtK(c.long_k)+'</td><td>'+c.expiry+'</td><td class="num">'+(c.dte_td!=null?c.dte_td:'—')+'</td><td class="num">'+crCell+'</td><td class="num">'+(c.credit_worst!=null?'$'+c.credit_worst:'—')+'</td><td class="num">'+(c.credit_min!=null?'$'+c.credit_min:'—')+'</td><td class="num">'+mgCell+'</td><td>'+flags+'</td><td>'+disp+'</td></tr>';
         }).join('')+'</tbody></table></div></div>';
     }else{
       sct2='<div class="note">今晚候選未出（每日 21:35 gen 出候選 → 21:50 開倉判定；post-close 時段 0 候選屬正常）。</div>';
