@@ -144,13 +144,18 @@
    "contracts": 3,
    "margin": 2440.5,
    "iv": 0.272,
-   "status": "open",
+   "status": "closed",
    "mark": 1.865,
    "mark_src": "Futu",
    "delta": 0.3,
    "dte_td": 1,
    "pool": "index",
-   "config": "XSP 1-day skip-FOMC"
+   "config": "XSP 1-day skip-FOMC",
+   "exit_date": "2026-11-25",
+   "exit_reason": "cash-settle（XSP 720.11）",
+   "settle_xsp": 720.11,
+   "intrinsic": 0.0,
+   "realized": 555.9
   }
  ],
  "closed": [
@@ -283,6 +288,32 @@
    "settle_xsp": 723.72,
    "intrinsic": 0.0,
    "realized": 662.4
+  },
+  {
+   "date": "2026-11-24",
+   "sym": "XSP",
+   "spot": 723.72,
+   "short_k": 717.0,
+   "long_k": 707.0,
+   "expiry": "2026-11-25",
+   "credit": 1.865,
+   "credit_worst": 1.84,
+   "credit_min": 1.0,
+   "contracts": 3,
+   "margin": 2440.5,
+   "iv": 0.272,
+   "status": "closed",
+   "mark": 1.865,
+   "mark_src": "Futu",
+   "delta": 0.3,
+   "dte_td": 1,
+   "pool": "index",
+   "config": "XSP 1-day skip-FOMC",
+   "exit_date": "2026-11-25",
+   "exit_reason": "cash-settle（XSP 720.11）",
+   "settle_xsp": 720.11,
+   "intrinsic": 0.0,
+   "realized": 555.9
   }
  ],
  "log": [
@@ -352,18 +383,25 @@
     "結算 XSP 711.0/701.0 XSP 723.72 intrinsic 0.00 realized +662",
     "開倉（真鏈） XSP 717.0/707.0 2026-11-25 δ~0.30 worst 1.84≥1.00 mid 1.86×3張 margin $2440（VIX 27.2）"
    ]
+  },
+  {
+   "date": "2026-11-25",
+   "acts": [
+    "結算 XSP 717.0/707.0 XSP 720.11 intrinsic 0.00 realized +556",
+    "開倉跳過：XSP 真鏈攞唔到（2026-11-26）——BS 合成唔准開"
+   ]
   }
  ],
  "config": "XSP 1-day δ0.30/w$10×3張 hold-to-settle skip-FOMC（11-12 拍板③，豁免 credit_min max(10%w,$0.50)）",
  "summary": {
-  "as_of": "2026-11-24 05:10",
-  "open_n": 1,
-  "realized": -2891.71,
-  "closed_n": 5,
-  "nav_paper": 46253.29,
-  "win_n": 3,
-  "margin_used": 2440.5,
+  "as_of": "2026-11-25 05:10",
+  "open_n": 0,
+  "realized": -2335.81,
+  "closed_n": 6,
+  "nav_paper": 46809.19,
+  "win_n": 4,
+  "margin_used": 0,
   "review": "2026-11-26"
  },
- "fp": "[\"closed\", \"closed\", \"closed\", \"closed\", \"closed\", \"open\", -2891.71]"
+ "fp": "[\"closed\", \"closed\", \"closed\", \"closed\", \"closed\", \"closed\", -2335.81]"
 }
