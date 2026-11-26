@@ -9,7 +9,7 @@
     "checks": [
      {
       "q": "VIX > 32？",
-      "v": "VIX 26.9",
+      "v": "VIX 27.1",
       "hit": false,
       "yes": "⛔全停",
       "no": "→A2"
@@ -57,7 +57,7 @@
      },
      {
       "q": "指數腿（SPX/XSP PCS）？",
-      "v": "VIX 26.9＋regime collapse＋RED=True（floor20：VIX≥20 先開）",
+      "v": "VIX 27.1＋regime collapse＋RED=True（floor20：VIX≥20 先開）",
       "hit": true,
       "yes": "封（VIX<20 冇肉／塌陷／RED 停新開）",
       "no": "✅ 開（δ 錨 0.29／部署底 0.25）"
@@ -97,7 +97,7 @@
     "checks": [
      {
       "q": "單腿 ≤5% NAV｜cum ≤12% NAV",
-      "v": "今日 cum margin=5891.0（cap 12%=5897.41）",
+      "v": "今日 cum margin=5768.5（cap 12%=5897.41）",
       "hit": null,
       "yes": "",
       "no": "超＝唔開（裂口日唯一防線，止蝕盤防唔到單夜×4）"
@@ -168,15 +168,15 @@
   ],
   "stop_protocol": null
  },
- "as_of": "2026-11-26 21:35 HKT",
+ "as_of": "2026-11-26 22:34 HKT",
  "bar_date": "2026-11-26",
  "data_fresh": true,
- "intraday": false,
+ "intraday": true,
  "market": {
   "spx": 7182.78,
   "spx_chg": -0.25,
-  "vix": 26.88,
-  "vix_chg": -1.41,
+  "vix": 27.11,
+  "vix_chg": -1.18,
   "vix_band": "20-32",
   "band_action": "XSP 帶位開窗——惟雷達 RED：指數腿停新開（roadmap B2 封）；C96 豁免腿照規則",
   "breadth": 21.0,
@@ -188,7 +188,7 @@
   "mkt_gate_bad": true,
   "spx_sma200": 7352.49,
   "mkt_state": "bear",
-  "et_note": "ET 而家 2026-11-26 週四（已收市，16:00 ET）——下列＝今日（2026-11-26 週四）收市價；HKT 而家 11-26 21:35",
+  "et_note": "ET 而家 2026-11-26 週四——開市中，下列價＝現價（延遲約 0–15 分）",
   "bar_wd": "週四"
  },
  "radar": {
@@ -312,8 +312,8 @@
    "premium_in": 714.0,
    "margin": 2286.0,
    "cash_after": 49859.12,
-   "iv_used": 66.5,
-   "src": "鏈 mid（Futu OpenD）",
+   "iv_used": 48.8,
+   "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "rv21_pctl": 96.0,
    "earn_td": -20,
@@ -348,43 +348,44 @@
   {
    "sym": "TENB",
    "spot": 45.7,
-   "short_k": 41.0,
-   "long_k": 36.0,
+   "short_k": 40.0,
+   "long_k": 28.0,
    "expiry": "2027-01-15",
    "dte_td": 36,
-   "credit": 0.32,
+   "credit": 0.93,
    "credit_worst": 0.01,
    "width_pct": 10,
    "credit_min": 1.5,
-   "contracts": 5,
-   "max_loss": 2337.5,
-   "premium_in": 162.5,
-   "margin": 2337.5,
-   "cash_after": 49307.62,
-   "iv_used": 66.6,
+   "contracts": 2,
+   "max_loss": 2215.0,
+   "premium_in": 185.0,
+   "margin": 2215.0,
+   "cash_after": 49330.12,
+   "iv_used": 65.2,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.3,
    "rv21_pctl": 96.0,
    "earn_td": -21,
-   "status": "⚠️ 無報價",
-   "status_why": "鏈內搵唔到齊 bid/ask 嘅對應 strike——fail-closed 當封"
+   "exec_credit": -0.35,
+   "status": "⛔ 流動性閘",
+   "status_why": "短腿（賣）mid spread 44% >35%——收價 fiction，掛 mid 都收唔到（MAX_SPREAD_FRAC 0.35）"
   }
  ],
  "paper_candidates": [
   {
    "sym": "RBLX",
    "spot": 55.63,
-   "short_k": 47.5,
-   "long_k": 42.5,
+   "short_k": 50.0,
+   "long_k": 45.0,
    "expiry": "2027-01-15",
    "dte_td": 36,
-   "credit": 0.94,
-   "credit_worst": 0.5,
+   "credit": 1.19,
+   "credit_worst": 0.81,
    "contracts": 6,
-   "premium_in": 564.0,
-   "margin": 2436.0,
-   "iv_used": 69.4,
-   "src": "鏈 mid（Futu OpenD）",
+   "premium_in": 714.0,
+   "margin": 2286.0,
+   "iv_used": 48.8,
+   "src": "鏈 mid（延遲價）",
    "delta": 0.28,
    "pt": "PT60"
   },
@@ -408,16 +409,16 @@
   {
    "sym": "TENB",
    "spot": 45.7,
-   "short_k": 41.0,
-   "long_k": 36.0,
+   "short_k": 40.0,
+   "long_k": 28.0,
    "expiry": "2027-01-15",
    "dte_td": 36,
-   "credit": 0.32,
+   "credit": 0.93,
    "credit_worst": 0.01,
-   "contracts": 5,
-   "premium_in": 162.5,
-   "margin": 2337.5,
-   "iv_used": 66.6,
+   "contracts": 2,
+   "premium_in": 185.0,
+   "margin": 2215.0,
+   "iv_used": 65.2,
    "src": "鏈 mid（Futu OpenD）",
    "delta": 0.28,
    "pt": "PT60"
@@ -425,17 +426,17 @@
   {
    "sym": "APP",
    "spot": 378.95,
-   "short_k": 340.0,
-   "long_k": 300.0,
+   "short_k": 350.0,
+   "long_k": 310.0,
    "expiry": "2027-01-15",
    "dte_td": 36,
-   "credit": 8.8,
-   "credit_worst": 5.0,
+   "credit": 11.65,
+   "credit_worst": 9.5,
    "contracts": 1,
-   "premium_in": 880.0,
-   "margin": 3120.0,
-   "iv_used": 64.8,
-   "src": "鏈 mid（Futu OpenD）",
+   "premium_in": 1165.0,
+   "margin": 2835.0,
+   "iv_used": 50.8,
+   "src": "鏈 mid（延遲價）",
    "delta": 0.28,
    "pt": "PT60"
   },
@@ -482,10 +483,10 @@
    "sym": "TENB",
    "pool": null,
    "rv21_pctl": 96.0,
-   "cur_width": 5.0,
+   "cur_width": 12.0,
    "cur_width_pct": 10,
    "pilot_width": 15,
-   "pilot_long_k": 26.0,
+   "pilot_long_k": 25.0,
    "pilot_credit_min": 1.5
   }
  ],
@@ -1253,8 +1254,8 @@
  ],
  "sat_margin": {
   "cap": 19658,
-  "used": 8310,
-  "headroom": 11348
+  "used": 9546,
+  "headroom": 10112
  },
  "sat_skips": [
   {
@@ -2384,10 +2385,10 @@
   }
  ],
  "cum": {
-  "margin": 5891.0,
-  "frac": 12.0,
+  "margin": 5768.5,
+  "frac": 11.7,
   "cap_pct": 12.0,
-  "cash_after": 43254.12,
+  "cash_after": 43376.62,
   "dropped": [
    "APP",
    "RPD"
@@ -2456,7 +2457,7 @@
  },
  "risk": {
   "obligation_usd": 12000,
-  "equity_usd_live": 39040.1,
+  "equity_usd_live": 39037.7,
   "oblig_cash_ratio": 0.31,
   "margin_used_pct": 35.2,
   "cash_usd": 0
@@ -2624,22 +2625,22 @@
   "fx": 7.78,
   "nav_usd": 49145.0,
   "single_cap_usd": 2457.0,
-  "total_hkd": 304513,
-  "equity_usd": 39040.1,
+  "total_hkd": 304494,
+  "equity_usd": 39037.7,
   "us_cash_power_usd": 0,
-  "long_mv_hkd": 350927,
-  "fund_assets_hkd": 351103,
-  "init_margin_hkd": 107293,
-  "maint_margin_hkd": 89737,
-  "real_cash_hkd": -387948,
+  "long_mv_hkd": 350917,
+  "fund_assets_hkd": 351082,
+  "init_margin_hkd": 107287,
+  "maint_margin_hkd": 89733,
+  "real_cash_hkd": -387937,
   "anchor_hkd": 382349,
   "anchor_delta_pct": -20.4,
   "legs": [
    {
     "ticker": "AMD",
     "shares": 100.0,
-    "mkt_val_hkd": 318215,
-    "pnl_hkd": -69728,
+    "mkt_val_hkd": 318197,
+    "pnl_hkd": -69724,
     "pnl_pct": -17.97
    }
   ],
@@ -2657,12 +2658,12 @@
     "code": "US.AMD261127P445000",
     "shares": 1.0,
     "strike": 2.72,
-    "pnl_hkd": 29005,
+    "pnl_hkd": 29004,
     "expiry": "P4"
    }
   ],
-  "unreal_stock_hkd": -69728,
-  "unreal_opt_hkd": 28088,
+  "unreal_stock_hkd": -69724,
+  "unreal_opt_hkd": 28087,
   "closed_88d_usd": -39531,
   "closed_88d_hkd": -307551,
   "closed_codes": {
@@ -2702,7 +2703,7 @@
    "WDC",
    "XSP"
   ],
-  "ts": "2026-11-26T21:33:50"
+  "ts": "2026-11-26T22:33:51"
  },
  "config": {
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",
