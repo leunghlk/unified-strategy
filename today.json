@@ -9,7 +9,7 @@
     "checks": [
      {
       "q": "VIX > 32？",
-      "v": "VIX 28.3",
+      "v": "VIX 26.9",
       "hit": false,
       "yes": "⛔全停",
       "no": "→A2"
@@ -57,7 +57,7 @@
      },
      {
       "q": "指數腿（SPX/XSP PCS）？",
-      "v": "VIX 28.3＋regime collapse＋RED=True（floor20：VIX≥20 先開）",
+      "v": "VIX 26.9＋regime collapse＋RED=True（floor20：VIX≥20 先開）",
       "hit": true,
       "yes": "封（VIX<20 冇肉／塌陷／RED 停新開）",
       "no": "✅ 開（δ 錨 0.29／部署底 0.25）"
@@ -168,15 +168,15 @@
   ],
   "stop_protocol": null
  },
- "as_of": "2026-11-26 07:30 HKT",
- "bar_date": "2026-11-25",
+ "as_of": "2026-11-26 21:35 HKT",
+ "bar_date": "2026-11-26",
  "data_fresh": true,
  "intraday": false,
  "market": {
   "spx": 7182.78,
   "spx_chg": -0.25,
-  "vix": 28.29,
-  "vix_chg": 1.93,
+  "vix": 26.88,
+  "vix_chg": -1.41,
   "vix_band": "20-32",
   "band_action": "XSP 帶位開窗——惟雷達 RED：指數腿停新開（roadmap B2 封）；C96 豁免腿照規則",
   "breadth": 21.0,
@@ -188,8 +188,8 @@
   "mkt_gate_bad": true,
   "spx_sma200": 7352.49,
   "mkt_state": "bear",
-  "et_note": "ET 而家 2026-11-25 週三（已收市，16:00 ET）——下列＝今日（2026-11-25 週三）收市價；HKT 而家 11-26 07:30",
-  "bar_wd": "週三"
+  "et_note": "ET 而家 2026-11-26 週四（已收市，16:00 ET）——下列＝今日（2026-11-26 週四）收市價；HKT 而家 11-26 21:35",
+  "bar_wd": "週四"
  },
  "radar": {
   "level": "RED",
@@ -2407,7 +2407,7 @@
    "pt_remaining": 121,
    "margin_req": 6097.0,
    "pnl_usd": -187.0,
-   "spot": 694.0,
+   "spot": 682.0,
    "pt_zone": "未到",
    "id": "p17942424387353",
    "verified": true,
@@ -2432,7 +2432,7 @@
    "pt_remaining": 800,
    "margin_req": 4378.0,
    "pnl_usd": -4356.0,
-   "spot": 396.46,
+   "spot": 413.81,
    "pt_zone": "未到",
    "id": "p17944172936035",
    "verified": true,
@@ -2456,10 +2456,10 @@
  },
  "risk": {
   "obligation_usd": 12000,
-  "equity_usd_live": 38897.6,
+  "equity_usd_live": 39040.1,
   "oblig_cash_ratio": 0.31,
-  "margin_used_pct": 36.8,
-  "cash_usd": 30554
+  "margin_used_pct": 35.2,
+  "cash_usd": 0
  },
  "closed_real": [
   {
@@ -2624,39 +2624,47 @@
   "fx": 7.78,
   "nav_usd": 49145.0,
   "single_cap_usd": 2457.0,
-  "total_hkd": 303401,
-  "equity_usd": 38897.6,
-  "us_cash_power_usd": 30554,
-  "long_mv_hkd": 32235,
-  "fund_assets_hkd": 351143,
-  "init_margin_hkd": 111626,
-  "maint_margin_hkd": 94069,
-  "real_cash_hkd": 0,
+  "total_hkd": 304513,
+  "equity_usd": 39040.1,
+  "us_cash_power_usd": 0,
+  "long_mv_hkd": 350927,
+  "fund_assets_hkd": 351103,
+  "init_margin_hkd": 107293,
+  "maint_margin_hkd": 89737,
+  "real_cash_hkd": -387948,
   "anchor_hkd": 382349,
-  "anchor_delta_pct": -20.6,
-  "legs": [],
+  "anchor_delta_pct": -20.4,
+  "legs": [
+   {
+    "ticker": "AMD",
+    "shares": 100.0,
+    "mkt_val_hkd": 318215,
+    "pnl_hkd": -69728,
+    "pnl_pct": -17.97
+   }
+  ],
   "opt_legs": [
    {
     "ticker": "TMO",
     "code": "US.TMO261218P660000",
     "shares": 0.0,
     "strike": 12.91,
-    "pnl_hkd": -1466,
+    "pnl_hkd": -917,
     "expiry": "P6"
    },
    {
     "ticker": "AMD",
-    "code": "US.AMD261127P495000",
-    "shares": 0.0,
-    "strike": 8.94,
-    "pnl_hkd": -34321,
+    "code": "US.AMD261127P445000",
+    "shares": 1.0,
+    "strike": 2.72,
+    "pnl_hkd": 29005,
     "expiry": "P4"
    }
   ],
-  "unreal_stock_hkd": 0,
-  "unreal_opt_hkd": -35787,
-  "closed_88d_usd": -38909,
-  "closed_88d_hkd": -302712,
+  "unreal_stock_hkd": -69728,
+  "unreal_opt_hkd": 28088,
+  "closed_88d_usd": -39531,
+  "closed_88d_hkd": -307551,
   "closed_codes": {
    "BE": -11040,
    "NET": -10170,
@@ -2671,7 +2679,6 @@
    "DLLL": 283,
    "CRWD": 342,
    "LITE": 523,
-   "AMD": 622,
    "DELL": 645,
    "COHR": 700,
    "TMO": 903
@@ -2695,7 +2702,7 @@
    "WDC",
    "XSP"
   ],
-  "ts": "2026-11-26T07:30:33"
+  "ts": "2026-11-26T21:33:50"
  },
  "config": {
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",
