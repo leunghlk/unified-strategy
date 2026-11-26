@@ -170,13 +170,18 @@
    "contracts": 3,
    "margin": 2472.0,
    "iv": 0.28,
-   "status": "open",
+   "status": "closed",
    "mark": 1.76,
    "mark_src": "Futu",
    "delta": 0.3,
    "dte_td": 1,
    "pool": "index",
-   "config": "XSP 1-day skip-FOMC"
+   "config": "XSP 1-day skip-FOMC",
+   "exit_date": "2026-11-27",
+   "exit_reason": "cash-settle（XSP 718.28）",
+   "settle_xsp": 718.28,
+   "intrinsic": 0.0,
+   "realized": 524.4
   }
  ],
  "closed": [
@@ -335,6 +340,32 @@
    "settle_xsp": 720.11,
    "intrinsic": 0.0,
    "realized": 555.9
+  },
+  {
+   "date": "2026-11-26",
+   "sym": "XSP",
+   "spot": 718.28,
+   "short_k": 712.0,
+   "long_k": 702.0,
+   "expiry": "2026-11-27",
+   "credit": 1.76,
+   "credit_worst": 1.72,
+   "credit_min": 1.0,
+   "contracts": 3,
+   "margin": 2472.0,
+   "iv": 0.28,
+   "status": "closed",
+   "mark": 1.76,
+   "mark_src": "Futu",
+   "delta": 0.3,
+   "dte_td": 1,
+   "pool": "index",
+   "config": "XSP 1-day skip-FOMC",
+   "exit_date": "2026-11-27",
+   "exit_reason": "cash-settle（XSP 718.28）",
+   "settle_xsp": 718.28,
+   "intrinsic": 0.0,
+   "realized": 524.4
   }
  ],
  "log": [
@@ -417,18 +448,25 @@
    "acts": [
     "開倉（真鏈） XSP 712.0/702.0 2026-11-27 δ~0.30 worst 1.72≥1.00 mid 1.76×3張 margin $2472（VIX 28.0）"
    ]
+  },
+  {
+   "date": "2026-11-27",
+   "acts": [
+    "結算 XSP 712.0/702.0 XSP 718.28 intrinsic 0.00 realized +524",
+    "開倉跳過：XSP 真鏈攞唔到（2026-11-30）——BS 合成唔准開"
+   ]
   }
  ],
  "config": "XSP 1-day δ0.30/w$10×3張 hold-to-settle skip-FOMC（11-12 拍板③，豁免 credit_min max(10%w,$0.50)）",
  "summary": {
-  "as_of": "2026-11-26 05:10",
-  "open_n": 1,
-  "realized": -2335.81,
-  "closed_n": 6,
-  "nav_paper": 46809.19,
-  "win_n": 4,
-  "margin_used": 2472.0,
+  "as_of": "2026-11-27 05:10",
+  "open_n": 0,
+  "realized": -1811.41,
+  "closed_n": 7,
+  "nav_paper": 47333.59,
+  "win_n": 5,
+  "margin_used": 0,
   "review": "2026-11-26"
  },
- "fp": "[\"closed\", \"closed\", \"closed\", \"closed\", \"closed\", \"closed\", \"open\", -2335.81]"
+ "fp": "[\"closed\", \"closed\", \"closed\", \"closed\", \"closed\", \"closed\", \"closed\", -1811.41]"
 }
