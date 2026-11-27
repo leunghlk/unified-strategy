@@ -97,7 +97,7 @@
     "checks": [
      {
       "q": "單腿 ≤5% NAV｜cum ≤12% NAV",
-      "v": "今日 cum margin=4742.0（cap 12%=5897.41）",
+      "v": "今日 cum margin=4693.0（cap 12%=5897.41）",
       "hit": null,
       "yes": "",
       "no": "超＝唔開（裂口日唯一防線，止蝕盤防唔到單夜×4）"
@@ -168,7 +168,7 @@
   ],
   "stop_protocol": null
  },
- "as_of": "2026-11-28 04:19 HKT",
+ "as_of": "2026-11-28 04:49 HKT",
  "bar_date": "2026-11-27",
  "data_fresh": true,
  "intraday": true,
@@ -300,25 +300,26 @@
    "sym": "RBLX",
    "spot": 57.38,
    "short_k": 52.5,
-   "long_k": 45.0,
+   "long_k": 47.5,
    "expiry": "2027-01-15",
    "dte_td": 35,
-   "credit": 1.75,
-   "credit_worst": 1.36,
+   "credit": 1.25,
+   "credit_worst": 0.64,
    "width_pct": 10,
    "credit_min": 1.5,
-   "contracts": 4,
-   "max_loss": 2302.0,
-   "premium_in": 698.0,
-   "margin": 2302.0,
-   "cash_after": 49843.12,
-   "iv_used": 61.3,
-   "src": "鏈 mid（Futu OpenD）",
+   "contracts": 6,
+   "max_loss": 2253.0,
+   "premium_in": 747.0,
+   "margin": 2253.0,
+   "cash_after": 49892.12,
+   "iv_used": 48.8,
+   "src": "鏈 mid（延遲價）",
    "delta": 0.3,
    "rv21_pctl": 96.0,
    "earn_td": -21,
-   "status": "⚠️ 無鏈",
-   "status_why": "bridge 攞唔到報價——fail-closed 當封，唔好落"
+   "exec_credit": 0.64,
+   "status": "✅ 可落",
+   "status_why": "短腿 21% 過閘；長腿（買）mid spread 43% 闊——只准 combo 限價落，唔准逐腿市價；可執行 $0.64 對 mid $1.25（−49%）"
   },
   {
    "sym": "RPD",
@@ -350,17 +351,17 @@
   {
    "sym": "RBLX",
    "spot": 57.38,
-   "short_k": 50.0,
-   "long_k": 45.0,
+   "short_k": 52.5,
+   "long_k": 47.5,
    "expiry": "2027-01-15",
    "dte_td": 35,
-   "credit": 1.05,
-   "credit_worst": 0.71,
+   "credit": 1.25,
+   "credit_worst": 0.64,
    "contracts": 6,
-   "premium_in": 633.0,
-   "margin": 2367.0,
-   "iv_used": 63.7,
-   "src": "鏈 mid（Futu OpenD）",
+   "premium_in": 747.0,
+   "margin": 2253.0,
+   "iv_used": 48.8,
+   "src": "鏈 mid（延遲價）",
    "delta": 0.28,
    "pt": "PT60"
   },
@@ -421,7 +422,7 @@
    "sym": "RBLX",
    "pool": null,
    "rv21_pctl": 96.0,
-   "cur_width": 7.5,
+   "cur_width": 5.0,
    "cur_width_pct": 10,
    "pilot_width": 15,
    "pilot_long_k": 37.5,
@@ -2347,10 +2348,10 @@
   }
  ],
  "cum": {
-  "margin": 4742.0,
-  "frac": 9.6,
+  "margin": 4693.0,
+  "frac": 9.5,
   "cap_pct": 12.0,
-  "cash_after": 44403.12,
+  "cash_after": 44452.12,
   "dropped": [
    "APP",
    "TENB"
@@ -2415,11 +2416,11 @@
   "unrealized_hkd": -35981.0,
   "base_hkd": 303431.466,
   "portfolio_return_pct": -63.11,
-  "as_of": "2026-11-28T04:18:07.043549+08:00"
+  "as_of": "2026-11-28T04:48:49.138722+08:00"
  },
  "risk": {
   "obligation_usd": 12000,
-  "equity_usd_live": 38897.2,
+  "equity_usd_live": 38993.8,
   "oblig_cash_ratio": 0.31,
   "margin_used_pct": 29.5,
   "cash_usd": 0
@@ -2587,23 +2588,23 @@
   "fx": 7.78,
   "nav_usd": 49145.0,
   "single_cap_usd": 2457.0,
-  "total_hkd": 303399,
-  "equity_usd": 38897.2,
+  "total_hkd": 304151,
+  "equity_usd": 38993.8,
   "us_cash_power_usd": 0,
-  "long_mv_hkd": 349633,
+  "long_mv_hkd": 350385,
   "fund_assets_hkd": 0,
-  "init_margin_hkd": 89631,
-  "maint_margin_hkd": 89631,
-  "real_cash_hkd": -36802,
+  "init_margin_hkd": 89629,
+  "maint_margin_hkd": 89629,
+  "real_cash_hkd": -36801,
   "anchor_hkd": 382349,
-  "anchor_delta_pct": -20.6,
+  "anchor_delta_pct": -20.5,
   "legs": [
    {
     "ticker": "AMD",
     "shares": 100.0,
-    "mkt_val_hkd": 331036,
-    "pnl_hkd": -56466,
-    "pnl_pct": -14.57
+    "mkt_val_hkd": 331230,
+    "pnl_hkd": -56252,
+    "pnl_pct": -14.52
    }
   ],
   "opt_legs": [
@@ -2616,7 +2617,7 @@
     "expiry": "P6"
    }
   ],
-  "unreal_stock_hkd": -56466,
+  "unreal_stock_hkd": -56252,
   "unreal_opt_hkd": -1096,
   "closed_88d_usd": -39531,
   "closed_88d_hkd": -307551,
@@ -2657,7 +2658,7 @@
    "WDC",
    "XSP"
   ],
-  "ts": "2026-11-28T04:11:56"
+  "ts": "2026-11-28T04:48:49"
  },
  "config": {
   "live": "基座 δ0.30/PT50/spr10/35td（拍板④）",
