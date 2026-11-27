@@ -303,16 +303,16 @@
    "iv": 1.376,
    "status": "open",
    "shadow": true,
-   "mark": 20.975,
+   "mark": 20.225,
    "mark_src": "Futu",
    "track": "std",
    "dte_td": 5,
    "pool": "C96+117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "rv21_pctl": 100.0,
-   "spot_last": 419.29559326171875,
-   "close_worst": 21.65,
-   "unrealized": -793.7
+   "spot_last": 423.510009765625,
+   "close_worst": 22.0,
+   "unrealized": -718.7
   },
   {
    "date": "2026-11-24",
@@ -326,18 +326,21 @@
    "contracts": 1,
    "margin": 2775.5,
    "iv": 0.779,
-   "status": "open",
+   "status": "closed",
    "shadow": true,
-   "mark": 3.645,
+   "mark": 3.07,
    "mark_src": "Futu",
    "track": "std",
    "dte_td": 5,
    "pool": "117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "rv21_pctl": 97.5,
-   "spot_last": 364.6449890136719,
-   "close_worst": 4.99,
-   "unrealized": 358.8
+   "spot_last": 366.17999267578125,
+   "close_worst": 4.04,
+   "unrealized": 416.3,
+   "exit_date": "2026-11-28",
+   "exit_reason": "PT50（mark 3.070 ≤ 50%×credit 7.25）",
+   "realized": 416.3
   },
   {
    "date": "2026-11-24",
@@ -353,16 +356,16 @@
    "iv": 0.986,
    "status": "open",
    "shadow": true,
-   "mark": 3.125,
+   "mark": 3.055,
    "mark_src": "Futu",
    "track": "std",
    "dte_td": 5,
    "pool": "117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "rv21_pctl": 95.2,
-   "spot_last": 295.19000244140625,
-   "close_worst": 3.98,
-   "unrealized": 96.3
+   "spot_last": 296.04998779296875,
+   "close_worst": 4.18,
+   "unrealized": 103.3
   },
   {
    "date": "2026-11-26",
@@ -406,16 +409,16 @@
    "iv": 1.3840000000000001,
    "status": "open",
    "shadow": true,
-   "mark": 5.45,
+   "mark": 5.525,
    "mark_src": "Futu",
    "track": "std",
    "dte_td": 10,
    "pool": "117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "rv21_pctl": 91.0,
-   "spot_last": 395.8800048828125,
+   "spot_last": 398.4525146484375,
    "close_worst": 6.75,
-   "unrealized": -53.7
+   "unrealized": -61.2
   },
   {
    "date": "2026-11-28",
@@ -431,16 +434,16 @@
    "iv": 0.899,
    "status": "open",
    "shadow": true,
-   "mark": 2.235,
+   "mark": 2.115,
    "mark_src": "Futu",
    "track": "std",
    "dte_td": 10,
    "pool": "117",
    "config": "satellite 10td+PT50+δ0.30 池=117+C96",
    "rv21_pctl": 92.5,
-   "spot_last": 177.44000244140625,
-   "close_worst": 2.58,
-   "unrealized": 16.3
+   "spot_last": 178.3574981689453,
+   "close_worst": 2.48,
+   "unrealized": 28.3
   }
  ],
  "closed": [
@@ -759,6 +762,34 @@
    "exit_date": "2026-11-28",
    "exit_reason": "PT50（mark 1.220 ≤ 50%×credit 2.65）",
    "realized": 141.8
+  },
+  {
+   "date": "2026-11-24",
+   "sym": "PANW",
+   "spot": 359.98,
+   "short_k": 337.5,
+   "long_k": 302.5,
+   "expiry": "2026-12-04",
+   "credit": 7.245,
+   "credit_worst": 4.9,
+   "contracts": 1,
+   "margin": 2775.5,
+   "iv": 0.779,
+   "status": "closed",
+   "shadow": true,
+   "mark": 3.07,
+   "mark_src": "Futu",
+   "track": "std",
+   "dte_td": 5,
+   "pool": "117",
+   "config": "satellite 10td+PT50+δ0.30 池=117+C96",
+   "rv21_pctl": 97.5,
+   "spot_last": 366.17999267578125,
+   "close_worst": 4.04,
+   "unrealized": 416.3,
+   "exit_date": "2026-11-28",
+   "exit_reason": "PT50（mark 3.070 ≤ 50%×credit 7.25）",
+   "realized": 416.3
   }
  ],
  "log": [
@@ -980,20 +1011,28 @@
     "🧪 簿級 test-only 開倉（117·真鏈·worst 2.06） QCOM 162.5/147.0 2026-12-11 mid 2.41×1張（dte 10）",
     "跳過合計 47（hiIV閘 27〔例：UI(無真鏈)、UI w6(無真 width 格)、LLY hiIV 70<90〕／未過最低線(worst) 14／width<15 3／無真鏈 3）——寧願不做"
    ]
+  },
+  {
+   "date": "2026-11-28",
+   "acts": [
+    "PT50 平 PANW 7.25→3.07（Futu mark）realized +416",
+    "↻ 贏腿即日回收：今日折 1 張，freed margin 補開（day std 2/7、w6 0/3）",
+    "跳過合計 45（hiIV閘 27〔例：UI(無真鏈)、UI w6(無真 width 格)、LLY hiIV 69<90〕／未過最低線(worst) 12／width<15 3／無真鏈 3）——寧願不做"
+   ]
   }
  ],
  "config": "satellite 10td+PT50+δ0.30（2026-11-10 三路研究拍板）",
  "summary": {
-  "as_of": "2026-11-28 01:54",
-  "open_n": 5,
-  "realized": -345.4,
-  "unrealized": -376.0,
-  "total": -721.4,
-  "nav_paper": 48423.6,
-  "shadow_n": 5,
-  "margin_used": 13127.0,
-  "closed_n": 12,
-  "std_open_n": 5,
+  "as_of": "2026-11-28 01:59",
+  "open_n": 4,
+  "realized": 70.9,
+  "unrealized": -648.3,
+  "total": -577.4,
+  "nav_paper": 48567.6,
+  "shadow_n": 4,
+  "margin_used": 10351.5,
+  "closed_n": 13,
+  "std_open_n": 4,
   "w6_open_n": 0,
   "w6_realized": 0,
   "w6_unrealized": 0,
@@ -1003,7 +1042,7 @@
    "w6": 0
   }
  },
- "fp": "[12.55, 7.8, 2.11, 1.315, 2.04, 19.38, 1.85, 3.205, 3.135, 11.3, 2.145, 20.975, 3.645, 3.125, 1.22, 5.45, 2.235, -376.0, -345.4, 5, 12]",
+ "fp": "[12.55, 7.8, 2.11, 1.315, 2.04, 19.38, 1.85, 3.205, 3.135, 11.3, 2.145, 20.225, 3.07, 3.055, 1.22, 5.525, 2.115, -648.3, 70.9, 4, 13]",
  "day": {
   "date": "2026-11-28",
   "std": 2,
