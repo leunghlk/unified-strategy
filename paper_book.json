@@ -42,9 +42,9 @@
    "spot_last": 54.7400016784668,
    "mark_ks": 70.0,
    "mark_kl": 60.0,
-   "mark": 7.275,
+   "mark": 7.26,
    "mark_src": "Futu",
-   "unrealized": -2293.5
+   "unrealized": -2286.0
   },
   {
    "date": "2026-11-11",
@@ -60,12 +60,12 @@
    "status": "open",
    "shadow": true,
    "config": "winner PT60+δ0.28",
-   "spot_last": 55.630001068115234,
+   "spot_last": 56.689998626708984,
    "mark_ks": 45.0,
    "mark_kl": 40.0,
-   "mark": 0.88,
+   "mark": 0.775,
    "mark_src": "Futu",
-   "unrealized": 184.8
+   "unrealized": 247.8
   },
   {
    "date": "2026-11-11",
@@ -84,9 +84,9 @@
    "spot_last": 201.77000427246094,
    "mark_ks": 155.0,
    "mark_kl": 140.0,
-   "mark": 2.28,
+   "mark": 2.55,
    "mark_src": "Futu",
-   "unrealized": 573.6
+   "unrealized": 519.6
   },
   {
    "date": "2026-11-11",
@@ -122,9 +122,9 @@
    "shadow": true,
    "config": "winner PT60+δ0.28",
    "spot_last": 378.95001220703125,
-   "mark": 11.85,
+   "mark": 9.95,
    "mark_src": "Futu",
-   "unrealized": -181.2
+   "unrealized": 8.8
   },
   {
    "date": "2026-11-14",
@@ -141,9 +141,9 @@
    "shadow": true,
    "config": "winner PT60+δ0.28",
    "spot_last": 153.4499969482422,
-   "mark": 5.25,
+   "mark": 5.4,
    "mark_src": "Futu",
-   "unrealized": -212.4
+   "unrealized": -242.4
   },
   {
    "date": "2026-11-18",
@@ -305,13 +305,16 @@
    "contracts": 12,
    "margin": 2280.0,
    "iv": 0.855,
-   "status": "open",
+   "status": "closed",
    "shadow": true,
    "config": "winner PT60+δ0.28",
    "spot_last": 15.930000305175781,
-   "mark": 0.454,
-   "mark_src": "BS",
-   "unrealized": -439.65
+   "mark": 0.0,
+   "mark_src": "Futu",
+   "unrealized": 105.6,
+   "exit_date": "2026-11-27",
+   "exit_reason": "PT60（mark 0.000 ≤ 40%×credit 0.10）",
+   "realized": 105.6
   }
  ],
  "closed": [
@@ -430,13 +433,31 @@
    "exit_date": "2026-11-25",
    "exit_reason": "PT60（mark 0.075 ≤ 40%×credit 0.53）",
    "realized": 708.8
+  },
+  {
+   "date": "2026-11-25",
+   "sym": "RPD",
+   "spot": 15.6,
+   "short_k": 13.0,
+   "long_k": 11.0,
+   "expiry": "2027-01-15",
+   "credit": 0.1,
+   "contracts": 12,
+   "margin": 2280.0,
+   "iv": 0.855,
+   "status": "closed",
+   "shadow": true,
+   "config": "winner PT60+δ0.28",
+   "spot_last": 15.930000305175781,
+   "mark": 0.0,
+   "mark_src": "Futu",
+   "unrealized": 105.6,
+   "exit_date": "2026-11-27",
+   "exit_reason": "PT60（mark 0.000 ≤ 40%×credit 0.10）",
+   "realized": 105.6
   }
  ],
  "log": [
-  {
-   "date": "2026-11-05",
-   "acts": []
-  },
   {
    "date": "2026-11-05",
    "acts": []
@@ -588,18 +609,24 @@
   {
    "date": "2026-11-27",
    "acts": []
+  },
+  {
+   "date": "2026-11-27",
+   "acts": [
+    "PT60 平 RPD 0.10→0.00（Futu mark）realized +106"
+   ]
   }
  ],
  "summary": {
-  "as_of": "2026-11-27 21:40",
+  "as_of": "2026-11-27 22:30",
   "week": 2,
-  "open_n": 10,
-  "realized": 2164.5,
-  "unrealized": -3320.64,
-  "total": -1156.14,
-  "nav_paper": 47988.86,
-  "shadow_n": 10,
-  "margin_used": 27155.38
+  "open_n": 9,
+  "realized": 2270.1,
+  "unrealized": -2704.49,
+  "total": -434.39,
+  "nav_paper": 48710.61,
+  "shadow_n": 9,
+  "margin_used": 24875.38
  },
- "fp": "[2.055, 7.275, 0.88, 2.28, 22.023, 11.85, 5.25, 13.124, 1.1, 0.025, 0.883, 0.875, 0.075, 1.891, 0.454, -3320.64, 2164.5, 10, 5]"
+ "fp": "[2.055, 7.26, 0.775, 2.55, 22.023, 9.95, 5.4, 13.124, 1.1, 0.025, 0.883, 0.875, 0.075, 1.891, 0.0, -2704.49, 2270.1, 9, 6]"
 }
